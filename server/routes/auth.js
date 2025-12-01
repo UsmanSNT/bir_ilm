@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/database');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 
-const ADMIN_KEY = process.env.ADMIN_KEY || 'BIRILM_ADMIN_2024';
+const ADMIN_KEY = process.env.ADMIN_KEY || 'BIRILM_ADMIN_2025';
 
 // Ro'yxatdan o'tish
 router.post('/register', async (req, res) => {

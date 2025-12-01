@@ -107,7 +107,7 @@ async function hashPassword(password) {
 // Auth API
 const authAPI = {
     register: async (username, email, password, isAdmin = false, adminKey = '') => {
-        const ADMIN_KEY = 'BIRILM_ADMIN_2024';
+        const ADMIN_KEY = 'BIRILM_ADMIN_2025';
         
         // Admin kalitini tekshirish
         if (isAdmin && adminKey !== ADMIN_KEY) {

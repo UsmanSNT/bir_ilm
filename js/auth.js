@@ -2,7 +2,7 @@
 class AuthSystem {
     constructor() {
         this.currentUser = JSON.parse(localStorage.getItem('birilm_user') || 'null');
-        this.adminKey = 'BIRILM_ADMIN_2024'; // Admin taklif kaliti
+        this.adminKey = 'BIRILM_ADMIN_2025'; // Admin taklif kaliti
     }
 
     // Ro'yxatdan o'tish

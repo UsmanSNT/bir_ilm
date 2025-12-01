@@ -29,8 +29,31 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px 20px;
             position: relative;
+            gap: 15px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(to right, #4CAF50, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .tag-badge {
@@ -75,15 +98,27 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            gap: 20px;
+            padding: 15px;
+            gap: 15px;
+            overflow: hidden;
         }
 
-        /* Flip Clock Card */
-        .flip-card {
+        /* Cards Wrapper - 50/50 split */
+        .cards-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Shared Card Style */
+        .flip-card,
+        .seconds-card {
             background: #1a1a1a;
             border-radius: 20px;
-            padding: 30px 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -92,10 +127,12 @@
             overflow: hidden;
             width: 100%;
             max-width: 400px;
-            aspect-ratio: 1/1;
+            flex: 1;
+            min-height: 0;
         }
 
-        .flip-card::before {
+        .flip-card::before,
+        .seconds-card::before {
             content: '';
             position: absolute;
             left: 0;
@@ -107,27 +144,23 @@
             z-index: 10;
         }
 
+        /* Minutes Number */
         .flip-number {
-            font-size: clamp(120px, 35vw, 200px);
+            font-size: clamp(100px, 30vw, 180px);
             font-weight: 800;
             color: #b0b0b0;
-            line-height: 0.9;
+            line-height: 0.85;
             letter-spacing: -5px;
             position: relative;
         }
 
-        .flip-number-top {
-            background: linear-gradient(to bottom, #c0c0c0 0%, #909090 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .flip-number-bottom {
-            background: linear-gradient(to bottom, #808080 0%, #606060 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* Seconds Number - Same size as minutes */
+        .seconds-number {
+            font-size: clamp(100px, 30vw, 180px);
+            font-weight: 800;
+            color: #b0b0b0;
+            line-height: 0.85;
+            letter-spacing: -5px;
         }
 
         .flip-label {
@@ -138,46 +171,11 @@
             margin-top: 10px;
         }
 
-        /* Seconds Card (smaller) */
-        .seconds-card {
-            background: #1a1a1a;
-            border-radius: 15px;
-            padding: 15px 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .seconds-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 50%;
-            height: 1px;
-            background: rgba(0, 0, 0, 0.4);
-            transform: translateY(-50%);
-            z-index: 10;
-        }
-
-        .seconds-number {
-            font-size: clamp(80px, 25vw, 140px);
-            font-weight: 800;
-            color: #b0b0b0;
-            line-height: 0.9;
-            letter-spacing: -3px;
-        }
-
         .small-seconds {
             position: absolute;
             bottom: 15px;
             right: 20px;
-            font-size: 18px;
+            font-size: clamp(16px, 5vw, 24px);
             color: #555;
             font-weight: 600;
         }
@@ -500,16 +498,30 @@
             }
         }
 
-        /* Responsive */
+        /* Responsive - Mobile */
         @media (max-width: 480px) {
-            .flip-card {
-                padding: 20px;
+            .header {
+                padding: 15px;
+            }
+
+            .timer-container {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .flip-card,
+            .seconds-card {
                 border-radius: 15px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(80px, 28vw, 150px);
             }
             
             .controls {
-                gap: 20px;
-                padding: 20px;
+                gap: 15px;
+                padding: 15px;
             }
 
             .control-btn {
@@ -527,31 +539,136 @@
                 transform: none;
                 margin-bottom: 10px;
             }
+
+            .small-seconds {
+                bottom: 10px;
+                right: 15px;
+            }
+
+            .status-badge {
+                font-size: 11px;
+            }
+
+            .pomodoro-dots {
+                margin-top: 10px;
+            }
         }
 
-        /* Landscape mode */
-        @media (max-height: 600px) and (orientation: landscape) {
-            .timer-container {
-                flex-direction: row;
-                gap: 30px;
-            }
-
-            .flip-card {
-                max-width: 250px;
-                aspect-ratio: auto;
-                padding: 20px;
-            }
-
-            .flip-number {
-                font-size: 80px;
-            }
-
-            .seconds-card {
-                max-width: 250px;
-            }
-
+        /* Small phones */
+        @media (max-width: 360px) {
+            .flip-number,
             .seconds-number {
-                font-size: 60px;
+                font-size: clamp(70px, 25vw, 120px);
+            }
+        }
+
+        /* Landscape mode - vertikal (ostma-ost) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 8px 15px;
+            }
+
+            .logo-img {
+                width: 25px;
+                height: 25px;
+            }
+
+            .logo-text {
+                font-size: 12px;
+            }
+
+            .tag-badge {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            .timer-container {
+                padding: 5px 10px;
+                gap: 8px;
+            }
+
+            .cards-wrapper {
+                flex-direction: column;
+                max-width: 300px;
+                gap: 8px;
+            }
+
+            .flip-card,
+            .seconds-card {
+                border-radius: 12px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(40px, 10vh, 70px);
+            }
+
+            .controls {
+                padding: 8px;
+                gap: 15px;
+            }
+
+            .control-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .control-btn.primary {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .pomodoro-dots {
+                margin-top: 5px;
+            }
+
+            .pomodoro-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            .status-badge {
+                font-size: 9px;
+            }
+
+            .small-seconds {
+                font-size: 12px;
+                bottom: 8px;
+                right: 12px;
+            }
+
+            .settings-toggle {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Tablet */
+        @media (min-width: 768px) {
+            .timer-container {
+                gap: 20px;
+            }
+
+            .cards-wrapper {
+                max-width: 500px;
+                gap: 20px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(150px, 20vw, 220px);
+            }
+        }
+
+        /* Large screens */
+        @media (min-width: 1024px) {
+            .cards-wrapper {
+                max-width: 550px;
             }
         }
 
@@ -583,6 +700,32 @@
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.2); opacity: 0.7; }
         }
+
+        /* Footer */
+        .footer {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #444;
+        }
+
+        .footer a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #4CAF50;
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            .footer {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -591,9 +734,13 @@
         <a href="../index.html" class="home-link">
             <i class="fas fa-chevron-left"></i>
         </a>
+        <div class="logo-section">
+            <img src="../assets/images/logo.jpg" alt="Bir Ilm" class="logo-img">
+            <span class="logo-text">BIR ILM</span>
+        </div>
         <div class="tag-badge">
             <span class="tag-dot work" id="tag-dot"></span>
-            <span id="tag-name">Bir Ilm</span>
+            <span id="tag-name">Pomodoro</span>
         </div>
         <div class="points-display" id="points-display" style="display: none;">
             <i class="fas fa-coins"></i>
@@ -603,22 +750,25 @@
 
     <!-- Main Timer -->
     <div class="timer-container">
-        <!-- Minutes Card -->
-        <div class="flip-card">
-            <div class="status-badge" id="status-text">Ish vaqti</div>
-            <div class="flip-number" id="minutes-display">25</div>
-            <div class="pomodoro-dots" id="pomodoro-dots">
-                <div class="pomodoro-dot current"></div>
-                <div class="pomodoro-dot"></div>
-                <div class="pomodoro-dot"></div>
-                <div class="pomodoro-dot"></div>
+        <!-- Cards Wrapper - 50/50 -->
+        <div class="cards-wrapper">
+            <!-- Minutes Card -->
+            <div class="flip-card">
+                <div class="status-badge" id="status-text">Ish vaqti</div>
+                <div class="flip-number" id="minutes-display">25</div>
+                <div class="pomodoro-dots" id="pomodoro-dots">
+                    <div class="pomodoro-dot current"></div>
+                    <div class="pomodoro-dot"></div>
+                    <div class="pomodoro-dot"></div>
+                    <div class="pomodoro-dot"></div>
+                </div>
             </div>
-        </div>
 
-        <!-- Seconds Card -->
-        <div class="seconds-card">
-            <div class="seconds-number" id="seconds-display">00</div>
-            <div class="small-seconds" id="milliseconds-display">00</div>
+            <!-- Seconds Card -->
+            <div class="seconds-card">
+                <div class="seconds-number" id="seconds-display">00</div>
+                <div class="small-seconds" id="milliseconds-display">00</div>
+            </div>
         </div>
 
         <!-- Controls -->
@@ -633,6 +783,12 @@
                 <i class="fas fa-forward"></i>
             </button>
         </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <span>&copy; 2025 Bir Ilm</span>
+        <a href="https://t.me/usmandev" target="_blank">@Usman dev</a>
     </div>
 
     <!-- Settings Toggle -->
