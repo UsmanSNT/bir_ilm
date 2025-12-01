@@ -203,13 +203,26 @@
 
         // Alert funksiyasi
         function showAlert(message, type = 'error') {
-            const alertDiv = document.getElementById('alert-message');
-            alertDiv.className = `alert mb-4 p-4 rounded-lg ${type === 'error' ? 'bg-red-900/50 text-red-200 border border-red-700' : 'bg-green-900/50 text-green-200 border border-green-700'}`;
-            alertDiv.textContent = message;
-            alertDiv.classList.remove('hidden');
+            // Floating toast notification
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 ${type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`;
+            toast.textContent = message;
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(20px)';
+            document.body.appendChild(toast);
+            
+            // Animatsiya
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+            
+            // 3 soniyadan keyin yo'qolish
             setTimeout(() => {
-                alertDiv.classList.add('hidden');
-            }, 5000);
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         // Qidiruv holati
@@ -313,7 +326,7 @@
                     }).join('');
 
                     return `
-                        <div class="book-card">
+                        <div class="book-card" data-book-id="${book.id}">
                             <div class="card p-4">
                                 <div class="card-content">
                                     ${imageHtml}
@@ -323,7 +336,7 @@
                                         <div class="mb-2">
                                             <div class="flex items-center space-x-2 mb-1">
                                                 <span class="star-rating text-base">${stars}</span>
-                                                <span class="text-xs text-gray-400">${displayRating.toFixed(1)}/5</span>
+                                                <span class="text-xs text-gray-400 average-rating">${displayRating.toFixed(1)}/5</span>
                                                 ${book.total_ratings ? `<span class="text-xs text-gray-500">(${book.total_ratings} baho)</span>` : ''}
                                             </div>
                                             <div class="flex items-center space-x-1">
@@ -342,13 +355,13 @@
 
                                     <!-- Like/Dislike tugmalari -->
                                     <div class="flex items-center space-x-2 mb-3 pb-3 border-b border-gray-700">
-                                        <button onclick="toggleLike('${book.id}')" class="btn-like ${isLiked ? 'active' : ''} px-3 py-1.5 rounded-lg border border-gray-600 hover:border-green-500 transition flex items-center space-x-1 text-xs">
+                                        <button onclick="toggleLike(${book.id})" class="btn-like ${isLiked ? 'active' : ''} ${isLiked ? 'border-green-500 text-green-400' : ''} px-3 py-1.5 rounded-lg border border-gray-600 hover:border-green-500 transition flex items-center space-x-1 text-xs">
                                             <i class="fas fa-thumbs-up text-sm"></i>
-                                            <span>${likesCount}</span>
+                                            <span class="like-count">${likesCount}</span>
                                         </button>
-                                        <button onclick="toggleDislike('${book.id}')" class="btn-dislike ${isDisliked ? 'active' : ''} px-3 py-1.5 rounded-lg border border-gray-600 hover:border-red-500 transition flex items-center space-x-1 text-xs">
+                                        <button onclick="toggleDislike(${book.id})" class="btn-dislike ${isDisliked ? 'active' : ''} ${isDisliked ? 'border-red-500 text-red-400' : ''} px-3 py-1.5 rounded-lg border border-gray-600 hover:border-red-500 transition flex items-center space-x-1 text-xs">
                                             <i class="fas fa-thumbs-down text-sm"></i>
-                                            <span>${dislikesCount}</span>
+                                            <span class="dislike-count">${dislikesCount}</span>
                                         </button>
                                         <span class="text-xs text-gray-500 views-count" data-book-id="${book.id}">
                                             <i class="fas fa-eye mr-1"></i>${book.views_count || 0}
@@ -413,12 +426,35 @@
             }
             
             try {
-                console.log('Rating:', bookId, rating);
                 const result = await booksAPI.rate(bookId, rating);
-                console.log('Rating natijasi:', result);
-                // Agar xatolik bo'lmasa, muvaffaqiyatli deb hisoblanadi
-                showAlert('Baholash qo\'shildi!', 'success');
-                await loadBooks();
+                
+                // Faqat yulduzchalarni yangilash (sahifani qayta yuklamasdan)
+                const ratingContainer = document.getElementById(`user-rating-${bookId}`);
+                if (ratingContainer) {
+                    const stars = ratingContainer.querySelectorAll('span');
+                    stars.forEach((star, index) => {
+                        if (index < rating) {
+                            star.classList.remove('text-gray-500');
+                            star.classList.add('text-yellow-400');
+                        } else {
+                            star.classList.remove('text-yellow-400');
+                            star.classList.add('text-gray-500');
+                        }
+                    });
+                }
+                
+                // O'rtacha bahoni yangilash (agar mavjud bo'lsa)
+                if (result && result.averageRating) {
+                    const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
+                    if (bookCard) {
+                        const avgDisplay = bookCard.querySelector('.average-rating');
+                        if (avgDisplay) {
+                            avgDisplay.textContent = `${parseFloat(result.averageRating).toFixed(1)}/5`;
+                        }
+                    }
+                }
+                
+                showAlert('Baholandi! ⭐', 'success');
             } catch (error) {
                 console.error('Rating xatosi:', error);
                 showAlert(error.message || 'Baholashda xatolik yuz berdi');
@@ -498,10 +534,32 @@
 
         // Like/dislike toggle
         async function toggleLike(bookId) {
+            if (!currentUser) {
+                showAlert('Like bosish uchun tizimga kiring!', 'error');
+                return;
+            }
+            
             try {
                 const result = await booksAPI.like(bookId);
-                if (result.success) {
-                    await loadBooks();
+                if (result) {
+                    // UI ni yangilash (sahifani qayta yuklamasdan)
+                    const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
+                    if (bookCard) {
+                        const likeBtn = bookCard.querySelector('.btn-like');
+                        const dislikeBtn = bookCard.querySelector('.btn-dislike');
+                        const likeCount = likeBtn?.querySelector('.like-count');
+                        const dislikeCount = dislikeBtn?.querySelector('.dislike-count');
+                        
+                        if (result.action === 'liked') {
+                            likeBtn?.classList.add('active', 'border-green-500', 'text-green-400');
+                            dislikeBtn?.classList.remove('active', 'border-red-500', 'text-red-400');
+                        } else {
+                            likeBtn?.classList.remove('active', 'border-green-500', 'text-green-400');
+                        }
+                        
+                        if (likeCount) likeCount.textContent = result.likes_count || 0;
+                        if (dislikeCount) dislikeCount.textContent = result.dislikes_count || 0;
+                    }
                 }
             } catch (error) {
                 showAlert(error.message || 'Xatolik yuz berdi');
@@ -509,10 +567,32 @@
         }
 
         async function toggleDislike(bookId) {
+            if (!currentUser) {
+                showAlert('Dislike bosish uchun tizimga kiring!', 'error');
+                return;
+            }
+            
             try {
                 const result = await booksAPI.dislike(bookId);
-                if (result.success) {
-                    await loadBooks();
+                if (result) {
+                    // UI ni yangilash (sahifani qayta yuklamasdan)
+                    const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
+                    if (bookCard) {
+                        const likeBtn = bookCard.querySelector('.btn-like');
+                        const dislikeBtn = bookCard.querySelector('.btn-dislike');
+                        const likeCount = likeBtn?.querySelector('.like-count');
+                        const dislikeCount = dislikeBtn?.querySelector('.dislike-count');
+                        
+                        if (result.action === 'disliked') {
+                            dislikeBtn?.classList.add('active', 'border-red-500', 'text-red-400');
+                            likeBtn?.classList.remove('active', 'border-green-500', 'text-green-400');
+                        } else {
+                            dislikeBtn?.classList.remove('active', 'border-red-500', 'text-red-400');
+                        }
+                        
+                        if (likeCount) likeCount.textContent = result.likes_count || 0;
+                        if (dislikeCount) dislikeCount.textContent = result.dislikes_count || 0;
+                    }
                 }
             } catch (error) {
                 showAlert(error.message || 'Xatolik yuz berdi');
@@ -521,6 +601,11 @@
 
         // Izoh qo'shish
         async function addComment(bookId) {
+            if (!currentUser) {
+                showAlert('Izoh qoldirish uchun tizimga kiring!', 'error');
+                return;
+            }
+            
             const input = document.getElementById(`comment-input-${bookId}`);
             const commentText = input.value.trim();
 
@@ -531,15 +616,32 @@
 
             try {
                 const result = await booksAPI.addComment(bookId, commentText);
-                if (result.success) {
+                if (result.success || result.id) {
+                    // Yangi izohni DOM ga qo'shish (sahifani qayta yuklamasdan)
+                    const commentsList = document.getElementById(`comments-${bookId}`);
+                    if (commentsList) {
+                        const now = new Date().toLocaleDateString('uz-UZ');
+                        const newCommentHtml = `
+                            <div class="comment-item bg-gray-900/50 p-3 rounded-lg">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-semibold text-white text-sm">${escapeHtml(currentUser.username)}</span>
+                                    <span class="text-xs text-gray-500">${now}</span>
+                                </div>
+                                <p class="text-gray-300 text-sm">${escapeHtml(commentText)}</p>
+                            </div>
+                        `;
+                        commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
+                    }
+                    
                     input.value = '';
-                    await loadBooks();
+                    
                     // Izohlar bo'limini ochish
                     const commentsSection = document.getElementById(`comments-section-${bookId}`);
                     if (commentsSection) {
                         commentsSection.classList.remove('hidden');
                     }
-                    showAlert(result.message, 'success');
+                    
+                    showAlert('Izoh qo\'shildi!', 'success');
                 }
             } catch (error) {
                 showAlert(error.message || 'Xatolik yuz berdi');
