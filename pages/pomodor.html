@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bir Ilm - Pomodoro Timer</title>
+    <title>Bir Ilm</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -126,19 +126,21 @@
         .flip-number {
             font-size: clamp(140px, 45vw, 280px);
             font-weight: 800;
-            color: #b0b0b0;
+            color: #ffffff;
             line-height: 0.8;
             letter-spacing: -8px;
             position: relative;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
         }
 
         /* Seconds Number - Same size as minutes */
         .seconds-number {
             font-size: clamp(140px, 45vw, 280px);
             font-weight: 800;
-            color: #b0b0b0;
+            color: #ffffff;
             line-height: 0.8;
             letter-spacing: -8px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
         }
 
         .flip-label {
@@ -543,7 +545,7 @@
             }
         }
 
-        /* Landscape mode - vertikal (ostma-ost) */
+        /* Landscape mode - gorizontal */
         @media (max-height: 500px) and (orientation: landscape) {
             .header {
                 padding: 8px 15px;
@@ -559,25 +561,26 @@
             }
 
             .timer-container {
-                padding: 5px 10px;
-                gap: 8px;
+                padding: 5px 15px;
+                gap: 10px;
             }
 
             .cards-wrapper {
-                flex-direction: column;
-                max-width: 300px;
-                gap: 8px;
+                flex-direction: row;
+                max-width: 95vw;
+                gap: 15px;
             }
 
             .flip-card,
             .seconds-card {
                 border-radius: 12px;
+                max-width: none;
             }
 
             .flip-number,
             .seconds-number {
-                font-size: clamp(50px, 18vh, 100px);
-                letter-spacing: -3px;
+                font-size: clamp(60px, 22vh, 120px);
+                letter-spacing: -4px;
             }
 
             .controls {
@@ -598,12 +601,7 @@
             }
 
             .pomodoro-dots {
-                margin-top: 5px;
-            }
-
-            .pomodoro-dot {
-                width: 6px;
-                height: 6px;
+                display: none;
             }
 
             .status-badge {
@@ -611,7 +609,7 @@
             }
 
             .small-seconds {
-                font-size: 12px;
+                font-size: 14px;
                 bottom: 8px;
                 right: 12px;
             }
@@ -623,36 +621,60 @@
                 bottom: 10px;
                 right: 10px;
             }
+
+            .footer {
+                display: none;
+            }
         }
 
-        /* Tablet */
+        /* Tablet - Gorizontal */
         @media (min-width: 768px) {
             .timer-container {
                 gap: 20px;
             }
 
             .cards-wrapper {
-                max-width: 550px;
+                flex-direction: row;
+                max-width: 900px;
                 gap: 20px;
+            }
+
+            .flip-card,
+            .seconds-card {
+                max-width: none;
             }
 
             .flip-number,
             .seconds-number {
-                font-size: clamp(200px, 25vw, 300px);
+                font-size: clamp(120px, 15vw, 200px);
+                letter-spacing: -8px;
+            }
+
+            .small-seconds {
+                font-size: 28px;
+            }
+        }
+
+        /* Large screens - Gorizontal */
+        @media (min-width: 1024px) {
+            .cards-wrapper {
+                max-width: 1100px;
+                gap: 30px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(180px, 18vw, 280px);
                 letter-spacing: -10px;
             }
 
             .small-seconds {
-                font-size: 32px;
+                font-size: 36px;
             }
         }
 
-        /* Large screens */
-        @media (min-width: 1024px) {
-            .cards-wrapper {
-                max-width: 600px;
-            }
-
+        /* Extra large screens */
+        @media (min-width: 1440px) {
             .flip-number,
             .seconds-number {
                 font-size: 320px;
@@ -707,12 +729,6 @@
         .footer a:hover {
             color: #4CAF50;
         }
-
-        @media (max-height: 500px) and (orientation: landscape) {
-            .footer {
-                display: none;
-            }
-        }
     </style>
 </head>
 <body>
@@ -724,12 +740,12 @@
         <div class="logo-section">
             <img src="../assets/images/logo.jpg" alt="Bir Ilm" class="logo-img">
             <span class="logo-text">BIR ILM</span>
-        </div>
+                    </div>
         <div class="points-display" id="points-display" style="display: none;">
             <i class="fas fa-coins"></i>
             <span id="points-count">0</span> sum
-        </div>
-    </div>
+                </div>
+            </div>
 
     <!-- Main Timer -->
     <div class="timer-container">
@@ -744,29 +760,29 @@
                     <div class="pomodoro-dot"></div>
                     <div class="pomodoro-dot"></div>
                     <div class="pomodoro-dot"></div>
-                </div>
             </div>
+                </div>
 
             <!-- Seconds Card -->
             <div class="seconds-card">
                 <div class="seconds-number" id="seconds-display">00</div>
                 <div class="small-seconds" id="milliseconds-display">00</div>
+                </div>
             </div>
-        </div>
 
-        <!-- Controls -->
+            <!-- Controls -->
         <div class="controls">
             <button class="control-btn stop" id="stop-btn" title="To'xtatish">
                 <i class="fas fa-stop"></i>
-            </button>
+                </button>
             <button class="control-btn primary" id="play-pause-btn" title="Boshlash">
                 <i class="fas fa-play" id="play-icon"></i>
-            </button>
+                </button>
             <button class="control-btn" id="skip-btn" title="O'tkazib yuborish">
                 <i class="fas fa-forward"></i>
-            </button>
+                </button>
         </div>
-    </div>
+            </div>
 
     <!-- Footer -->
     <div class="footer">
@@ -777,7 +793,7 @@
     <!-- Settings Toggle -->
     <button class="settings-toggle" id="settings-toggle">
         <i class="fas fa-cog"></i>
-    </button>
+                </button>
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
@@ -792,7 +808,7 @@
             <button class="settings-tab active" data-mode="work">Pomodoro</button>
             <button class="settings-tab" data-mode="shortBreak">Qisqa</button>
             <button class="settings-tab" data-mode="longBreak">Uzoq</button>
-        </div>
+            </div>
 
         <!-- Time Picker -->
         <div class="time-picker">
@@ -800,26 +816,26 @@
                 <button class="time-nav" data-action="hour-up"><i class="fas fa-chevron-up"></i></button>
                 <div class="time-value" id="picker-hours">00</div>
                 <button class="time-nav" data-action="hour-down"><i class="fas fa-chevron-down"></i></button>
-            </div>
+                    </div>
             <span class="time-separator">:</span>
             <div class="time-column">
                 <button class="time-nav" data-action="min-up"><i class="fas fa-chevron-up"></i></button>
                 <div class="time-value" id="picker-minutes">25</div>
                 <button class="time-nav" data-action="min-down"><i class="fas fa-chevron-down"></i></button>
-            </div>
+                    </div>
             <span class="time-separator">:</span>
             <div class="time-column">
                 <button class="time-nav" data-action="sec-up"><i class="fas fa-chevron-up"></i></button>
                 <div class="time-value" id="picker-seconds">00</div>
                 <button class="time-nav" data-action="sec-down"><i class="fas fa-chevron-down"></i></button>
-            </div>
-        </div>
+                    </div>
+                </div>
 
         <!-- Settings Rows -->
         <div class="settings-row">
             <span class="settings-label">Tag</span>
             <span class="settings-value">Bir Ilm</span>
-        </div>
+            </div>
         <div class="settings-row">
             <span class="settings-label">Rang</span>
             <span class="settings-value">
@@ -921,15 +937,15 @@
             if (isRunning) return;
             isRunning = true;
             playIcon.className = 'fas fa-pause';
-
+            
             const startTime = Date.now();
             const initialTime = timeLeft;
-
+            
             timerInterval = setInterval(() => {
                 const elapsed = Date.now() - startTime;
                 timeLeft = Math.max(0, initialTime - elapsed);
                 updateDisplay();
-
+                
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     isRunning = false;
@@ -978,21 +994,21 @@
             if (currentMode === 'work') {
                 pomodoroCount++;
                 updatePomodoroDots();
-
+                
                 // Add points
                 const token = localStorage.getItem('birilm_token');
                 if (token) {
                     try {
                         const data = await authAPI.addPomodoroPoints();
-                        if (data.success) {
-                            updatePointsDisplay(data.sum);
+                            if (data.success) {
+                                updatePointsDisplay(data.sum);
                             showNotification(`🎉 ${data.added} tanga qo'shildi!`);
                         }
                     } catch (error) {
                         console.error('Tanga qo\'shishda xatolik:', error);
                     }
                 }
-
+                
                 if (pomodoroCount >= totalPomodoros) {
                     setMode('longBreak');
                     pomodoroCount = 0;
@@ -1042,8 +1058,8 @@
 
             try {
                 const data = await authAPI.getPoints();
-                if (data.success) {
-                    updatePointsDisplay(data.sum);
+                    if (data.success) {
+                        updatePointsDisplay(data.sum);
                     pointsDisplay.style.display = 'flex';
                 }
             } catch (error) {

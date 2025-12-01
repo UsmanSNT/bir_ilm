@@ -33,9 +33,9 @@ function removeUser() {
 // Supabase REST API so'rovlari
 async function supabaseRequest(table, options = {}) {
     const { method = 'GET', body, query = '', headers = {} } = options;
-    
+
     const url = `${SUPABASE_REST_URL}/${table}${query}`;
-    
+
     const config = {
         method,
         headers: {
@@ -46,23 +46,23 @@ async function supabaseRequest(table, options = {}) {
             ...headers
         }
     };
-    
+
     if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
         config.body = JSON.stringify(body);
     }
-    
+
     try {
         const response = await fetch(url, config);
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.message || `Xatolik: ${response.status}`);
         }
-        
+
         // DELETE va ba'zi POST so'rovlari bo'sh javob qaytaradi
         const text = await response.text();
         if (!text) return { success: true };
-        
+
         return JSON.parse(text);
     } catch (error) {
         console.error('Supabase xatosi:', error);
@@ -73,26 +73,32 @@ async function supabaseRequest(table, options = {}) {
 // Supabase RPC funksiyasini chaqirish
 async function supabaseRPC(functionName, params = {}) {
     const url = `${SUPABASE_URL}/rest/v1/rpc/${functionName}`;
-    
+
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Prefer': 'return=representation'
         },
         body: JSON.stringify(params)
     });
-    
+
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Xatolik: ${response.status}`);
+        console.error('RPC Error:', functionName, errorData);
+        throw new Error(errorData.message || errorData.error || `Xatolik: ${response.status}`);
     }
-    
+
     const text = await response.text();
     if (!text) return { success: true };
-    
-    return JSON.parse(text);
+
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        return { success: true, data: text };
+    }
 }
 
 // Parolni hash qilish (oddiy versiya - ishlab chiqarish uchun bcrypt ishlatish kerak)
@@ -108,24 +114,24 @@ async function hashPassword(password) {
 const authAPI = {
     register: async (username, email, password, isAdmin = false, adminKey = '') => {
         const ADMIN_KEY = 'BIRILM_ADMIN_2025';
-        
+
         // Admin kalitini tekshirish
         if (isAdmin && adminKey !== ADMIN_KEY) {
             throw new Error('Noto\'g\'ri admin taklif kaliti!');
         }
-        
+
         // Foydalanuvchi mavjudligini tekshirish
         const existingUsers = await supabaseRequest('users', {
             query: `?or=(username.eq.${encodeURIComponent(username)},email.eq.${encodeURIComponent(email)})`
         });
-        
+
         if (existingUsers && existingUsers.length > 0) {
             throw new Error('Bu foydalanuvchi nomi yoki email allaqachon mavjud!');
         }
-        
+
         // Parolni hash qilish
         const hashedPassword = await hashPassword(password);
-        
+
         // Yangi foydalanuvchi yaratish
         const role = isAdmin ? 'admin' : 'user';
         const newUser = await supabaseRequest('users', {
@@ -133,7 +139,7 @@ const authAPI = {
             body: { username, email, password: hashedPassword, role },
             headers: { 'Prefer': 'return=representation' }
         });
-        
+
         if (newUser && newUser.length > 0) {
             const user = {
                 id: newUser[0].id,
@@ -142,13 +148,13 @@ const authAPI = {
                 role: newUser[0].role,
                 sum: newUser[0].sum || 0
             };
-            
+
             // Token yaratish (oddiy versiya)
             const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
-            
+
             setToken(token);
             setUser(user);
-            
+
             return {
                 success: true,
                 message: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz!',
@@ -156,21 +162,21 @@ const authAPI = {
                 token
             };
         }
-        
+
         throw new Error('Foydalanuvchi yaratishda xatolik');
     },
 
     login: async (username, password) => {
         const hashedPassword = await hashPassword(password);
-        
+
         const users = await supabaseRequest('users', {
             query: `?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(hashedPassword)}`
         });
-        
+
         if (!users || users.length === 0) {
             throw new Error('Noto\'g\'ri foydalanuvchi nomi yoki parol!');
         }
-        
+
         const user = {
             id: users[0].id,
             username: users[0].username,
@@ -178,13 +184,13 @@ const authAPI = {
             role: users[0].role,
             sum: users[0].sum || 0
         };
-        
+
         // Token yaratish
         const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
-        
+
         setToken(token);
         setUser(user);
-        
+
         return {
             success: true,
             message: 'Muvaffaqiyatli kirdingiz!',
@@ -198,18 +204,18 @@ const authAPI = {
         if (!user) {
             throw new Error('Foydalanuvchi topilmadi');
         }
-        
+
         // Yangilangan ma'lumotlarni olish
         const users = await supabaseRequest('users', {
             query: `?id=eq.${user.id}&select=id,username,email,role,sum`
         });
-        
+
         if (users && users.length > 0) {
             const updatedUser = users[0];
             setUser(updatedUser);
             return { success: true, user: updatedUser };
         }
-        
+
         return { success: true, user };
     },
 
@@ -223,11 +229,11 @@ const authAPI = {
         if (!user) {
             throw new Error('Foydalanuvchi topilmadi');
         }
-        
+
         const users = await supabaseRequest('users', {
             query: `?id=eq.${user.id}&select=sum`
         });
-        
+
         return {
             success: true,
             sum: users && users.length > 0 ? users[0].sum : 0
@@ -239,15 +245,15 @@ const authAPI = {
         if (!user) {
             throw new Error('Foydalanuvchi topilmadi');
         }
-        
+
         const pointsToAdd = 5;
-        
+
         // RPC funksiyasini chaqirish
         const newSum = await supabaseRPC('add_pomodoro_points', {
             user_id_param: user.id,
             points_param: pointsToAdd
         });
-        
+
         return {
             success: true,
             message: `${pointsToAdd} tanga qo'shildi!`,
@@ -264,7 +270,7 @@ const booksAPI = {
         const books = await supabaseRequest('books_with_stats', {
             query: '?order=created_at.desc'
         });
-        
+
         // Har bir kitob uchun izohlarni olish
         const booksWithComments = await Promise.all((books || []).map(async (book) => {
             const comments = await supabaseRequest('comments', {
@@ -272,14 +278,14 @@ const booksAPI = {
             });
             return { ...book, comments: comments || [] };
         }));
-        
+
         return booksWithComments;
     },
 
     getTop: async () => {
         // RPC funksiyasini chaqirish
         const books = await supabaseRPC('get_top_books', { limit_count: 10 });
-        
+
         // Har bir kitob uchun izohlarni olish
         const booksWithComments = await Promise.all((books || []).map(async (book) => {
             const comments = await supabaseRequest('comments', {
@@ -287,7 +293,7 @@ const booksAPI = {
             });
             return { ...book, comments: comments || [] };
         }));
-        
+
         return booksWithComments;
     },
 
@@ -295,10 +301,10 @@ const booksAPI = {
         if (!query || query.trim().length === 0) {
             return await booksAPI.getAll();
         }
-        
+
         // RPC funksiyasini chaqirish
         const books = await supabaseRPC('search_books', { search_query: query.trim() });
-        
+
         // Har bir kitob uchun izohlarni olish
         const booksWithComments = await Promise.all((books || []).map(async (book) => {
             const comments = await supabaseRequest('comments', {
@@ -306,7 +312,7 @@ const booksAPI = {
             });
             return { ...book, comments: comments || [] };
         }));
-        
+
         return booksWithComments;
     },
 
@@ -315,9 +321,9 @@ const booksAPI = {
         if (!user || user.role !== 'admin') {
             throw new Error('Faqat adminlar kitob qo\'sha oladi!');
         }
-        
+
         const bookRating = rating || 5;
-        
+
         const newBook = await supabaseRequest('books', {
             method: 'POST',
             body: {
@@ -331,7 +337,7 @@ const booksAPI = {
             },
             headers: { 'Prefer': 'return=representation' }
         });
-        
+
         if (newBook && newBook.length > 0) {
             return {
                 success: true,
@@ -339,7 +345,7 @@ const booksAPI = {
                 book: newBook[0]
             };
         }
-        
+
         throw new Error('Kitob yaratishda xatolik');
     },
 
@@ -348,7 +354,7 @@ const booksAPI = {
         if (!user || user.role !== 'admin') {
             throw new Error('Faqat adminlar kitobni tahrirlay oladi!');
         }
-        
+
         await supabaseRequest('books', {
             method: 'PATCH',
             query: `?id=eq.${bookId}`,
@@ -360,7 +366,7 @@ const booksAPI = {
                 image_url: image_url || null
             }
         });
-        
+
         return {
             success: true,
             message: 'Taqriz muvaffaqiyatli tahrirlandi!'
@@ -372,12 +378,12 @@ const booksAPI = {
         if (!user || user.role !== 'admin') {
             throw new Error('Faqat adminlar kitobni o\'chira oladi!');
         }
-        
+
         await supabaseRequest('books', {
             method: 'DELETE',
             query: `?id=eq.${bookId}`
         });
-        
+
         return {
             success: true,
             message: 'Kitob o\'chirildi!'
@@ -389,13 +395,13 @@ const booksAPI = {
         if (!user) {
             throw new Error('Iltimos, avval tizimga kiring!');
         }
-        
+
         // RPC funksiyasini chaqirish
         const result = await supabaseRPC('toggle_like', {
             book_id_param: bookId,
             user_id_param: user.id
         });
-        
+
         return result;
     },
 
@@ -404,13 +410,13 @@ const booksAPI = {
         if (!user) {
             throw new Error('Iltimos, avval tizimga kiring!');
         }
-        
+
         // RPC funksiyasini chaqirish
         const result = await supabaseRPC('toggle_dislike', {
             book_id_param: bookId,
             user_id_param: user.id
         });
-        
+
         return result;
     },
 
@@ -419,13 +425,13 @@ const booksAPI = {
         if (!user) {
             return { success: true, reaction: 'none' };
         }
-        
+
         // RPC funksiyasini chaqirish
         const reaction = await supabaseRPC('get_user_reaction', {
             book_id_param: bookId,
             user_id_param: user.id
         });
-        
+
         return { success: true, reaction };
     },
 
@@ -434,11 +440,11 @@ const booksAPI = {
         if (!user) {
             throw new Error('Iltimos, avval tizimga kiring!');
         }
-        
+
         if (!text || text.trim().length === 0) {
             throw new Error('Izoh bo\'sh bo\'lishi mumkin emas!');
         }
-        
+
         const newComment = await supabaseRequest('comments', {
             method: 'POST',
             body: {
@@ -449,7 +455,7 @@ const booksAPI = {
             },
             headers: { 'Prefer': 'return=representation' }
         });
-        
+
         if (newComment && newComment.length > 0) {
             return {
                 success: true,
@@ -457,7 +463,7 @@ const booksAPI = {
                 comment: newComment[0]
             };
         }
-        
+
         throw new Error('Izoh qo\'shishda xatolik');
     },
 
@@ -466,19 +472,22 @@ const booksAPI = {
         if (!user) {
             throw new Error('Iltimos, avval tizimga kiring!');
         }
-        
+
         if (!rating || rating < 1 || rating > 5) {
             throw new Error('Baholash 1-5 orasida bo\'lishi kerak!');
         }
-        
+
         // RPC funksiyasini chaqirish
         const result = await supabaseRPC('upsert_rating', {
-            book_id_param: bookId,
-            user_id_param: user.id,
-            rating_param: rating
+            book_id_param: parseInt(bookId),
+            user_id_param: parseInt(user.id),
+            rating_param: parseInt(rating)
         });
-        
-        return result;
+
+        // Agar result massiv bo'lsa, birinchi elementni olish
+        const finalResult = Array.isArray(result) ? result[0] : result;
+
+        return finalResult || { success: true };
     },
 
     getUserRating: async (bookId) => {
@@ -486,11 +495,11 @@ const booksAPI = {
         if (!user) {
             return { success: true, rating: null };
         }
-        
+
         const ratings = await supabaseRequest('user_ratings', {
             query: `?book_id=eq.${bookId}&user_id=eq.${user.id}&select=rating`
         });
-        
+
         return {
             success: true,
             rating: ratings && ratings.length > 0 ? ratings[0].rating : null
@@ -500,7 +509,7 @@ const booksAPI = {
     incrementView: async (bookId) => {
         // RPC funksiyasini chaqirish
         await supabaseRPC('increment_book_views', { book_id_param: bookId });
-        
+
         return {
             success: true,
             message: 'Kurishlar soni yangilandi'
@@ -511,11 +520,11 @@ const booksAPI = {
         // Supabase Storage'ga yuklash
         const fileExt = file.name.split('.').pop().toLowerCase();
         const fileName = `book-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        
+
         try {
             // ArrayBuffer ga o'tkazish
             const arrayBuffer = await file.arrayBuffer();
-            
+
             const response = await fetch(`${SUPABASE_URL}/storage/v1/object/books/${fileName}`, {
                 method: 'POST',
                 headers: {
@@ -526,15 +535,15 @@ const booksAPI = {
                 },
                 body: arrayBuffer
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Supabase Storage xatosi:', errorText);
                 throw new Error('Rasm yuklashda xatolik: ' + response.status);
             }
-            
+
             const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/books/${fileName}`;
-            
+
             return {
                 success: true,
                 image_url: imageUrl,
