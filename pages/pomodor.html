@@ -355,6 +355,40 @@
             color: #666;
         }
 
+        /* Preset Buttons */
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .preset-btn {
+            width: 45px;
+            height: 40px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .preset-btn.active {
+            border-color: #4CAF50;
+            background: #4CAF50;
+            color: #000;
+        }
+
         /* Settings Row */
         .settings-row {
             display: flex;
@@ -810,26 +844,38 @@
             <button class="settings-tab" data-mode="longBreak">Uzoq</button>
             </div>
 
+        <!-- Tez tanlash tugmalari -->
+        <div class="preset-buttons">
+            <button class="preset-btn" data-minutes="5">5</button>
+            <button class="preset-btn" data-minutes="10">10</button>
+            <button class="preset-btn" data-minutes="15">15</button>
+            <button class="preset-btn active" data-minutes="25">25</button>
+            <button class="preset-btn" data-minutes="30">30</button>
+            <button class="preset-btn" data-minutes="45">45</button>
+            <button class="preset-btn" data-minutes="50">50</button>
+            <button class="preset-btn" data-minutes="60">60</button>
+        </div>
+
         <!-- Time Picker -->
         <div class="time-picker">
             <div class="time-column">
                 <button class="time-nav" data-action="hour-up"><i class="fas fa-chevron-up"></i></button>
                 <div class="time-value" id="picker-hours">00</div>
                 <button class="time-nav" data-action="hour-down"><i class="fas fa-chevron-down"></i></button>
-                    </div>
+            </div>
             <span class="time-separator">:</span>
             <div class="time-column">
                 <button class="time-nav" data-action="min-up"><i class="fas fa-chevron-up"></i></button>
                 <div class="time-value" id="picker-minutes">25</div>
                 <button class="time-nav" data-action="min-down"><i class="fas fa-chevron-down"></i></button>
-                    </div>
+            </div>
             <span class="time-separator">:</span>
             <div class="time-column">
                 <button class="time-nav" data-action="sec-up"><i class="fas fa-chevron-up"></i></button>
                 <div class="time-value" id="picker-seconds">00</div>
                 <button class="time-nav" data-action="sec-down"><i class="fas fa-chevron-down"></i></button>
-                    </div>
-                </div>
+            </div>
+        </div>
 
         <!-- Settings Rows -->
         <div class="settings-row">
@@ -1093,6 +1139,15 @@
 
             // Update break value display
             document.getElementById('break-value').textContent = `${Math.floor(settings.shortBreak / 60000)} daqiqa`;
+            
+            // Preset tugmalarini yangilash
+            const totalMinutes = Math.floor(time / 60000);
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.minutes) === totalMinutes && time % 60000 === 0 && hours === 0) {
+                    btn.classList.add('active');
+                }
+            });
         }
 
         // Save Settings
@@ -1130,8 +1185,39 @@
                 tab.classList.add('active');
                 pickerMode = tab.dataset.mode;
                 updatePicker();
+                updatePresetButtons();
             });
         });
+
+        // Preset Buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const minutes = parseInt(btn.dataset.minutes);
+                pickerTime = { hours: 0, minutes: minutes, seconds: 0 };
+                
+                // UI yangilash
+                document.getElementById('picker-hours').textContent = '00';
+                document.getElementById('picker-minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('picker-seconds').textContent = '00';
+                
+                // Active tugmani belgilash
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Preset tugmalarini yangilash
+        function updatePresetButtons() {
+            const time = settings[pickerMode];
+            const totalMinutes = Math.floor(time / 60000);
+            
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.minutes) === totalMinutes && time % 60000 === 0) {
+                    btn.classList.add('active');
+                }
+            });
+        }
 
         // Time Navigation
         document.querySelectorAll('.time-nav').forEach(btn => {
@@ -1162,6 +1248,15 @@
                 document.getElementById('picker-hours').textContent = pickerTime.hours.toString().padStart(2, '0');
                 document.getElementById('picker-minutes').textContent = pickerTime.minutes.toString().padStart(2, '0');
                 document.getElementById('picker-seconds').textContent = pickerTime.seconds.toString().padStart(2, '0');
+                
+                // Preset tugmalarini yangilash
+                document.querySelectorAll('.preset-btn').forEach(b => {
+                    b.classList.remove('active');
+                    if (pickerTime.hours === 0 && pickerTime.seconds === 0 && 
+                        parseInt(b.dataset.minutes) === pickerTime.minutes) {
+                        b.classList.add('active');
+                    }
+                });
             });
         });
 
