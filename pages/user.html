@@ -541,27 +541,34 @@
             
             try {
                 const result = await booksAPI.like(bookId);
-                if (result) {
-                    // UI ni yangilash (sahifani qayta yuklamasdan)
-                    const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
-                    if (bookCard) {
-                        const likeBtn = bookCard.querySelector('.btn-like');
-                        const dislikeBtn = bookCard.querySelector('.btn-dislike');
-                        const likeCount = likeBtn?.querySelector('.like-count');
-                        const dislikeCount = dislikeBtn?.querySelector('.dislike-count');
-                        
-                        if (result.action === 'liked') {
-                            likeBtn?.classList.add('active', 'border-green-500', 'text-green-400');
-                            dislikeBtn?.classList.remove('active', 'border-red-500', 'text-red-400');
-                        } else {
-                            likeBtn?.classList.remove('active', 'border-green-500', 'text-green-400');
-                        }
-                        
-                        if (likeCount) likeCount.textContent = result.likes_count || 0;
-                        if (dislikeCount) dislikeCount.textContent = result.dislikes_count || 0;
+                console.log('Like result:', result);
+                
+                // UI ni yangilash (sahifani qayta yuklamasdan)
+                const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
+                if (bookCard && result) {
+                    const likeBtn = bookCard.querySelector('.btn-like');
+                    const dislikeBtn = bookCard.querySelector('.btn-dislike');
+                    const likeCount = likeBtn?.querySelector('.like-count');
+                    const dislikeCount = dislikeBtn?.querySelector('.dislike-count');
+                    
+                    // Like/unlike holatini yangilash
+                    if (result.action === 'liked') {
+                        likeBtn?.classList.add('active', 'border-green-500', 'text-green-400');
+                        dislikeBtn?.classList.remove('active', 'border-red-500', 'text-red-400');
+                    } else {
+                        likeBtn?.classList.remove('active', 'border-green-500', 'text-green-400');
+                    }
+                    
+                    // Sonlarni yangilash
+                    if (likeCount && result.likes_count !== undefined) {
+                        likeCount.textContent = result.likes_count;
+                    }
+                    if (dislikeCount && result.dislikes_count !== undefined) {
+                        dislikeCount.textContent = result.dislikes_count;
                     }
                 }
             } catch (error) {
+                console.error('Like error:', error);
                 showAlert(error.message || 'Xatolik yuz berdi');
             }
         }
@@ -574,27 +581,34 @@
             
             try {
                 const result = await booksAPI.dislike(bookId);
-                if (result) {
-                    // UI ni yangilash (sahifani qayta yuklamasdan)
-                    const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
-                    if (bookCard) {
-                        const likeBtn = bookCard.querySelector('.btn-like');
-                        const dislikeBtn = bookCard.querySelector('.btn-dislike');
-                        const likeCount = likeBtn?.querySelector('.like-count');
-                        const dislikeCount = dislikeBtn?.querySelector('.dislike-count');
-                        
-                        if (result.action === 'disliked') {
-                            dislikeBtn?.classList.add('active', 'border-red-500', 'text-red-400');
-                            likeBtn?.classList.remove('active', 'border-green-500', 'text-green-400');
-                        } else {
-                            dislikeBtn?.classList.remove('active', 'border-red-500', 'text-red-400');
-                        }
-                        
-                        if (likeCount) likeCount.textContent = result.likes_count || 0;
-                        if (dislikeCount) dislikeCount.textContent = result.dislikes_count || 0;
+                console.log('Dislike result:', result);
+                
+                // UI ni yangilash (sahifani qayta yuklamasdan)
+                const bookCard = document.querySelector(`[data-book-id="${bookId}"]`);
+                if (bookCard && result) {
+                    const likeBtn = bookCard.querySelector('.btn-like');
+                    const dislikeBtn = bookCard.querySelector('.btn-dislike');
+                    const likeCount = likeBtn?.querySelector('.like-count');
+                    const dislikeCount = dislikeBtn?.querySelector('.dislike-count');
+                    
+                    // Dislike/undislike holatini yangilash
+                    if (result.action === 'disliked') {
+                        dislikeBtn?.classList.add('active', 'border-red-500', 'text-red-400');
+                        likeBtn?.classList.remove('active', 'border-green-500', 'text-green-400');
+                    } else {
+                        dislikeBtn?.classList.remove('active', 'border-red-500', 'text-red-400');
+                    }
+                    
+                    // Sonlarni yangilash
+                    if (likeCount && result.likes_count !== undefined) {
+                        likeCount.textContent = result.likes_count;
+                    }
+                    if (dislikeCount && result.dislikes_count !== undefined) {
+                        dislikeCount.textContent = result.dislikes_count;
                     }
                 }
             } catch (error) {
+                console.error('Dislike error:', error);
                 showAlert(error.message || 'Xatolik yuz berdi');
             }
         }

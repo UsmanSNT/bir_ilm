@@ -398,10 +398,17 @@ const booksAPI = {
 
         // RPC funksiyasini chaqirish
         const result = await supabaseRPC('toggle_like', {
-            book_id_param: bookId,
-            user_id_param: user.id
+            book_id_param: parseInt(bookId),
+            user_id_param: parseInt(user.id)
         });
 
+        // Javobni to'g'ri formatga keltirish
+        if (result && typeof result === 'object') {
+            // Agar natija to'g'ridan-to'g'ri JSON bo'lsa
+            if (result.success !== undefined) return result;
+            // Agar natija funksiya nomi bilan o'ralgan bo'lsa
+            if (result.toggle_like) return result.toggle_like;
+        }
         return result;
     },
 
@@ -413,10 +420,17 @@ const booksAPI = {
 
         // RPC funksiyasini chaqirish
         const result = await supabaseRPC('toggle_dislike', {
-            book_id_param: bookId,
-            user_id_param: user.id
+            book_id_param: parseInt(bookId),
+            user_id_param: parseInt(user.id)
         });
 
+        // Javobni to'g'ri formatga keltirish
+        if (result && typeof result === 'object') {
+            // Agar natija to'g'ridan-to'g'ri JSON bo'lsa
+            if (result.success !== undefined) return result;
+            // Agar natija funksiya nomi bilan o'ralgan bo'lsa
+            if (result.toggle_dislike) return result.toggle_dislike;
+        }
         return result;
     },
 
