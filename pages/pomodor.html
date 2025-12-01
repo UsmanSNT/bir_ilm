@@ -56,28 +56,6 @@
             background-clip: text;
         }
 
-        .tag-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(40, 40, 40, 0.8);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .tag-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4CAF50;
-        }
-
-        .tag-dot.work { background: #4CAF50; }
-        .tag-dot.short-break { background: #3B82F6; }
-        .tag-dot.long-break { background: #8B5CF6; }
-
         .home-link {
             position: absolute;
             left: 20px;
@@ -146,21 +124,21 @@
 
         /* Minutes Number */
         .flip-number {
-            font-size: clamp(100px, 30vw, 180px);
+            font-size: clamp(140px, 45vw, 280px);
             font-weight: 800;
             color: #b0b0b0;
-            line-height: 0.85;
-            letter-spacing: -5px;
+            line-height: 0.8;
+            letter-spacing: -8px;
             position: relative;
         }
 
         /* Seconds Number - Same size as minutes */
         .seconds-number {
-            font-size: clamp(100px, 30vw, 180px);
+            font-size: clamp(140px, 45vw, 280px);
             font-weight: 800;
             color: #b0b0b0;
-            line-height: 0.85;
-            letter-spacing: -5px;
+            line-height: 0.8;
+            letter-spacing: -8px;
         }
 
         .flip-label {
@@ -501,12 +479,12 @@
         /* Responsive - Mobile */
         @media (max-width: 480px) {
             .header {
-                padding: 15px;
+                padding: 12px 15px;
             }
 
             .timer-container {
-                padding: 10px;
-                gap: 10px;
+                padding: 8px;
+                gap: 8px;
             }
 
             .flip-card,
@@ -516,12 +494,13 @@
 
             .flip-number,
             .seconds-number {
-                font-size: clamp(80px, 28vw, 150px);
+                font-size: clamp(120px, 40vw, 200px);
+                letter-spacing: -6px;
             }
             
             .controls {
                 gap: 15px;
-                padding: 15px;
+                padding: 12px;
             }
 
             .control-btn {
@@ -543,14 +522,15 @@
             .small-seconds {
                 bottom: 10px;
                 right: 15px;
+                font-size: clamp(18px, 6vw, 28px);
             }
 
             .status-badge {
-                font-size: 11px;
+                font-size: 10px;
             }
 
             .pomodoro-dots {
-                margin-top: 10px;
+                margin-top: 8px;
             }
         }
 
@@ -558,7 +538,8 @@
         @media (max-width: 360px) {
             .flip-number,
             .seconds-number {
-                font-size: clamp(70px, 25vw, 120px);
+                font-size: clamp(100px, 35vw, 160px);
+                letter-spacing: -5px;
             }
         }
 
@@ -575,11 +556,6 @@
 
             .logo-text {
                 font-size: 12px;
-            }
-
-            .tag-badge {
-                padding: 5px 10px;
-                font-size: 11px;
             }
 
             .timer-container {
@@ -600,7 +576,8 @@
 
             .flip-number,
             .seconds-number {
-                font-size: clamp(40px, 10vh, 70px);
+                font-size: clamp(50px, 18vh, 100px);
+                letter-spacing: -3px;
             }
 
             .controls {
@@ -655,20 +632,30 @@
             }
 
             .cards-wrapper {
-                max-width: 500px;
+                max-width: 550px;
                 gap: 20px;
             }
 
             .flip-number,
             .seconds-number {
-                font-size: clamp(150px, 20vw, 220px);
+                font-size: clamp(200px, 25vw, 300px);
+                letter-spacing: -10px;
+            }
+
+            .small-seconds {
+                font-size: 32px;
             }
         }
 
         /* Large screens */
         @media (min-width: 1024px) {
             .cards-wrapper {
-                max-width: 550px;
+                max-width: 600px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: 320px;
             }
         }
 
@@ -738,10 +725,6 @@
             <img src="../assets/images/logo.jpg" alt="Bir Ilm" class="logo-img">
             <span class="logo-text">BIR ILM</span>
         </div>
-        <div class="tag-badge">
-            <span class="tag-dot work" id="tag-dot"></span>
-            <span id="tag-name">Pomodoro</span>
-        </div>
         <div class="points-display" id="points-display" style="display: none;">
             <i class="fas fa-coins"></i>
             <span id="points-count">0</span> sum
@@ -788,7 +771,7 @@
     <!-- Footer -->
     <div class="footer">
         <span>&copy; 2025 Bir Ilm</span>
-        <a href="https://t.me/usmandev" target="_blank">@Usman dev</a>
+        <a href="https://t.me/Avrangzeb_Abdujalilov" target="_blank">@Usman dev</a>
     </div>
 
     <!-- Settings Toggle -->
@@ -891,8 +874,6 @@
         const settingsPanel = document.getElementById('settings-panel');
         const settingsToggle = document.getElementById('settings-toggle');
         const overlay = document.getElementById('overlay');
-        const tagDot = document.getElementById('tag-dot');
-        const tagName = document.getElementById('tag-name');
         const pomodoroDots = document.getElementById('pomodoro-dots');
         const pointsDisplay = document.getElementById('points-display');
         const pointsCount = document.getElementById('points-count');
@@ -919,8 +900,6 @@
             
             const mode = modes[currentMode];
             statusText.textContent = mode.text;
-            tagDot.style.background = mode.color;
-            tagName.textContent = mode.name;
             document.getElementById('color-dot').style.background = mode.color;
         }
 
