@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bir Ilm - Foydalanuvchi Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0b111a 0%, #1a2332 100%);
+            min-height: 100vh;
+            color: #e5e7eb;
+        }
+        #logo {
+            height: 40px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .card {
+            background: rgba(26, 35, 50, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .book-card {
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+        .book-card .card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .book-card .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .book-card .review-text {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .book-card .review-text::-webkit-scrollbar {
+            width: 4px;
+        }
+        .book-card .review-text::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        .book-card .review-text::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+        .star-rating {
+            color: #ffc107;
+        }
+        .btn-like {
+            transition: all 0.3s;
+        }
+        .btn-like.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-dislike {
+            transition: all 0.3s;
+        }
+        .btn-dislike.active {
+            background: #f44336;
+            color: white;
+        }
+        .comment-input {
+            background: rgba(11, 17, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        .comment-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        .comment-item {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-black/50 backdrop-blur-sm shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="../index.html" class="flex items-center space-x-4">
+                    <img id="logo" src="../assets/images/logo.jpg" alt="Bir Ilm logo" class="mr-2">
+                    <h1 class="text-xl font-extrabold text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                        BIR ILM
+                    </h1>
+                </a>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-300" id="user-name"></span>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Chiqish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Xabar ko'rsatish -->
+        <div id="alert-message" class="hidden mb-4 p-4 rounded-lg"></div>
+
+        <!-- Sarlavha -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold mb-2 text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                Kitob Taqrizlari
+            </h2>
+            <p class="text-gray-400">Kitoblar haqida taqrizlarni o'qing, baholang va izoh qoldiring</p>
+        </div>
+
+        <!-- Qidiruv bo'limi -->
+        <div class="max-w-2xl mx-auto mb-8">
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Kitob nomi, muallif yoki taqriz bo'yicha qidiring..." 
+                    class="flex-1 px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 outline-none focus:border-green-500"
+                >
+                <button id="search-btn" class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition">
+                    <i class="fas fa-search mr-2"></i>Qidirish
+                </button>
+            </div>
+        </div>
+
+        <!-- Kitoblar ro'yxati -->
+        <div id="books-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Kitoblar bu yerda ko'rsatiladi -->
+        </div>
+
+        <!-- Bo'sh xabar -->
+        <div id="empty-message" class="hidden text-center py-12">
+            <i class="fas fa-book-open text-6xl text-gray-600 mb-4"></i>
+            <p class="text-xl text-gray-400">Hali hech qanday taqriz yozilmagan</p>
+            <p class="text-sm text-gray-500 mt-2">Adminlar taqriz yozgandan keyin bu yerda ko'rinadi</p>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../js/api.js"></script>
+    <script>
+        // Authentication tekshiruvi (ixtiyoriy - barcha uchun ochiq)
+        let currentUser = null;
+        
+        async function checkAuth() {
+            const token = getToken();
+            if (token) {
+                try {
+                    const result = await authAPI.getMe();
+                    if (result.success) {
+                        currentUser = result.user;
+                        document.getElementById('user-name').textContent = currentUser.username;
+                    } else {
+                        removeToken();
+                    }
+                } catch (error) {
+                    removeToken();
+                }
+            }
+            // Agar token bo'lmasa ham, sahifa ochiq bo'ladi (barcha uchun)
+        }
+
+        checkAuth();
+
+        // Alert funksiyasi
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.getElementById('alert-message');
+            alertDiv.className = `alert mb-4 p-4 rounded-lg ${type === 'error' ? 'bg-red-900/50 text-red-200 border border-red-700' : 'bg-green-900/50 text-green-200 border border-green-700'}`;
+            alertDiv.textContent = message;
+            alertDiv.classList.remove('hidden');
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Qidiruv holati
+        let isSearchMode = false;
+
+        // Kitoblarni yuklash va ko'rsatish
+        async function loadBooks(searchQuery = null) {
+            const booksList = document.getElementById('books-list');
+            const emptyMessage = document.getElementById('empty-message');
+            
+            booksList.innerHTML = '<p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+
+            try {
+                let books;
+                if (searchQuery && searchQuery.trim().length > 0) {
+                    books = await booksAPI.search(searchQuery);
+                    isSearchMode = true;
+                } else {
+                    books = await booksAPI.getAll();
+                    isSearchMode = false;
+                }
+
+                if (books.length === 0) {
+                    booksList.classList.add('hidden');
+                    emptyMessage.classList.remove('hidden');
+                    emptyMessage.innerHTML = `
+                        <i class="fas fa-book-open text-6xl text-gray-600 mb-4"></i>
+                        <p class="text-xl text-gray-400">${searchQuery ? 'Qidiruv natijasi topilmadi' : 'Hali hech qanday taqriz yozilmagan'}</p>
+                        <p class="text-sm text-gray-500 mt-2">${searchQuery ? '' : 'Adminlar taqriz yozgandan keyin bu yerda ko\'rinadi'}</p>
+                    `;
+                    return;
+                }
+
+                booksList.classList.remove('hidden');
+                emptyMessage.classList.add('hidden');
+
+                // Har bir kitob uchun reaction va rating holatini olish
+                const booksWithReactions = await Promise.all(books.map(async (book) => {
+                    try {
+                        const reaction = await booksAPI.getReaction(book.id);
+                        let userRating = null;
+                        try {
+                            const ratingResult = await booksAPI.getUserRating(book.id);
+                            if (ratingResult.success) {
+                                userRating = ratingResult.rating;
+                            }
+                        } catch {
+                            // Rating olishda xatolik bo'lsa, e'tiborsiz qoldirish
+                        }
+                        return { ...book, userReaction: reaction.reaction || 'none', userRating };
+                    } catch {
+                        return { ...book, userReaction: 'none', userRating: null };
+                    }
+                }));
+
+                // Har bir taqriz uchun kurishlar sonini oshirish (faqat bir marta)
+                booksWithReactions.forEach(book => {
+                    const viewKey = `viewed_${book.id}`;
+                    if (!sessionStorage.getItem(viewKey)) {
+                        // Asinxron chaqirish, lekin kutmaslik
+                        incrementView(book.id).catch(err => {
+                            console.error('View increment xatosi:', err);
+                        });
+                        sessionStorage.setItem(viewKey, 'true');
+                    }
+                });
+
+                booksList.innerHTML = booksWithReactions.map(book => {
+                    const date = new Date(book.created_at).toLocaleDateString('uz-UZ');
+                    // O'rtacha baholash yoki admin baholash
+                    const displayRating = book.average_rating || book.rating || 5;
+                    const stars = '★'.repeat(Math.round(displayRating)) + '☆'.repeat(5 - Math.round(displayRating));
+                    const isLiked = book.userReaction === 'like';
+                    const isDisliked = book.userReaction === 'dislike';
+                    const likesCount = book.likes_count || 0;
+                    const dislikesCount = book.dislikes_count || 0;
+                    const comments = book.comments || [];
+                    const userRating = book.userRating || null;
+                    const imageUrl = book.image_url ? (book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`) : '';
+                    const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-40 object-cover rounded-lg mb-3" onerror="this.style.display='none'">` : '';
+                    
+                    // Foydalanuvchi baholash yulduzchalari
+                    const userRatingStars = Array.from({ length: 5 }, (_, i) => {
+                        const starValue = i + 1;
+                        const isActive = userRating && starValue <= userRating;
+                        return `<span onclick="rateBook('${book.id}', ${starValue})" class="cursor-pointer text-lg ${isActive ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition">★</span>`;
+                    }).join('');
+                    
+                    // Izohlar ro'yxati (faqat 2 ta ko'rsatish)
+                    const commentsHtml = comments.slice(0, 2).map(comment => {
+                        const commentDate = new Date(comment.created_at).toLocaleDateString('uz-UZ');
+                        return `
+                            <div class="comment-item bg-gray-900/50 p-2 rounded text-xs mb-1">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-semibold text-white text-xs">${escapeHtml(comment.username)}</span>
+                                    <span class="text-xs text-gray-500">${commentDate}</span>
+                                </div>
+                                <p class="text-gray-300 text-xs line-clamp-2">${escapeHtml(comment.text)}</p>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="book-card">
+                            <div class="card p-4">
+                                <div class="card-content">
+                                    ${imageHtml}
+                                    <div class="mb-3">
+                                        <h3 class="text-lg font-bold text-white mb-1 line-clamp-2">${escapeHtml(book.title)}</h3>
+                                        <p class="text-gray-400 text-sm mb-1">Muallif: <span class="text-white font-medium">${escapeHtml(book.author)}</span></p>
+                                        <div class="mb-2">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                                <span class="star-rating text-base">${stars}</span>
+                                                <span class="text-xs text-gray-400">${displayRating.toFixed(1)}/5</span>
+                                                ${book.total_ratings ? `<span class="text-xs text-gray-500">(${book.total_ratings} baho)</span>` : ''}
+                                            </div>
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-xs text-gray-500 mr-1">Sizning bahoingiz:</span>
+                                                <div class="flex space-x-0.5" id="user-rating-${book.id}">
+                                                    ${userRatingStars}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-gray-500">${date}</p>
+                                    </div>
+                                    
+                                    <div class="bg-gray-900/50 p-3 rounded-lg mb-3 flex-1">
+                                        <p class="text-gray-300 whitespace-pre-line review-text text-sm">${escapeHtml(book.review)}</p>
+                                    </div>
+
+                                    <!-- Like/Dislike tugmalari -->
+                                    <div class="flex items-center space-x-2 mb-3 pb-3 border-b border-gray-700">
+                                        <button onclick="toggleLike('${book.id}')" class="btn-like ${isLiked ? 'active' : ''} px-3 py-1.5 rounded-lg border border-gray-600 hover:border-green-500 transition flex items-center space-x-1 text-xs">
+                                            <i class="fas fa-thumbs-up text-sm"></i>
+                                            <span>${likesCount}</span>
+                                        </button>
+                                        <button onclick="toggleDislike('${book.id}')" class="btn-dislike ${isDisliked ? 'active' : ''} px-3 py-1.5 rounded-lg border border-gray-600 hover:border-red-500 transition flex items-center space-x-1 text-xs">
+                                            <i class="fas fa-thumbs-down text-sm"></i>
+                                            <span>${dislikesCount}</span>
+                                        </button>
+                                        <span class="text-xs text-gray-500 views-count" data-book-id="${book.id}">
+                                            <i class="fas fa-eye mr-1"></i>${book.views_count || 0}
+                                        </span>
+                                        <button onclick="shareBook('${book.id}', '${escapeHtml(book.title)}', '${escapeHtml(book.author)}')" class="px-3 py-1.5 rounded-lg border border-gray-600 hover:border-purple-500 transition flex items-center space-x-1 text-xs text-gray-300 hover:text-white" title="Ulashish">
+                                            <i class="fas fa-share-alt text-sm"></i>
+                                        </button>
+                                        <button onclick="toggleComments('${book.id}')" class="px-3 py-1.5 rounded-lg border border-gray-600 hover:border-blue-500 transition flex items-center space-x-1 text-xs text-gray-300 hover:text-white ml-auto">
+                                            <i class="fas fa-comments text-sm"></i>
+                                            <span>Izohlar (${comments.length})</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Izohlar bo'limi (yashirilgan) -->
+                                    <div id="comments-section-${book.id}" class="hidden mt-auto">
+                                        <!-- Izohlar ro'yxati -->
+                                        <div id="comments-${book.id}" class="mb-2 space-y-1 max-h-48 overflow-y-auto">
+                                            ${comments.length > 0 ? comments.map(comment => {
+                                                const commentDate = new Date(comment.created_at).toLocaleDateString('uz-UZ');
+                                                return `
+                                                    <div class="comment-item bg-gray-900/50 p-2 rounded text-xs mb-1">
+                                                        <div class="flex justify-between items-start mb-1">
+                                                            <span class="font-semibold text-white text-xs">${escapeHtml(comment.username)}</span>
+                                                            <span class="text-xs text-gray-500">${commentDate}</span>
+                                                        </div>
+                                                        <p class="text-gray-300 text-xs">${escapeHtml(comment.text)}</p>
+                                                    </div>
+                                                `;
+                                            }).join('') : '<p class="text-xs text-gray-500">Hali izoh yo\'q</p>'}
+                                        </div>
+
+                                        <!-- Izoh yozish -->
+                                        <div class="flex space-x-1">
+                                            <input 
+                                                type="text" 
+                                                id="comment-input-${book.id}" 
+                                                placeholder="Izohingizni yozing..." 
+                                                class="comment-input flex-1 px-2 py-1.5 rounded-lg text-white placeholder-gray-500 outline-none text-xs"
+                                                onkeypress="if(event.key === 'Enter') addComment('${book.id}')"
+                                            >
+                                            <button onclick="addComment('${book.id}')" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg text-white text-xs font-medium transition">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                booksList.innerHTML = `<p class="text-center text-red-400 py-8">Xatolik: ${error.message}</p>`;
+            }
+        }
+
+        // Kitobni baholash
+        async function rateBook(bookId, rating) {
+            try {
+                const result = await booksAPI.rate(bookId, rating);
+                if (result.success) {
+                    showAlert('Baholash qo\'shildi!', 'success');
+                    await loadBooks();
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
+
+        // Kitobni ulashish
+        async function shareBook(bookId, title, author) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}#book-${bookId}`;
+            const shareText = `${title} - ${author} kitobi haqidagi taqrizni o'qing!`;
+            
+            // Web Share API (agar mavjud bo'lsa)
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: shareText,
+                        url: shareUrl
+                    });
+                    return;
+                } catch (err) {
+                    // Foydalanuvchi ulashishni bekor qilgan
+                    if (err.name !== 'AbortError') {
+                        console.error('Share xatosi:', err);
+                    }
+                }
+            }
+            
+            // Fallback: Clipboard'ga nusxalash
+            try {
+                await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+                showAlert('Link nusxalandi!', 'success');
+            } catch (err) {
+                // Fallback: Textarea orqali
+                const textarea = document.createElement('textarea');
+                textarea.value = `${shareText}\n${shareUrl}`;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showAlert('Link nusxalandi!', 'success');
+                } catch (e) {
+                    showAlert('Linkni nusxalashda xatolik', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Taqriz ochilganda kurishlar sonini oshirish
+        async function incrementView(bookId) {
+            try {
+                console.log('incrementView chaqirildi, bookId:', bookId);
+                const result = await booksAPI.incrementView(bookId);
+                console.log('incrementView natijasi:', result);
+                if (result && result.success) {
+                    // Kurishlar sonini yangilash
+                    const viewElement = document.querySelector(`.views-count[data-book-id="${bookId}"]`);
+                    if (viewElement) {
+                        // Kurishlar sonini oshirish
+                        const currentViews = parseInt(viewElement.textContent.replace(/\D/g, '')) || 0;
+                        viewElement.innerHTML = `<i class="fas fa-eye mr-1"></i>${currentViews + 1}`;
+                    }
+                }
+            } catch (error) {
+                // Xatolik bo'lsa ham, e'tiborsiz qoldirish
+                console.error('View increment xatosi:', error);
+            }
+        }
+
+        // Izohlar bo'limini ochish/yopish
+        function toggleComments(bookId) {
+            const commentsSection = document.getElementById(`comments-section-${bookId}`);
+            if (commentsSection) {
+                commentsSection.classList.toggle('hidden');
+            }
+        }
+
+        // Like/dislike toggle
+        async function toggleLike(bookId) {
+            try {
+                const result = await booksAPI.like(bookId);
+                if (result.success) {
+                    await loadBooks();
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
+
+        async function toggleDislike(bookId) {
+            try {
+                const result = await booksAPI.dislike(bookId);
+                if (result.success) {
+                    await loadBooks();
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
+
+        // Izoh qo'shish
+        async function addComment(bookId) {
+            const input = document.getElementById(`comment-input-${bookId}`);
+            const commentText = input.value.trim();
+
+            if (!commentText) {
+                showAlert('Izoh bo\'sh bo\'lishi mumkin emas!');
+                return;
+            }
+
+            try {
+                const result = await booksAPI.addComment(bookId, commentText);
+                if (result.success) {
+                    input.value = '';
+                    await loadBooks();
+                    // Izohlar bo'limini ochish
+                    const commentsSection = document.getElementById(`comments-section-${bookId}`);
+                    if (commentsSection) {
+                        commentsSection.classList.remove('hidden');
+                    }
+                    showAlert(result.message, 'success');
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
+
+        // XSS himoyasi
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            authAPI.logout();
+            localStorage.removeItem('birilm_user');
+            window.location.href = '../index.html';
+        });
+
+        // Real-time qidiruv
+        let searchTimeout;
+        document.getElementById('search-input')?.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            // Debounce - 300ms kutish
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (query.length > 0) {
+                    loadBooks(query);
+                } else {
+                    loadBooks();
+                }
+            }, 300);
+        });
+
+        // Qidiruv tugmasi
+        document.getElementById('search-btn')?.addEventListener('click', () => {
+            const query = document.getElementById('search-input').value.trim();
+            if (query.length > 0) {
+                loadBooks(query);
+            } else {
+                loadBooks();
+            }
+        });
+
+        document.getElementById('search-input')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query.length > 0) {
+                    loadBooks(query);
+                } else {
+                    loadBooks();
+                }
+            }
+        });
+
+        // Sahifa yuklanganda
+        setTimeout(() => {
+            loadBooks();
+        }, 500);
+    </script>
+</body>
+</html>
+

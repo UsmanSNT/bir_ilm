@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bir Ilm - Pomodoro Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0b111a 0%, #1a2332 100%);
+            min-height: 100vh;
+            color: #e5e7eb;
+            display: flex;
+            flex-direction: column;
+        }
+        #logo {
+            height: 40px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .timer-panel {
+            background: rgba(26, 35, 50, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(76, 175, 80, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.2);
+            transition: all 0.3s;
+        }
+        .timer-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        .timer-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #4CAF50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+            font-variant-numeric: tabular-nums;
+        }
+        .timer-label {
+            font-size: 1.2rem;
+            color: #9ca3af;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .control-btn {
+            transition: all 0.3s;
+        }
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+        .mode-btn {
+            transition: all 0.3s;
+        }
+        .mode-btn.active {
+            background: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-black/50 backdrop-blur-sm shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="../index.html" class="flex items-center space-x-4">
+                    <img id="logo" src="../assets/images/logo.jpg" alt="Bir Ilm logo" class="mr-2">
+                    <h1 class="text-xl font-extrabold text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                        BIR ILM - Pomodoro Timer
+                    </h1>
+                </a>
+                <div class="flex items-center gap-4">
+                    <!-- Tangalar ko'rsatish -->
+                    <div id="points-display" class="hidden flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-500/30 rounded-lg">
+                        <i class="fas fa-coins text-yellow-400"></i>
+                        <span class="text-green-400 font-bold" id="points-count">0</span>
+                        <span class="text-gray-300 text-sm">sum</span>
+                    </div>
+                    <a href="../index.html" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-150">
+                        <i class="fas fa-home mr-2"></i>Bosh Sahifa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center px-4 py-12">
+        <div class="max-w-5xl w-full">
+            <!-- Title -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                    Bir Ilm Pomodoro Timer
+                </h2>
+                <p class="text-gray-400 text-lg">Ish samaradorligingizni oshiring</p>
+            </div>
+
+            <!-- Timer Display Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <!-- Minutes Panel -->
+                <div class="timer-panel text-center">
+                    <div id="minutes-display" class="timer-number">25</div>
+                    <div class="timer-label">Minutes</div>
+                </div>
+
+                <!-- Seconds Panel -->
+                <div class="timer-panel text-center">
+                    <div id="seconds-display" class="timer-number">00</div>
+                    <div class="timer-label">Seconds</div>
+                </div>
+
+                <!-- Milliseconds Panel -->
+                <div class="timer-panel text-center">
+                    <div id="milliseconds-display" class="timer-number">00</div>
+                    <div class="timer-label">Milliseconds</div>
+                </div>
+            </div>
+
+            <!-- Timer Status and Count -->
+            <div class="text-center mb-8">
+                <div id="timer-status" class="text-2xl text-gray-300 mb-2 font-semibold">
+                    Ish vaqti
+                </div>
+                <div id="pomodoro-count" class="text-sm text-gray-400">
+                    Pomodoro: <span id="count" class="text-green-400 font-bold">0</span>/4
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-center gap-4 mb-8 flex-wrap">
+                <button id="start-btn" class="control-btn px-8 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition flex items-center shadow-lg">
+                    <i class="fas fa-play mr-2"></i>Boshlash
+                </button>
+                <button id="pause-btn" class="control-btn hidden px-8 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-medium transition flex items-center shadow-lg">
+                    <i class="fas fa-pause mr-2"></i>To'xtatish
+                </button>
+                <button id="reset-btn" class="control-btn px-8 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition flex items-center shadow-lg">
+                    <i class="fas fa-redo mr-2"></i>Qayta boshlash
+                </button>
+            </div>
+
+            <!-- Timer Modes -->
+            <div class="flex justify-center gap-4 mb-8 flex-wrap">
+                <button id="work-mode" class="mode-btn active px-6 py-2 bg-green-600 text-white rounded-lg font-medium transition shadow-md">
+                    Ish (<span id="work-time-display">25:00</span>)
+                </button>
+                <button id="short-break-mode" class="mode-btn px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition shadow-md">
+                    Qisqa tanaffus (<span id="short-break-time-display">5:00</span>)
+                </button>
+                <button id="long-break-mode" class="mode-btn px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition shadow-md">
+                    Uzoq tanaffus (<span id="long-break-time-display">15:00</span>)
+                </button>
+            </div>
+
+            <!-- Settings -->
+            <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 max-w-3xl mx-auto">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4 text-center">Sozlamalar</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <label class="block text-sm text-gray-400 mb-2">Ish vaqti (daqiqa)</label>
+                        <input type="number" id="work-time" value="25" min="1" max="60" 
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center focus:border-green-500 focus:outline-none">
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm text-gray-400 mb-2">Qisqa tanaffus (daqiqa)</label>
+                        <input type="number" id="short-break-time" value="5" min="1" max="30" 
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center focus:border-green-500 focus:outline-none">
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm text-gray-400 mb-2">Uzoq tanaffus (daqiqa)</label>
+                        <input type="number" id="long-break-time" value="15" min="1" max="60" 
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center focus:border-green-500 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Pomodoro Timer JavaScript
+        let timerInterval = null;
+        let timeLeft = 25 * 60 * 1000; // 25 daqiqa millisekundlarda
+        let isRunning = false;
+        let currentMode = 'work'; // 'work', 'shortBreak', 'longBreak'
+        let pomodoroCount = 0;
+        let startTime = null;
+        let pausedTime = 0;
+
+        function updateDisplay() {
+            const totalMs = timeLeft;
+            const minutes = Math.floor(totalMs / 60000);
+            const seconds = Math.floor((totalMs % 60000) / 1000);
+            const milliseconds = Math.floor((totalMs % 1000) / 10);
+
+            const minutesDisplay = document.getElementById('minutes-display');
+            const secondsDisplay = document.getElementById('seconds-display');
+            const millisecondsDisplay = document.getElementById('milliseconds-display');
+
+            if (minutesDisplay) minutesDisplay.textContent = minutes.toString().padStart(2, '0');
+            if (secondsDisplay) secondsDisplay.textContent = seconds.toString().padStart(2, '0');
+            if (millisecondsDisplay) millisecondsDisplay.textContent = milliseconds.toString().padStart(2, '0');
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            if (startBtn) startBtn.classList.add('hidden');
+            if (pauseBtn) pauseBtn.classList.remove('hidden');
+            
+            startTime = Date.now() - pausedTime;
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                timeLeft = Math.max(0, timeLeft - elapsed);
+                startTime = Date.now();
+                pausedTime = 0;
+                
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    handleTimerComplete();
+                }
+            }, 10); // 10ms interval for smooth millisecond updates
+        }
+
+        function pauseTimer() {
+            if (!isRunning) return;
+            isRunning = false;
+            clearInterval(timerInterval);
+            pausedTime = Date.now() - startTime;
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            if (startBtn) startBtn.classList.remove('hidden');
+            if (pauseBtn) pauseBtn.classList.add('hidden');
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            pausedTime = 0;
+            setTimerMode(currentMode);
+        }
+
+        function setTimerMode(mode) {
+            currentMode = mode;
+            const workTimeInput = document.getElementById('work-time');
+            const shortBreakTimeInput = document.getElementById('short-break-time');
+            const longBreakTimeInput = document.getElementById('long-break-time');
+            
+            if (!workTimeInput || !shortBreakTimeInput || !longBreakTimeInput) return;
+            
+            const workTime = parseInt(workTimeInput.value) * 60 * 1000;
+            const shortBreakTime = parseInt(shortBreakTimeInput.value) * 60 * 1000;
+            const longBreakTime = parseInt(longBreakTimeInput.value) * 60 * 1000;
+            
+            const timerStatus = document.getElementById('timer-status');
+            const workModeBtn = document.getElementById('work-mode');
+            const shortBreakModeBtn = document.getElementById('short-break-mode');
+            const longBreakModeBtn = document.getElementById('long-break-mode');
+            
+            // Reset active mode buttons
+            if (workModeBtn) workModeBtn.classList.remove('active');
+            if (shortBreakModeBtn) shortBreakModeBtn.classList.remove('active');
+            if (longBreakModeBtn) longBreakModeBtn.classList.remove('active');
+            
+            if (mode === 'work') {
+                timeLeft = workTime;
+                if (timerStatus) timerStatus.textContent = 'Ish vaqti';
+                if (workModeBtn) workModeBtn.classList.add('active');
+            } else if (mode === 'shortBreak') {
+                timeLeft = shortBreakTime;
+                if (timerStatus) timerStatus.textContent = 'Qisqa tanaffus';
+                if (shortBreakModeBtn) shortBreakModeBtn.classList.add('active');
+            } else {
+                timeLeft = longBreakTime;
+                if (timerStatus) timerStatus.textContent = 'Uzoq tanaffus';
+                if (longBreakModeBtn) longBreakModeBtn.classList.add('active');
+            }
+            
+            updateDisplay();
+        }
+
+        async function handleTimerComplete() {
+            if (currentMode === 'work') {
+                pomodoroCount++;
+                const countEl = document.getElementById('count');
+                if (countEl) countEl.textContent = pomodoroCount;
+                
+                // Agar foydalanuvchi ro'yxatdan o'tgan bo'lsa, tanga qo'shish
+                const token = localStorage.getItem('birilm_token');
+                if (token) {
+                    try {
+                        const response = await fetch('http://localhost:3000/api/auth/add-pomodoro-points', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                // Tangalar sonini yangilash
+                                updatePointsDisplay(data.sum);
+                                
+                                // Xabar ko'rsatish
+                                showNotification(`🎉 ${data.added} tanga qo'shildi! Jami: ${data.sum} sum`, 'success');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Tanga qo\'shishda xatolik:', error);
+                    }
+                }
+                
+                if (pomodoroCount % 4 === 0) {
+                    setTimerMode('longBreak');
+                } else {
+                    setTimerMode('shortBreak');
+                }
+            } else {
+                setTimerMode('work');
+            }
+            
+            // Notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Pomodoro Timer', {
+                    body: currentMode === 'work' ? 'Ish vaqti tugadi! Tanaffus oling.' : 'Tanaffus tugadi! Ishga qayting.'
+                });
+            }
+            
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            if (startBtn) startBtn.classList.remove('hidden');
+            if (pauseBtn) pauseBtn.classList.add('hidden');
+        }
+
+        // Tangalar sonini ko'rsatish
+        async function loadPoints() {
+            const token = localStorage.getItem('birilm_token');
+            if (!token) {
+                document.getElementById('points-display').classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/points', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        updatePointsDisplay(data.sum);
+                        document.getElementById('points-display').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Tangalar sonini olishda xatolik:', error);
+            }
+        }
+
+        function updatePointsDisplay(sum) {
+            const pointsCount = document.getElementById('points-count');
+            if (pointsCount) {
+                pointsCount.textContent = sum || 0;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Oddiy alert yoki yanada chiroyli notification
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // Timer event listeners
+        function initTimer() {
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const workModeBtn = document.getElementById('work-mode');
+            const shortBreakModeBtn = document.getElementById('short-break-mode');
+            const longBreakModeBtn = document.getElementById('long-break-mode');
+            const workTimeInput = document.getElementById('work-time');
+            const shortBreakTimeInput = document.getElementById('short-break-time');
+            const longBreakTimeInput = document.getElementById('long-break-time');
+
+            if (startBtn) startBtn.addEventListener('click', startTimer);
+            if (pauseBtn) pauseBtn.addEventListener('click', pauseTimer);
+            if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+            if (workModeBtn) workModeBtn.addEventListener('click', () => {
+                pauseTimer();
+                setTimerMode('work');
+            });
+            if (shortBreakModeBtn) shortBreakModeBtn.addEventListener('click', () => {
+                pauseTimer();
+                setTimerMode('shortBreak');
+            });
+            if (longBreakModeBtn) longBreakModeBtn.addEventListener('click', () => {
+                pauseTimer();
+                setTimerMode('longBreak');
+            });
+
+            // Settings change handlers
+            function updateTimeDisplays() {
+                const workTimeDisplay = document.getElementById('work-time-display');
+                const shortBreakTimeDisplay = document.getElementById('short-break-time-display');
+                const longBreakTimeDisplay = document.getElementById('long-break-time-display');
+                
+                if (workTimeInput && workTimeDisplay) {
+                    const minutes = parseInt(workTimeInput.value);
+                    workTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:00`;
+                }
+                if (shortBreakTimeInput && shortBreakTimeDisplay) {
+                    const minutes = parseInt(shortBreakTimeInput.value);
+                    shortBreakTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:00`;
+                }
+                if (longBreakTimeInput && longBreakTimeDisplay) {
+                    const minutes = parseInt(longBreakTimeInput.value);
+                    longBreakTimeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:00`;
+                }
+            }
+
+            if (workTimeInput) {
+                workTimeInput.addEventListener('change', () => {
+                    updateTimeDisplays();
+                    if (currentMode === 'work' && !isRunning) {
+                        setTimerMode('work');
+                    }
+                });
+                workTimeInput.addEventListener('input', updateTimeDisplays);
+            }
+            if (shortBreakTimeInput) {
+                shortBreakTimeInput.addEventListener('change', () => {
+                    updateTimeDisplays();
+                    if (currentMode === 'shortBreak' && !isRunning) {
+                        setTimerMode('shortBreak');
+                    }
+                });
+                shortBreakTimeInput.addEventListener('input', updateTimeDisplays);
+            }
+            if (longBreakTimeInput) {
+                longBreakTimeInput.addEventListener('change', () => {
+                    updateTimeDisplays();
+                    if (currentMode === 'longBreak' && !isRunning) {
+                        setTimerMode('longBreak');
+                    }
+                });
+                longBreakTimeInput.addEventListener('input', updateTimeDisplays);
+            }
+
+            updateTimeDisplays();
+        }
+
+        // Notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Sahifa yuklanganda
+        // Tangalar sonini ko'rsatish
+        async function loadPoints() {
+            const token = localStorage.getItem('birilm_token');
+            if (!token) {
+                const pointsDisplay = document.getElementById('points-display');
+                if (pointsDisplay) pointsDisplay.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/points', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        updatePointsDisplay(data.sum);
+                        const pointsDisplay = document.getElementById('points-display');
+                        if (pointsDisplay) pointsDisplay.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Tangalar sonini olishda xatolik:', error);
+            }
+        }
+
+        function updatePointsDisplay(sum) {
+            const pointsCount = document.getElementById('points-count');
+            if (pointsCount) {
+                pointsCount.textContent = sum || 0;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Oddiy alert yoki yanada chiroyli notification
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initTimer();
+            updateDisplay();
+            loadPoints(); // Tangalar sonini yuklash
+        });
+    </script>
+</body>
+</html>
+

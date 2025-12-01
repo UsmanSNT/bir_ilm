@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bir Ilm - Tizimga Kirish</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0b111a 0%, #1a2332 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e5e7eb;
+        }
+        #logo {
+            height: 50px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .auth-container {
+            background: rgba(26, 35, 50, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .form-input {
+            background: rgba(11, 17, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        .form-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+        .tab-button {
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            background: rgba(76, 175, 80, 0.2);
+            border-bottom: 2px solid #4CAF50;
+        }
+        .alert {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="w-full max-w-md mx-auto px-4">
+        <div class="auth-container p-8">
+            <!-- Logo va Sarlavha -->
+            <div class="text-center mb-8">
+                <img id="logo" src="../assets/images/logo.jpg" alt="Bir Ilm logo" class="mx-auto mb-4">
+                <h1 class="text-3xl font-extrabold text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                    BIR ILM
+                </h1>
+                <p class="text-sm text-gray-400 mt-2">SINANG, QO'LLANG, ULASHING</p>
+            </div>
+
+            <!-- Tablar -->
+            <div class="flex mb-6 border-b border-gray-700">
+                <button id="login-tab" class="tab-button active flex-1 py-3 px-4 text-center font-medium">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Tizimga Kirish
+                </button>
+                <button id="register-tab" class="tab-button flex-1 py-3 px-4 text-center font-medium">
+                    <i class="fas fa-user-plus mr-2"></i>Ro'yxatdan O'tish
+                </button>
+            </div>
+
+            <!-- Xabar ko'rsatish -->
+            <div id="alert-message" class="hidden mb-4 p-4 rounded-lg"></div>
+            
+            <!-- Server holati -->
+            <div id="server-status" class="hidden mb-4 p-3 rounded-lg bg-yellow-900/50 text-yellow-200 border border-yellow-700 text-sm">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Server ishlamayapti!</strong>
+                <p class="mt-2 text-xs">Iltimos, terminalda "npm start" buyrug'ini ishga tushiring.</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Foydalanuvchi nomi</label>
+                    <input type="text" id="login-username" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Foydalanuvchi nomingiz">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Parol</label>
+                    <input type="password" id="login-password" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Parolingiz">
+                </div>
+                <button id="login-btn" class="btn-primary w-full py-3 rounded-lg font-bold text-white">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Kirish
+                </button>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="hidden space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Foydalanuvchi nomi</label>
+                    <input type="text" id="register-username" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Kamida 3 belgi">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="register-email" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="email@example.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Parol</label>
+                    <input type="password" id="register-password" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Kamida 6 belgi">
+                </div>
+                <div>
+                    <label class="flex items-center mb-2">
+                        <input type="checkbox" id="register-is-admin" class="mr-2">
+                        <span class="text-sm">Admin sifatida ro'yxatdan o'tish</span>
+                    </label>
+                </div>
+                <div id="admin-key-container" class="hidden">
+                    <label class="block text-sm font-medium mb-2">Admin taklif kaliti</label>
+                    <input type="password" id="register-admin-key" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Admin taklif kalitini kiriting">
+                </div>
+                <button id="register-btn" class="btn-primary w-full py-3 rounded-lg font-bold text-white">
+                    <i class="fas fa-user-plus mr-2"></i>Ro'yxatdan O'tish
+                </button>
+            </div>
+
+            <!-- Haqida -->
+            <div class="mt-8 pt-6 border-t border-gray-700 text-center">
+                <p class="text-sm text-gray-400 leading-relaxed">
+                    "Bir ilm" bu dunyo va oxiratimizga foydasi tegadigan ilmlar maskanidir! Unda biz — barchamiz o'qib o'rgangan kitoblar, shaxsiy tajribamizda sinalgan bilimlarni ulashadigan maskan yaratamiz.
+                </p>
+                <p class="text-xs text-gray-500 mt-4 italic">
+                    Bismillahir Rohmanir Rohim
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/api.js"></script>
+    <script>
+        // Tab o'zgartirish
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const adminKeyContainer = document.getElementById('admin-key-container');
+        const registerIsAdmin = document.getElementById('register-is-admin');
+
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            hideAlert();
+        });
+
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            hideAlert();
+        });
+
+        // Admin checkbox
+        registerIsAdmin.addEventListener('change', () => {
+            if (registerIsAdmin.checked) {
+                adminKeyContainer.classList.remove('hidden');
+            } else {
+                adminKeyContainer.classList.add('hidden');
+            }
+        });
+
+        // Alert funksiyasi
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.getElementById('alert-message');
+            alertDiv.className = `alert mb-4 p-4 rounded-lg ${type === 'error' ? 'bg-red-900/50 text-red-200 border border-red-700' : 'bg-green-900/50 text-green-200 border border-green-700'}`;
+            // Uzun xabarlar uchun pre formatida ko'rsatish
+            if (message.includes('\n')) {
+                alertDiv.innerHTML = `<pre class="whitespace-pre-wrap text-sm">${message}</pre>`;
+            } else {
+                alertDiv.textContent = message;
+            }
+            alertDiv.classList.remove('hidden');
+            // Error bo'lsa, uzoqroq ko'rsatish
+            if (type === 'error') {
+                setTimeout(() => {
+                    alertDiv.classList.add('hidden');
+                }, 10000); // 10 soniya
+            }
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-message').classList.add('hidden');
+        }
+
+        // Login
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+            
+            if (!username || !password) {
+                showAlert('Barcha maydonlarni to\'ldiring!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Kutilmoqda...';
+
+            try {
+                const result = await authAPI.login(username, password);
+                if (result.success) {
+                    localStorage.setItem('birilm_user', JSON.stringify(result.user));
+                    showAlert(result.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '../index.html';
+                    }, 1000);
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Kirish';
+            }
+        });
+
+        // Register
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const isAdmin = registerIsAdmin.checked;
+            const adminKey = document.getElementById('register-admin-key').value;
+            const btn = document.getElementById('register-btn');
+
+            if (!username || !email || !password) {
+                showAlert('Barcha maydonlarni to\'ldiring!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Kutilmoqda...';
+
+            try {
+                const result = await authAPI.register(username, email, password, isAdmin, adminKey);
+                if (result.success) {
+                    localStorage.setItem('birilm_user', JSON.stringify(result.user));
+                    showAlert(result.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '../index.html';
+                    }, 1000);
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Ro\'yxatdan O\'tish';
+            }
+        });
+
+        // Enter tugmasi
+        document.getElementById('login-password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('login-btn').click();
+            }
+        });
+
+        document.getElementById('register-password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('register-btn').click();
+            }
+        });
+
+        // Server holatini tekshirish
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                if (response.ok) {
+                    document.getElementById('server-status').classList.add('hidden');
+                    return true;
+                }
+            } catch (error) {
+                // Server ishlamayapti
+                document.getElementById('server-status').classList.remove('hidden');
+                return false;
+            }
+        }
+
+        // Agar allaqachon kirgan bo'lsa, to'g'ri sahifaga yo'naltirish
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Avval server holatini tekshirish
+            await checkServerStatus();
+            
+            const token = getToken();
+            if (token) {
+                try {
+                    const result = await authAPI.getMe();
+                    if (result.success) {
+                        const user = result.user;
+                        window.location.href = '../index.html';
+                    }
+                } catch (error) {
+                    // Token yaroqsiz, saqlashdan olib tashlash
+                    removeToken();
+                    localStorage.removeItem('birilm_user');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

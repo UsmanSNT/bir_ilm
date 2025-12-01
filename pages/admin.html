@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bir Ilm - Admin Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0b111a 0%, #1a2332 100%);
+            min-height: 100vh;
+            color: #e5e7eb;
+        }
+        #logo {
+            height: 40px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .card {
+            background: rgba(26, 35, 50, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .form-input {
+            background: rgba(11, 17, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        .form-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+        .book-card {
+            transition: all 0.3s;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+        .star-rating {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-black/50 backdrop-blur-sm shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="../index.html" class="flex items-center space-x-4">
+                    <img id="logo" src="../assets/images/logo.jpg" alt="Bir Ilm logo" class="mr-2">
+                    <h1 class="text-xl font-extrabold text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                        BIR ILM - Admin
+                    </h1>
+                </a>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-300" id="admin-name"></span>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Chiqish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Xabar ko'rsatish -->
+        <div id="alert-message" class="hidden mb-4 p-4 rounded-lg"></div>
+
+        <!-- Yangi taqriz yozish -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-green-400">
+                <i class="fas fa-book mr-2"></i>Yangi Kitob Taqrizi Yozish
+            </h2>
+            <form id="review-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Kitob nomi *</label>
+                        <input type="text" id="book-title" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Kitob nomini kiriting" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Muallif *</label>
+                        <input type="text" id="book-author" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Muallif nomini kiriting" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Taqriz matni *</label>
+                    <textarea id="review-text" rows="6" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none resize-none" placeholder="Kitob haqida taqrizingizni yozing..." required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Baholash (1-5 yulduz)</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="range" id="book-rating" min="1" max="5" value="5" class="flex-1">
+                        <span id="rating-display" class="text-2xl star-rating">★★★★★</span>
+                        <span class="text-sm text-gray-400" id="rating-value">5</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Kitob surati</label>
+                    <div class="flex gap-2">
+                        <input type="file" id="book-image-file" accept="image/*" class="hidden">
+                        <button type="button" onclick="document.getElementById('book-image-file').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition">
+                            <i class="fas fa-upload mr-2"></i>Fayl tanlash
+                        </button>
+                        <input type="text" id="book-image-url" class="form-input flex-1 px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Yoki URL kiriting (ixtiyoriy)" readonly>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">JPG, PNG yoki boshqa rasm formatida fayl yuklang</p>
+                    <div id="image-preview" class="mt-2 hidden">
+                        <img id="preview-img" src="" alt="Preview" class="max-w-xs h-32 object-cover rounded-lg">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white">
+                    <i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish
+                </button>
+            </form>
+        </div>
+
+        <!-- Barcha taqrizlar -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold mb-6 text-green-400">
+                <i class="fas fa-list mr-2"></i>Barcha Taqrizlar
+            </h2>
+            <div id="books-list" class="space-y-4">
+                <!-- Kitoblar bu yerda ko'rsatiladi -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../js/api.js"></script>
+    <script>
+        // Authentication tekshiruvi
+        let currentUser = null;
+        
+        async function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            try {
+                const result = await authAPI.getMe();
+                if (result.success) {
+                    currentUser = result.user;
+                    if (currentUser.role !== 'admin') {
+                        window.location.href = '../index.html';
+                        return;
+                    }
+                    document.getElementById('admin-name').textContent = currentUser.username;
+                } else {
+                    window.location.href = '../index.html';
+                }
+            } catch (error) {
+                removeToken();
+                window.location.href = '../index.html';
+            }
+        }
+
+        checkAuth();
+
+        // Rating ko'rsatish
+        const ratingInput = document.getElementById('book-rating');
+        const ratingDisplay = document.getElementById('rating-display');
+        const ratingValue = document.getElementById('rating-value');
+
+        ratingInput.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            ratingValue.textContent = value;
+            ratingDisplay.textContent = '★'.repeat(value) + '☆'.repeat(5 - value);
+        });
+
+        // Alert funksiyasi
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.getElementById('alert-message');
+            alertDiv.className = `alert mb-4 p-4 rounded-lg ${type === 'error' ? 'bg-red-900/50 text-red-200 border border-red-700' : 'bg-green-900/50 text-green-200 border border-green-700'}`;
+            alertDiv.textContent = message;
+            alertDiv.classList.remove('hidden');
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+
+        // Kitoblarni yuklash va ko'rsatish
+        async function loadBooks() {
+            const booksList = document.getElementById('books-list');
+            booksList.innerHTML = '<p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+
+            try {
+                const books = await booksAPI.getAll();
+
+                if (books.length === 0) {
+                    booksList.innerHTML = '<p class="text-center text-gray-400 py-8">Hali hech qanday taqriz yozilmagan.</p>';
+                    return;
+                }
+
+                booksList.innerHTML = books.map(book => {
+                    const date = new Date(book.created_at).toLocaleDateString('uz-UZ');
+                    const stars = '★'.repeat(book.rating) + '☆'.repeat(5 - book.rating);
+                    const likesCount = book.likes_count || 0;
+                    const dislikesCount = book.dislikes_count || 0;
+                    const commentsCount = book.comments_count || 0;
+                    
+                    const imageUrl = book.image_url ? (book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`) : '';
+                    const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.style.display='none'">` : '';
+                    
+                    return `
+                        <div class="book-card card p-6">
+                            ${imageHtml}
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(book.title)}</h3>
+                                    <p class="text-gray-400 mb-2">Muallif: <span class="text-white">${escapeHtml(book.author)}</span></p>
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="star-rating text-lg">${stars}</span>
+                                        <span class="text-sm text-gray-400">${book.rating}/5</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500">${date} | ${escapeHtml(book.admin_name)}</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="editBook('${book.id}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90">
+                                        <i class="fas fa-edit mr-1"></i>Tahrirlash
+                                    </button>
+                                    <button onclick="deleteBook('${book.id}')" class="btn-danger px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90">
+                                        <i class="fas fa-trash mr-1"></i>O'chirish
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bg-gray-900/50 p-4 rounded-lg mb-4">
+                                <p class="text-gray-300 whitespace-pre-line">${escapeHtml(book.review)}</p>
+                            </div>
+                            <div class="flex items-center space-x-6 text-sm text-gray-400">
+                                <span><i class="fas fa-thumbs-up mr-1"></i>${likesCount} Like</span>
+                                <span><i class="fas fa-thumbs-down mr-1"></i>${dislikesCount} Dislike</span>
+                                <span><i class="fas fa-comments mr-1"></i>${commentsCount} Izoh</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                booksList.innerHTML = `<p class="text-center text-red-400 py-8">Xatolik: ${error.message}</p>`;
+            }
+        }
+
+        // Kitobni tahrirlash
+        let editingBookId = null;
+        
+        async function editBook(bookId) {
+            try {
+                const books = await booksAPI.getAll();
+                const book = books.find(b => b.id === parseInt(bookId));
+                
+                if (!book) {
+                    showAlert('Kitob topilmadi');
+                    return;
+                }
+
+                editingBookId = bookId;
+                
+                // Form maydonlarini to'ldirish
+                document.getElementById('book-title').value = book.title;
+                document.getElementById('book-author').value = book.author;
+                document.getElementById('review-text').value = book.review;
+                ratingInput.value = book.rating;
+                ratingDisplay.textContent = '★'.repeat(book.rating) + '☆'.repeat(5 - book.rating);
+                ratingValue.textContent = book.rating;
+                
+                if (book.image_url) {
+                    const fullImageUrl = book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`;
+                    document.getElementById('book-image-url').value = fullImageUrl;
+                    document.getElementById('preview-img').src = fullImageUrl;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                } else {
+                    document.getElementById('book-image-url').value = '';
+                    document.getElementById('image-preview').classList.add('hidden');
+                }
+                
+                // File input'ni tozalash
+                document.getElementById('book-image-file').value = '';
+                
+                // Form sarlavhasini o'zgartirish
+                const formTitle = document.querySelector('.card h2');
+                formTitle.innerHTML = '<i class="fas fa-edit mr-2"></i>Taqrizni Tahrirlash';
+                
+                // Submit tugmasini o'zgartirish
+                const submitBtn = document.querySelector('#review-form button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Saqlash';
+                
+                // Formani yuqoriga scroll qilish
+                document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
+
+        // Form submit handler'ni yangilash
+        const reviewForm = document.getElementById('review-form');
+        const originalSubmitHandler = reviewForm.onsubmit;
+        
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const review = document.getElementById('review-text').value.trim();
+            const rating = parseInt(ratingInput.value);
+            const imageFile = document.getElementById('book-image-file').files[0];
+            const imageUrl = document.getElementById('book-image-url').value.trim();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            if (!title || !author || !review) {
+                showAlert('Barcha maydonlarni to\'ldiring!');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saqlanmoqda...';
+
+            try {
+                let result;
+                
+                if (editingBookId) {
+                    // Tahrirlash
+                    let finalImageUrl = imageUrl;
+                    
+                    // Agar yangi rasm fayl yuklangan bo'lsa, avval yuklash
+                    if (imageFile) {
+                        try {
+                            const uploadResult = await booksAPI.uploadImage(imageFile);
+                            if (uploadResult.success) {
+                                finalImageUrl = uploadResult.image_url;
+                            } else {
+                                throw new Error('Rasm yuklashda xatolik');
+                            }
+                        } catch (uploadError) {
+                            console.error('Rasm yuklash xatosi:', uploadError);
+                            throw new Error('Rasm yuklashda xatolik: ' + (uploadError.message || 'Noma\'lum xatolik'));
+                        }
+                    } else if (!imageUrl) {
+                        // Agar rasm URL ham bo'sh bo'lsa, null yuborish
+                        finalImageUrl = null;
+                    }
+                    
+                    // Tahrirlash API'ga so'rov yuborish
+                    result = await booksAPI.update(editingBookId, title, author, review, rating, finalImageUrl || '');
+                } else {
+                    // Yangi yaratish
+                    let finalImageUrl = imageUrl;
+                    
+                    if (imageFile) {
+                        const uploadResult = await booksAPI.uploadImage(imageFile);
+                        if (uploadResult.success) {
+                            finalImageUrl = uploadResult.image_url;
+                        } else {
+                            throw new Error('Rasm yuklashda xatolik');
+                        }
+                    }
+
+                    result = await booksAPI.create(title, author, review, rating, finalImageUrl);
+                }
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    document.getElementById('review-form').reset();
+                    ratingInput.value = 5;
+                    ratingDisplay.textContent = '★★★★★';
+                    ratingValue.textContent = '5';
+                    document.getElementById('book-image-file').value = '';
+                    document.getElementById('book-image-url').value = '';
+                    document.getElementById('image-preview').classList.add('hidden');
+                    
+                    // Form sarlavhasini qaytarish
+                    const formTitle = document.querySelector('.card h2');
+                    formTitle.innerHTML = '<i class="fas fa-book mr-2"></i>Yangi Kitob Taqrizi Yozish';
+                    
+                    // Submit tugmasini qaytarish
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish';
+                    
+                    editingBookId = null;
+                    await loadBooks();
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            } finally {
+                submitBtn.disabled = false;
+                if (!editingBookId) {
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish';
+                } else {
+                    submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Saqlash';
+                }
+            }
+        });
+
+        // Kitobni o'chirish
+        async function deleteBook(bookId) {
+            if (confirm('Bu taqrizni o\'chirishni xohlaysizmi?')) {
+                try {
+                    const result = await booksAPI.delete(bookId);
+                    if (result.success) {
+                        showAlert(result.message, 'success');
+                        await loadBooks();
+                    }
+                } catch (error) {
+                    showAlert(error.message || 'Xatolik yuz berdi');
+                }
+            }
+        }
+
+        // XSS himoyasi
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            authAPI.logout();
+            localStorage.removeItem('birilm_user');
+            window.location.href = '../index.html';
+        });
+
+        // File input change handler
+        document.getElementById('book-image-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Preview ko'rsatish
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('image-preview').classList.add('hidden');
+            }
+        });
+
+        // Sahifa yuklanganda
+        setTimeout(() => {
+            loadBooks();
+        }, 500);
+    </script>
+</body>
+</html>
+
