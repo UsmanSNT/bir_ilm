@@ -98,8 +98,8 @@
             <!-- Server holati -->
             <div id="server-status" class="hidden mb-4 p-3 rounded-lg bg-yellow-900/50 text-yellow-200 border border-yellow-700 text-sm">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                <strong>Server ishlamayapti!</strong>
-                <p class="mt-2 text-xs">Iltimos, terminalda "npm start" buyrug'ini ishga tushiring.</p>
+                <strong>Internet aloqasida muammo!</strong>
+                <p class="mt-2 text-xs">Iltimos, internet aloqangizni tekshiring.</p>
             </div>
 
             <!-- Login Form -->
@@ -293,32 +293,16 @@
             }
         });
 
-        // Server holatini tekshirish
-        async function checkServerStatus() {
-            try {
-                const response = await fetch('http://localhost:3000/api/health');
-                if (response.ok) {
-                    document.getElementById('server-status').classList.add('hidden');
-                    return true;
-                }
-            } catch (error) {
-                // Server ishlamayapti
-                document.getElementById('server-status').classList.remove('hidden');
-                return false;
-            }
-        }
-
         // Agar allaqachon kirgan bo'lsa, to'g'ri sahifaga yo'naltirish
         window.addEventListener('DOMContentLoaded', async () => {
-            // Avval server holatini tekshirish
-            await checkServerStatus();
+            // Server holati xabarini yashirish (Supabase orqali ishlaydi)
+            document.getElementById('server-status').classList.add('hidden');
             
             const token = getToken();
             if (token) {
                 try {
                     const result = await authAPI.getMe();
                     if (result.success) {
-                        const user = result.user;
                         window.location.href = '../index.html';
                     }
                 } catch (error) {

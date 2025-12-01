@@ -215,9 +215,9 @@
             <!-- Server holati -->
             <div id="server-status" class="hidden mb-4 p-3 rounded-lg bg-yellow-900/50 text-yellow-200 border border-yellow-700 text-sm text-center">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                <strong>Server ishlamayapti!</strong>
-                <p class="mt-2 text-xs">Iltimos, terminalda "npm start" buyrug'ini ishga tushiring.</p>
-                    </div>
+                <strong>Internet aloqasida muammo!</strong>
+                <p class="mt-2 text-xs">Iltimos, internet aloqangizni tekshiring.</p>
+            </div>
 
             <!-- Ro'yxatdan o'tmagan foydalanuvchi ogohlantirishi -->
             <div id="auth-warning" class="hidden mb-4 p-4 rounded-lg bg-blue-900/50 text-blue-200 border border-blue-700 text-sm">
@@ -571,7 +571,7 @@
                 books.forEach(book => {
                     const viewKey = `viewed_${book.id}`;
                     if (!sessionStorage.getItem(viewKey)) {
-                        fetch(`http://localhost:3000/api/books/${book.id}/view`, { method: 'POST' }).catch(() => {});
+                        booksAPI.incrementView(book.id).catch(() => {});
                         sessionStorage.setItem(viewKey, 'true');
                     }
                 });
@@ -584,7 +584,7 @@
                     const likesCount = book.likes_count || 0;
                     const dislikesCount = book.dislikes_count || 0;
                     const commentsCount = book.comments_count || 0;
-                    const imageUrl = book.image_url ? (book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`) : '';
+                    const imageUrl = book.image_url || '';
                     const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.style.display='none'">` : '';
                     const shortReview = book.review.length > 150 ? book.review.substring(0, 150) + '...' : book.review;
 
@@ -647,8 +647,8 @@
                 booksList.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">
                     <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
                     <p class="text-lg font-semibold mb-2">Xatolik yuz berdi</p>
-                    <p class="text-sm">${error.message || 'Server bilan bog\'lanishda muammo'}</p>
-                    <p class="text-xs text-gray-500 mt-2">Iltimos, server ishga tushirilganligini tekshiring</p>
+                    <p class="text-sm">${error.message || 'Internet aloqasida muammo'}</p>
+                    <p class="text-xs text-gray-500 mt-2">Iltimos, internet aloqangizni tekshiring va sahifani yangilang</p>
                 </div>`;
             }
         }
@@ -750,23 +750,10 @@
             }
         });
 
-        // Server holatini tekshirish
-        async function checkServerStatus() {
-            try {
-                const response = await fetch('http://localhost:3000/api/health');
-                if (response.ok) {
-                    document.getElementById('server-status').classList.add('hidden');
-                    return true;
-                }
-            } catch (error) {
-                document.getElementById('server-status').classList.remove('hidden');
-                return false;
-            }
-        }
-
-        // Sahifa yuklanganda
+        // Sahifa yuklanganda (Supabase orqali ishlaydi - server kerak emas)
         window.addEventListener('DOMContentLoaded', async () => {
-            await checkServerStatus();
+            // Server holati xabarini yashirish (Supabase orqali ishlaydi)
+            document.getElementById('server-status').classList.add('hidden');
             updateUserMenu();
             loadBooks();
         });

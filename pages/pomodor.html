@@ -185,6 +185,7 @@
         </div>
     </main>
 
+    <script src="../js/api.js"></script>
     <script>
         // Pomodoro Timer JavaScript
         let timerInterval = null;
@@ -302,23 +303,13 @@
                 const token = localStorage.getItem('birilm_token');
                 if (token) {
                     try {
-                        const response = await fetch('http://localhost:3000/api/auth/add-pomodoro-points', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.success) {
-                                // Tangalar sonini yangilash
-                                updatePointsDisplay(data.sum);
-                                
-                                // Xabar ko'rsatish
-                                showNotification(`🎉 ${data.added} tanga qo'shildi! Jami: ${data.sum} sum`, 'success');
-                            }
+                        const data = await authAPI.addPomodoroPoints();
+                        if (data.success) {
+                            // Tangalar sonini yangilash
+                            updatePointsDisplay(data.sum);
+                            
+                            // Xabar ko'rsatish
+                            showNotification(`🎉 ${data.added} tanga qo'shildi! Jami: ${data.sum} sum`, 'success');
                         }
                     } catch (error) {
                         console.error('Tanga qo\'shishda xatolik:', error);
@@ -356,18 +347,10 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/auth/points', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        updatePointsDisplay(data.sum);
-                        document.getElementById('points-display').classList.remove('hidden');
-                    }
+                const data = await authAPI.getPoints();
+                if (data.success) {
+                    updatePointsDisplay(data.sum);
+                    document.getElementById('points-display').classList.remove('hidden');
                 }
             } catch (error) {
                 console.error('Tangalar sonini olishda xatolik:', error);
@@ -481,35 +464,7 @@
             Notification.requestPermission();
         }
 
-        // Sahifa yuklanganda
-        // Tangalar sonini ko'rsatish
-        async function loadPoints() {
-            const token = localStorage.getItem('birilm_token');
-            if (!token) {
-                const pointsDisplay = document.getElementById('points-display');
-                if (pointsDisplay) pointsDisplay.classList.add('hidden');
-                return;
-            }
-
-            try {
-                const response = await fetch('http://localhost:3000/api/auth/points', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        updatePointsDisplay(data.sum);
-                        const pointsDisplay = document.getElementById('points-display');
-                        if (pointsDisplay) pointsDisplay.classList.remove('hidden');
-                    }
-                }
-            } catch (error) {
-                console.error('Tangalar sonini olishda xatolik:', error);
-            }
-        }
+        // Sahifa yuklanganda - loadPoints funksiyasi yuqorida aniqlangan
 
         function updatePointsDisplay(sum) {
             const pointsCount = document.getElementById('points-count');

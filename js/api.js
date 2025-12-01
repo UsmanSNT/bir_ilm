@@ -1,5 +1,7 @@
-// API base URL
-const API_BASE_URL = 'http://localhost:3000/api';
+// Supabase API konfiguratsiyasi
+const SUPABASE_URL = 'https://oynqygopnfowjylshuji.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U';
+const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 
 // Token saqlash va olish
 function getToken() {
@@ -14,220 +16,526 @@ function removeToken() {
     localStorage.removeItem('birilm_token');
 }
 
-// API so'rovlari
-async function apiRequest(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const token = getToken();
+// Foydalanuvchi ma'lumotlarini saqlash
+function getUser() {
+    const user = localStorage.getItem('birilm_user');
+    return user ? JSON.parse(user) : null;
+}
 
+function setUser(user) {
+    localStorage.setItem('birilm_user', JSON.stringify(user));
+}
+
+function removeUser() {
+    localStorage.removeItem('birilm_user');
+}
+
+// Supabase REST API so'rovlari
+async function supabaseRequest(table, options = {}) {
+    const { method = 'GET', body, query = '', headers = {} } = options;
+    
+    const url = `${SUPABASE_REST_URL}/${table}${query}`;
+    
     const config = {
-        ...options,
+        method,
         headers: {
             'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-            ...options.headers
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal',
+            ...headers
         }
     };
-
+    
+    if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+        config.body = JSON.stringify(body);
+    }
+    
     try {
         const response = await fetch(url, config);
-
-        // Network xatosi yoki server ishlamayotganda
-        if (!response) {
-            throw new Error('Server bilan bog\'lanishda muammo. Iltimos, server ishga tushirilganligini tekshiring (npm start).');
-        }
-
-        // JSON parse qilish
-        let data;
-        const contentType = response.headers.get('content-type') || '';
-
-        // Agar HTML qaytayotgan bo'lsa (server ishlamayotgan yoki noto'g'ri endpoint)
-        if (contentType.includes('text/html')) {
-            const text = await response.text();
-            // HTML qaytayotgan bo'lsa, server ishlamayotgan yoki endpoint noto'g'ri
-            throw new Error('Server ishlamayapti yoki API endpoint topilmadi. Iltimos, server ishga tushirilganligini tekshiring (npm start).');
-        }
-
-        if (contentType.includes('application/json')) {
-            try {
-                data = await response.json();
-            } catch (parseError) {
-                // JSON parse xatosi
-                const text = await response.text();
-                console.error('JSON parse xatosi:', text.substring(0, 200));
-                throw new Error('Server javobini o\'qib bo\'lmadi. Server ishlamayapti yoki xatolik yuz berdi.');
-            }
-        } else {
-            // Boshqa content type
-            const text = await response.text();
-            throw new Error(`Server noto'g'ri javob qaytardi: ${text.substring(0, 100)}`);
-        }
-
+        
         if (!response.ok) {
-            throw new Error(data.message || `Server xatosi: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Xatolik: ${response.status}`);
         }
-
-        return data;
+        
+        // DELETE va ba'zi POST so'rovlari bo'sh javob qaytaradi
+        const text = await response.text();
+        if (!text) return { success: true };
+        
+        return JSON.parse(text);
     } catch (error) {
-        // Network xatosi
-        if (error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
-            throw new Error('Server bilan bog\'lanishda muammo. Iltimos, server ishga tushirilganligini tekshiring:\n\n1. Terminalda "npm install" ni ishga tushiring\n2. Keyin "npm start" ni ishga tushiring\n3. Server http://localhost:3000 da ishlayotganini tekshiring');
-        }
+        console.error('Supabase xatosi:', error);
         throw error;
     }
 }
 
+// Supabase RPC funksiyasini chaqirish
+async function supabaseRPC(functionName, params = {}) {
+    const url = `${SUPABASE_URL}/rest/v1/rpc/${functionName}`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify(params)
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Xatolik: ${response.status}`);
+    }
+    
+    const text = await response.text();
+    if (!text) return { success: true };
+    
+    return JSON.parse(text);
+}
+
+// Parolni hash qilish (oddiy versiya - ishlab chiqarish uchun bcrypt ishlatish kerak)
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + 'birilm_salt_2024');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Auth API
 const authAPI = {
-    register: async (username, email, password, isAdmin, adminKey) => {
-        return await apiRequest('/auth/register', {
-            method: 'POST',
-            body: JSON.stringify({ username, email, password, isAdmin, adminKey })
+    register: async (username, email, password, isAdmin = false, adminKey = '') => {
+        const ADMIN_KEY = 'BIRILM_ADMIN_2024';
+        
+        // Admin kalitini tekshirish
+        if (isAdmin && adminKey !== ADMIN_KEY) {
+            throw new Error('Noto\'g\'ri admin taklif kaliti!');
+        }
+        
+        // Foydalanuvchi mavjudligini tekshirish
+        const existingUsers = await supabaseRequest('users', {
+            query: `?or=(username.eq.${encodeURIComponent(username)},email.eq.${encodeURIComponent(email)})`
         });
+        
+        if (existingUsers && existingUsers.length > 0) {
+            throw new Error('Bu foydalanuvchi nomi yoki email allaqachon mavjud!');
+        }
+        
+        // Parolni hash qilish
+        const hashedPassword = await hashPassword(password);
+        
+        // Yangi foydalanuvchi yaratish
+        const role = isAdmin ? 'admin' : 'user';
+        const newUser = await supabaseRequest('users', {
+            method: 'POST',
+            body: { username, email, password: hashedPassword, role },
+            headers: { 'Prefer': 'return=representation' }
+        });
+        
+        if (newUser && newUser.length > 0) {
+            const user = {
+                id: newUser[0].id,
+                username: newUser[0].username,
+                email: newUser[0].email,
+                role: newUser[0].role,
+                sum: newUser[0].sum || 0
+            };
+            
+            // Token yaratish (oddiy versiya)
+            const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
+            
+            setToken(token);
+            setUser(user);
+            
+            return {
+                success: true,
+                message: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz!',
+                user,
+                token
+            };
+        }
+        
+        throw new Error('Foydalanuvchi yaratishda xatolik');
     },
 
     login: async (username, password) => {
-        const data = await apiRequest('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ username, password })
+        const hashedPassword = await hashPassword(password);
+        
+        const users = await supabaseRequest('users', {
+            query: `?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(hashedPassword)}`
         });
-
-        if (data.token) {
-            setToken(data.token);
+        
+        if (!users || users.length === 0) {
+            throw new Error('Noto\'g\'ri foydalanuvchi nomi yoki parol!');
         }
-
-        return data;
+        
+        const user = {
+            id: users[0].id,
+            username: users[0].username,
+            email: users[0].email,
+            role: users[0].role,
+            sum: users[0].sum || 0
+        };
+        
+        // Token yaratish
+        const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
+        
+        setToken(token);
+        setUser(user);
+        
+        return {
+            success: true,
+            message: 'Muvaffaqiyatli kirdingiz!',
+            user,
+            token
+        };
     },
 
     getMe: async () => {
-        return await apiRequest('/auth/me');
+        const user = getUser();
+        if (!user) {
+            throw new Error('Foydalanuvchi topilmadi');
+        }
+        
+        // Yangilangan ma'lumotlarni olish
+        const users = await supabaseRequest('users', {
+            query: `?id=eq.${user.id}&select=id,username,email,role,sum`
+        });
+        
+        if (users && users.length > 0) {
+            const updatedUser = users[0];
+            setUser(updatedUser);
+            return { success: true, user: updatedUser };
+        }
+        
+        return { success: true, user };
     },
 
     logout: () => {
         removeToken();
+        removeUser();
     },
 
     getPoints: async () => {
-        return await apiRequest('/auth/points');
+        const user = getUser();
+        if (!user) {
+            throw new Error('Foydalanuvchi topilmadi');
+        }
+        
+        const users = await supabaseRequest('users', {
+            query: `?id=eq.${user.id}&select=sum`
+        });
+        
+        return {
+            success: true,
+            sum: users && users.length > 0 ? users[0].sum : 0
+        };
     },
 
     addPomodoroPoints: async () => {
-        return await apiRequest('/auth/add-pomodoro-points', {
-            method: 'POST'
+        const user = getUser();
+        if (!user) {
+            throw new Error('Foydalanuvchi topilmadi');
+        }
+        
+        const pointsToAdd = 5;
+        
+        // RPC funksiyasini chaqirish
+        const newSum = await supabaseRPC('add_pomodoro_points', {
+            user_id_param: user.id,
+            points_param: pointsToAdd
         });
+        
+        return {
+            success: true,
+            message: `${pointsToAdd} tanga qo'shildi!`,
+            sum: newSum,
+            added: pointsToAdd
+        };
     }
 };
 
 // Books API
 const booksAPI = {
     getAll: async () => {
-        const data = await apiRequest('/books');
-        return data.books || [];
+        // books_with_stats view'dan foydalanish
+        const books = await supabaseRequest('books_with_stats', {
+            query: '?order=created_at.desc'
+        });
+        
+        // Har bir kitob uchun izohlarni olish
+        const booksWithComments = await Promise.all((books || []).map(async (book) => {
+            const comments = await supabaseRequest('comments', {
+                query: `?book_id=eq.${book.id}&order=created_at.desc`
+            });
+            return { ...book, comments: comments || [] };
+        }));
+        
+        return booksWithComments;
     },
 
     getTop: async () => {
-        const data = await apiRequest('/books/top');
-        return data.books || [];
+        // RPC funksiyasini chaqirish
+        const books = await supabaseRPC('get_top_books', { limit_count: 10 });
+        
+        // Har bir kitob uchun izohlarni olish
+        const booksWithComments = await Promise.all((books || []).map(async (book) => {
+            const comments = await supabaseRequest('comments', {
+                query: `?book_id=eq.${book.id}&order=created_at.desc`
+            });
+            return { ...book, comments: comments || [] };
+        }));
+        
+        return booksWithComments;
     },
 
     search: async (query) => {
         if (!query || query.trim().length === 0) {
-            // Bo'sh qidiruv bo'lsa, barcha kitoblarni qaytarish
             return await booksAPI.getAll();
         }
-        const encodedQuery = encodeURIComponent(query.trim());
-        console.log('Search API so\'rovi:', `/books/search?q=${encodedQuery}`);
-        const data = await apiRequest(`/books/search?q=${encodedQuery}`);
-        return data.books || [];
+        
+        // RPC funksiyasini chaqirish
+        const books = await supabaseRPC('search_books', { search_query: query.trim() });
+        
+        // Har bir kitob uchun izohlarni olish
+        const booksWithComments = await Promise.all((books || []).map(async (book) => {
+            const comments = await supabaseRequest('comments', {
+                query: `?book_id=eq.${book.id}&order=created_at.desc`
+            });
+            return { ...book, comments: comments || [] };
+        }));
+        
+        return booksWithComments;
     },
 
     create: async (title, author, review, rating, image_url) => {
-        return await apiRequest('/books', {
+        const user = getUser();
+        if (!user || user.role !== 'admin') {
+            throw new Error('Faqat adminlar kitob qo\'sha oladi!');
+        }
+        
+        const bookRating = rating || 5;
+        
+        const newBook = await supabaseRequest('books', {
             method: 'POST',
-            body: JSON.stringify({ title, author, review, rating, image_url })
+            body: {
+                title,
+                author,
+                review,
+                rating: bookRating,
+                image_url: image_url || null,
+                admin_id: user.id,
+                admin_name: user.username
+            },
+            headers: { 'Prefer': 'return=representation' }
         });
+        
+        if (newBook && newBook.length > 0) {
+            return {
+                success: true,
+                message: 'Taqriz muvaffaqiyatli qo\'shildi!',
+                book: newBook[0]
+            };
+        }
+        
+        throw new Error('Kitob yaratishda xatolik');
     },
 
     update: async (bookId, title, author, review, rating, image_url) => {
-        // image_url allaqachon yuklangan URL yoki mavjud URL bo'lishi kerak
-        return await apiRequest(`/books/${bookId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ title, author, review, rating, image_url })
+        const user = getUser();
+        if (!user || user.role !== 'admin') {
+            throw new Error('Faqat adminlar kitobni tahrirlay oladi!');
+        }
+        
+        await supabaseRequest('books', {
+            method: 'PATCH',
+            query: `?id=eq.${bookId}`,
+            body: {
+                title,
+                author,
+                review,
+                rating: parseInt(rating) || 5,
+                image_url: image_url || null
+            }
         });
+        
+        return {
+            success: true,
+            message: 'Taqriz muvaffaqiyatli tahrirlandi!'
+        };
     },
 
     delete: async (bookId) => {
-        return await apiRequest(`/books/${bookId}`, {
-            method: 'DELETE'
+        const user = getUser();
+        if (!user || user.role !== 'admin') {
+            throw new Error('Faqat adminlar kitobni o\'chira oladi!');
+        }
+        
+        await supabaseRequest('books', {
+            method: 'DELETE',
+            query: `?id=eq.${bookId}`
         });
+        
+        return {
+            success: true,
+            message: 'Kitob o\'chirildi!'
+        };
     },
 
     like: async (bookId) => {
-        return await apiRequest(`/books/${bookId}/like`, {
-            method: 'POST'
+        const user = getUser();
+        if (!user) {
+            throw new Error('Iltimos, avval tizimga kiring!');
+        }
+        
+        // RPC funksiyasini chaqirish
+        const result = await supabaseRPC('toggle_like', {
+            book_id_param: bookId,
+            user_id_param: user.id
         });
+        
+        return result;
     },
 
     dislike: async (bookId) => {
-        return await apiRequest(`/books/${bookId}/dislike`, {
-            method: 'POST'
+        const user = getUser();
+        if (!user) {
+            throw new Error('Iltimos, avval tizimga kiring!');
+        }
+        
+        // RPC funksiyasini chaqirish
+        const result = await supabaseRPC('toggle_dislike', {
+            book_id_param: bookId,
+            user_id_param: user.id
         });
+        
+        return result;
     },
 
     getReaction: async (bookId) => {
-        return await apiRequest(`/books/${bookId}/reaction`);
+        const user = getUser();
+        if (!user) {
+            return { success: true, reaction: 'none' };
+        }
+        
+        // RPC funksiyasini chaqirish
+        const reaction = await supabaseRPC('get_user_reaction', {
+            book_id_param: bookId,
+            user_id_param: user.id
+        });
+        
+        return { success: true, reaction };
     },
 
     addComment: async (bookId, text) => {
-        return await apiRequest(`/books/${bookId}/comments`, {
+        const user = getUser();
+        if (!user) {
+            throw new Error('Iltimos, avval tizimga kiring!');
+        }
+        
+        if (!text || text.trim().length === 0) {
+            throw new Error('Izoh bo\'sh bo\'lishi mumkin emas!');
+        }
+        
+        const newComment = await supabaseRequest('comments', {
             method: 'POST',
-            body: JSON.stringify({ text })
+            body: {
+                book_id: bookId,
+                user_id: user.id,
+                username: user.username,
+                text: text.trim()
+            },
+            headers: { 'Prefer': 'return=representation' }
         });
+        
+        if (newComment && newComment.length > 0) {
+            return {
+                success: true,
+                message: 'Izoh qo\'shildi!',
+                comment: newComment[0]
+            };
+        }
+        
+        throw new Error('Izoh qo\'shishda xatolik');
     },
 
     rate: async (bookId, rating) => {
-        return await apiRequest(`/books/${bookId}/rate`, {
-            method: 'POST',
-            body: JSON.stringify({ rating })
+        const user = getUser();
+        if (!user) {
+            throw new Error('Iltimos, avval tizimga kiring!');
+        }
+        
+        if (!rating || rating < 1 || rating > 5) {
+            throw new Error('Baholash 1-5 orasida bo\'lishi kerak!');
+        }
+        
+        // RPC funksiyasini chaqirish
+        const result = await supabaseRPC('upsert_rating', {
+            book_id_param: bookId,
+            user_id_param: user.id,
+            rating_param: rating
         });
+        
+        return result;
     },
 
     getUserRating: async (bookId) => {
-        return await apiRequest(`/books/${bookId}/user-rating`);
+        const user = getUser();
+        if (!user) {
+            return { success: true, rating: null };
+        }
+        
+        const ratings = await supabaseRequest('user_ratings', {
+            query: `?book_id=eq.${bookId}&user_id=eq.${user.id}&select=rating`
+        });
+        
+        return {
+            success: true,
+            rating: ratings && ratings.length > 0 ? ratings[0].rating : null
+        };
     },
 
     incrementView: async (bookId) => {
-        return await apiRequest(`/books/${bookId}/view`, {
-            method: 'POST'
-        });
+        // RPC funksiyasini chaqirish
+        await supabaseRPC('increment_book_views', { book_id_param: bookId });
+        
+        return {
+            success: true,
+            message: 'Kurishlar soni yangilandi'
+        };
     },
 
     uploadImage: async (file) => {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const token = getToken();
-        const url = `${API_BASE_URL}/books/upload`;
-
-        const response = await fetch(url, {
+        // Supabase Storage'ga yuklash
+        const fileName = `book-${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+        
+        const response = await fetch(`${SUPABASE_URL}/storage/v1/object/books/${fileName}`, {
             method: 'POST',
             headers: {
-                ...(token && { 'Authorization': `Bearer ${token}` })
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'apikey': SUPABASE_ANON_KEY,
+                'Content-Type': file.type
             },
-            body: formData
+            body: file
         });
-
-        const data = await response.json();
-
+        
         if (!response.ok) {
-            throw new Error(data.message || 'Rasm yuklashda xatolik');
+            throw new Error('Rasm yuklashda xatolik');
         }
-
-        return data;
+        
+        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/books/${fileName}`;
+        
+        return {
+            success: true,
+            image_url: imageUrl,
+            message: 'Rasm muvaffaqiyatli yuklandi'
+        };
     }
 };
 
 // Export
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { authAPI, booksAPI, getToken, setToken, removeToken };
+    module.exports = { authAPI, booksAPI, getToken, setToken, removeToken, getUser, setUser, removeUser };
 }
-

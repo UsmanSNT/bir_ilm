@@ -220,7 +220,7 @@
                     const dislikesCount = book.dislikes_count || 0;
                     const commentsCount = book.comments_count || 0;
                     
-                    const imageUrl = book.image_url ? (book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`) : '';
+                    const imageUrl = book.image_url || '';
                     const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.style.display='none'">` : '';
                     
                     return `
@@ -285,7 +285,7 @@
                 ratingValue.textContent = book.rating;
                 
                 if (book.image_url) {
-                    const fullImageUrl = book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`;
+                    const fullImageUrl = book.image_url;
                     document.getElementById('book-image-url').value = fullImageUrl;
                     document.getElementById('preview-img').src = fullImageUrl;
                     document.getElementById('image-preview').classList.remove('hidden');

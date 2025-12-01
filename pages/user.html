@@ -280,7 +280,7 @@
                     const dislikesCount = book.dislikes_count || 0;
                     const comments = book.comments || [];
                     const userRating = book.userRating || null;
-                    const imageUrl = book.image_url ? (book.image_url.startsWith('http') ? book.image_url : `http://localhost:3000${book.image_url}`) : '';
+                    const imageUrl = book.image_url || '';
                     const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-40 object-cover rounded-lg mb-3" onerror="this.style.display='none'">` : '';
                     
                     // Foydalanuvchi baholash yulduzchalari
