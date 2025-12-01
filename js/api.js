@@ -509,29 +509,41 @@ const booksAPI = {
 
     uploadImage: async (file) => {
         // Supabase Storage'ga yuklash
-        const fileName = `book-${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        const fileName = `book-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         
-        const response = await fetch(`${SUPABASE_URL}/storage/v1/object/books/${fileName}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'apikey': SUPABASE_ANON_KEY,
-                'Content-Type': file.type
-            },
-            body: file
-        });
-        
-        if (!response.ok) {
-            throw new Error('Rasm yuklashda xatolik');
+        try {
+            // ArrayBuffer ga o'tkazish
+            const arrayBuffer = await file.arrayBuffer();
+            
+            const response = await fetch(`${SUPABASE_URL}/storage/v1/object/books/${fileName}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': file.type,
+                    'x-upsert': 'true'
+                },
+                body: arrayBuffer
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Supabase Storage xatosi:', errorText);
+                throw new Error('Rasm yuklashda xatolik: ' + response.status);
+            }
+            
+            const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/books/${fileName}`;
+            
+            return {
+                success: true,
+                image_url: imageUrl,
+                message: 'Rasm muvaffaqiyatli yuklandi'
+            };
+        } catch (error) {
+            console.error('Upload xatosi:', error);
+            throw new Error('Rasm yuklashda xatolik: ' + error.message);
         }
-        
-        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/books/${fileName}`;
-        
-        return {
-            success: true,
-            image_url: imageUrl,
-            message: 'Rasm muvaffaqiyatli yuklandi'
-        };
     }
 };
 

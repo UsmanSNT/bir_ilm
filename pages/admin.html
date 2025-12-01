@@ -115,16 +115,20 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Kitob surati</label>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 mb-2">
                         <input type="file" id="book-image-file" accept="image/*" class="hidden">
                         <button type="button" onclick="document.getElementById('book-image-file').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition">
                             <i class="fas fa-upload mr-2"></i>Fayl tanlash
                         </button>
-                        <input type="text" id="book-image-url" class="form-input flex-1 px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Yoki URL kiriting (ixtiyoriy)" readonly>
+                        <span id="selected-file-name" class="text-sm text-gray-400 self-center"></span>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">JPG, PNG yoki boshqa rasm formatida fayl yuklang</p>
+                    <input type="text" id="book-image-url" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Yoki rasm URL manzilini kiriting (ixtiyoriy)">
+                    <p class="text-xs text-gray-500 mt-1">Fayl yuklang yoki URL kiriting. JPG, PNG formatlar qo'llab-quvvatlanadi.</p>
                     <div id="image-preview" class="mt-2 hidden">
                         <img id="preview-img" src="" alt="Preview" class="max-w-xs h-32 object-cover rounded-lg">
+                        <button type="button" onclick="clearImage()" class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs">
+                            <i class="fas fa-times mr-1"></i>Rasmni olib tashlash
+                        </button>
                     </div>
                 </div>
                 <button type="submit" class="btn-primary w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white">
@@ -294,8 +298,9 @@
                     document.getElementById('image-preview').classList.add('hidden');
                 }
                 
-                // File input'ni tozalash
+                // File input va fayl nomini tozalash
                 document.getElementById('book-image-file').value = '';
+                document.getElementById('selected-file-name').textContent = '';
                 
                 // Form sarlavhasini o'zgartirish
                 const formTitle = document.querySelector('.card h2');
@@ -387,6 +392,7 @@
                     ratingValue.textContent = '5';
                     document.getElementById('book-image-file').value = '';
                     document.getElementById('book-image-url').value = '';
+                    document.getElementById('selected-file-name').textContent = '';
                     document.getElementById('image-preview').classList.add('hidden');
                     
                     // Form sarlavhasini qaytarish
@@ -444,6 +450,10 @@
         document.getElementById('book-image-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                // Fayl nomini ko'rsatish
+                document.getElementById('selected-file-name').textContent = file.name;
+                // URL inputni tozalash
+                document.getElementById('book-image-url').value = '';
                 // Preview ko'rsatish
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -452,9 +462,32 @@
                 };
                 reader.readAsDataURL(file);
             } else {
+                document.getElementById('selected-file-name').textContent = '';
                 document.getElementById('image-preview').classList.add('hidden');
             }
         });
+
+        // URL input change handler - preview ko'rsatish
+        document.getElementById('book-image-url').addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url) {
+                document.getElementById('preview-img').src = url;
+                document.getElementById('image-preview').classList.remove('hidden');
+                // File inputni tozalash
+                document.getElementById('book-image-file').value = '';
+                document.getElementById('selected-file-name').textContent = '';
+            } else if (!document.getElementById('book-image-file').files[0]) {
+                document.getElementById('image-preview').classList.add('hidden');
+            }
+        });
+
+        // Rasmni olib tashlash
+        function clearImage() {
+            document.getElementById('book-image-file').value = '';
+            document.getElementById('book-image-url').value = '';
+            document.getElementById('selected-file-name').textContent = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        }
 
         // Sahifa yuklanganda
         setTimeout(() => {

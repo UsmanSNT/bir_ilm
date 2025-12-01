@@ -12,3 +12,4 @@ if (typeof window !== 'undefined') {
     window.SUPABASE_REST_URL = SUPABASE_REST_URL;
 }
 
+
