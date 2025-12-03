@@ -169,9 +169,17 @@ const authAPI = {
     login: async (username, password) => {
         const hashedPassword = await hashPassword(password);
 
-        const users = await supabaseRequest('users', {
+        // Username yoki email bilan qidirish
+        let users = await supabaseRequest('users', {
             query: `?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(hashedPassword)}`
         });
+
+        // Agar username bilan topilmasa, email bilan qidirish
+        if (!users || users.length === 0) {
+            users = await supabaseRequest('users', {
+                query: `?email=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(hashedPassword)}`
+            });
+        }
 
         if (!users || users.length === 0) {
             throw new Error('Noto\'g\'ri foydalanuvchi nomi yoki parol!');
