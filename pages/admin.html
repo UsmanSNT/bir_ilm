@@ -958,8 +958,8 @@
                         currentUser.is_super_admin === 'true'
                     );
                 }
-                // Super Admin barcha foydalanuvchilarga (o'zi bundan tashqari) adminlik berishi mumkin
-                const canChangeRole = isUserSuperAdmin && !isCurrentUser;
+                // Super Admin barcha oddiy foydalanuvchilarga (o'zi va super_admin bundan tashqari) adminlik berishi mumkin
+                const canChangeRole = isUserSuperAdmin && !isCurrentUser && !isSuperAdmin;
                 
                 // Debug: console'da tekshirish (faqat birinchi foydalanuvchi uchun)
                 if (users.indexOf(user) === 0 && isUserSuperAdmin) {
@@ -969,6 +969,7 @@
                     console.log('isUserSuperAdmin:', isUserSuperAdmin);
                     console.log('User:', user.email, 'Role:', user.role);
                     console.log('isCurrentUser:', isCurrentUser);
+                    console.log('isSuperAdmin (user):', isSuperAdmin);
                     console.log('canChangeRole:', canChangeRole);
                 }
                 
@@ -998,14 +999,15 @@
                     <td class="py-4 px-4">
                         ${isCurrentUser ? 
                             '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
-                            canChangeRole ? `
-                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition">
-                                    <option value="${user.role}" selected>${getRoleName(user.role)}</option>
-                                    <option value="super_admin">Super Admin</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="user">Foydalanuvchi</option>
+                            canChangeRole && !isSuperAdmin ? `
+                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition" title="Adminlik berish">
+                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>Foydalanuvchi</option>
+                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
                                 </select>
                             ` : 
+                            canChangeRole && isSuperAdmin ? `
+                                <span class="text-sm text-yellow-400 font-semibold">${getRoleName(user.role)}</span>
+                            ` :
                             `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
                         }
                     </td>
@@ -1051,18 +1053,19 @@
                 return;
             }
             
-            // Super Admin rolini berishda ogohlantirish
+            // Faqat 'user' va 'admin' rollarini o'zgartirish mumkin (super_admin emas)
             if (newRole === 'super_admin') {
-                if (!confirm(`DIQQAT: ${email} foydalanuvchisiga Super Admin rolini berishni xohlaysizmi?\n\nBu foydalanuvchi barcha huquqlarga ega bo'ladi va boshqa foydalanuvchilarga ham adminlik bera oladi!`)) {
-                    loadUsers();
-                    return;
-                }
-            } else {
-                if (!confirm(`${email} foydalanuvchisining rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) {
-                    // Dropdown'ni eski qiymatga qaytarish
-                    loadUsers();
-                    return;
-                }
+                showAlert('Super Admin rolini berish mumkin emas!', 'error');
+                loadUsers();
+                return;
+            }
+            
+            // Tasdiqlash
+            const roleName = newRole === 'admin' ? 'Admin' : 'Foydalanuvchi';
+            if (!confirm(`${email} foydalanuvchisining rolini "${roleName}" ga o'zgartirishni xohlaysizmi?`)) {
+                // Dropdown'ni eski qiymatga qaytarish
+                loadUsers();
+                return;
             }
 
             try {
@@ -1072,7 +1075,7 @@
                     body: { role: newRole }
                 });
 
-                showAlert(`Rol "${getRoleName(newRole)}" ga o'zgartirildi`, 'success');
+                showAlert(`Rol "${roleName}" ga o'zgartirildi`, 'success');
                 loadUsers();
                 if (document.getElementById('admins-list')) {
                     loadAdmins();
