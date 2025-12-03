@@ -167,21 +167,34 @@ const authAPI = {
     },
 
     login: async (username, password) => {
+        if (!username || !password) {
+            throw new Error('Foydalanuvchi nomi va parolni kiriting!');
+        }
+
         const hashedPassword = await hashPassword(password);
+        console.log('Login attempt:', { username, passwordLength: password.length, hashPrefix: hashedPassword.substring(0, 20) });
 
         // Username yoki email bilan qidirish
         let users = await supabaseRequest('users', {
             query: `?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(hashedPassword)}`
         });
 
+        console.log('Username search result:', users?.length || 0);
+
         // Agar username bilan topilmasa, email bilan qidirish
         if (!users || users.length === 0) {
             users = await supabaseRequest('users', {
                 query: `?email=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(hashedPassword)}`
             });
+            console.log('Email search result:', users?.length || 0);
         }
 
         if (!users || users.length === 0) {
+            // Debug: parolni tekshirish
+            const testUsers = await supabaseRequest('users', {
+                query: `?or=(username.eq.${encodeURIComponent(username)},email.eq.${encodeURIComponent(username)})`
+            });
+            console.log('User found without password check:', testUsers?.length || 0);
             throw new Error('Noto\'g\'ri foydalanuvchi nomi yoki parol!');
         }
 
@@ -230,6 +243,44 @@ const authAPI = {
     logout: () => {
         removeToken();
         removeUser();
+    },
+
+    resetPassword: async (email, newPassword) => {
+        if (!email || !newPassword) {
+            throw new Error('Email va yangi parolni kiriting!');
+        }
+
+        if (newPassword.length < 6) {
+            throw new Error('Parol kamida 6 ta belgidan iborat bo\'lishi kerak!');
+        }
+
+        // RPC funksiyasini chaqirish
+        const result = await supabaseRPC('reset_user_password', {
+            p_email: email,
+            p_new_password: newPassword
+        });
+
+        return result;
+    },
+
+    requestPasswordReset: async (email) => {
+        if (!email) {
+            throw new Error('Email kiriting!');
+        }
+
+        // Foydalanuvchi mavjudligini tekshirish
+        const users = await supabaseRequest('users', {
+            query: `?email=eq.${encodeURIComponent(email)}`
+        });
+
+        if (!users || users.length === 0) {
+            throw new Error('Bu email bilan foydalanuvchi topilmadi!');
+        }
+
+        return {
+            success: true,
+            message: 'Parol tiklash so\'rovi qabul qilindi. Yangi parolni kiriting.'
+        };
     },
 
     getPoints: async () => {

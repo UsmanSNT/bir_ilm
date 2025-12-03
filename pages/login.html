@@ -341,18 +341,13 @@
             }
             
             try {
-                // Supabase password reset
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/pages/reset-password.html'
-                });
-                
-                if (error) {
-                    showAlert('Xatolik: ' + error.message);
-                    return;
+                const result = await authAPI.requestPasswordReset(email);
+                if (result.success) {
+                    // Email va yangi parolni localStorage'ga saqlash
+                    localStorage.setItem('reset_email', email);
+                    // Reset password sahifasiga yo'naltirish
+                    window.location.href = 'reset-password.html';
                 }
-                
-                showAlert('Parol tiklash havolasi emailingizga yuborildi!', 'success');
-                hideForgotPassword();
             } catch (error) {
                 showAlert(error.message || 'Xatolik yuz berdi');
             }
