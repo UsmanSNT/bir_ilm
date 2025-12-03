@@ -261,14 +261,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/api.js"></script>
-    <script>
-        // Supabase client
-        const SUPABASE_URL = 'https://oynqygopnfowjylshuji.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    </script>
     <script>
         // Authentication tekshiruvi
         let currentUser = null;
@@ -637,15 +630,12 @@
             usersList.innerHTML = '<p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
 
             try {
-                // Supabase'dan foydalanuvchilarni olish
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                // REST API orqali foydalanuvchilarni olish
+                const users = await supabaseRequest('users', {
+                    query: '?order=created_at.desc'
+                });
 
-                if (error) throw error;
-
-                allUsers = data || [];
+                allUsers = Array.isArray(users) ? users : [];
                 renderUsers(allUsers);
                 
                 // Super Admin bo'lsa, adminlik berish bo'limini ko'rsatish
@@ -657,7 +647,7 @@
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                usersList.innerHTML = '<p class="text-center text-red-400 py-8">Xatolik yuz berdi</p>';
+                usersList.innerHTML = `<p class="text-center text-red-400 py-8">Xatolik: ${error.message || 'Noma\'lum xatolik'}</p>`;
             }
         }
 
@@ -699,15 +689,14 @@
             const adminsList = document.getElementById('admins-list');
             
             try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .in('role', ['admin', 'super_admin'])
-                    .order('role', { ascending: false });
+                // REST API orqali adminlarni olish
+                const admins = allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin')
+                    .sort((a, b) => {
+                        if (a.role === 'super_admin') return -1;
+                        if (b.role === 'super_admin') return 1;
+                        return 0;
+                    });
 
-                if (error) throw error;
-
-                const admins = data || [];
                 adminsList.innerHTML = admins.map(admin => `
                     <div class="user-card flex items-center justify-between">
                         <div class="flex items-center space-x-3">
@@ -731,6 +720,7 @@
                 `).join('');
             } catch (error) {
                 console.error('Error loading admins:', error);
+                adminsList.innerHTML = '<p class="text-center text-red-400 py-2">Xatolik yuz berdi</p>';
             }
         }
 
@@ -739,28 +729,26 @@
             try {
                 if (currentRole === 'admin') {
                     // Adminlikni olib tashlash
-                    const { error } = await supabase
-                        .from('users')
-                        .update({ role: 'user' })
-                        .eq('email', email);
-
-                    if (error) throw error;
+                    await supabaseRequest('users', {
+                        method: 'PATCH',
+                        query: `?email=eq.${encodeURIComponent(email)}`,
+                        body: { role: 'user' }
+                    });
                     showAlert('Adminlik olib tashlandi', 'success');
                 } else {
                     // Adminlik berish
-                    const { error } = await supabase
-                        .from('users')
-                        .update({ role: 'admin' })
-                        .eq('email', email);
-
-                    if (error) throw error;
+                    await supabaseRequest('users', {
+                        method: 'PATCH',
+                        query: `?email=eq.${encodeURIComponent(email)}`,
+                        body: { role: 'admin' }
+                    });
                     showAlert('Adminlik berildi', 'success');
                 }
                 
                 loadUsers();
                 loadAdmins();
             } catch (error) {
-                showAlert('Xatolik: ' + error.message);
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
             }
         }
 
@@ -774,19 +762,18 @@
             }
 
             try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ role: 'admin' })
-                    .eq('email', email);
-
-                if (error) throw error;
+                await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: 'admin' }
+                });
 
                 showAlert('Adminlik berildi!', 'success');
                 document.getElementById('admin-email-input').value = '';
                 loadUsers();
                 loadAdmins();
             } catch (error) {
-                showAlert('Xatolik: ' + error.message);
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
             }
         }
 
@@ -795,18 +782,17 @@
             if (!confirm(`${email} dan adminlikni olib tashlashni xohlaysizmi?`)) return;
 
             try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ role: 'user' })
-                    .eq('email', email);
-
-                if (error) throw error;
+                await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: 'user' }
+                });
 
                 showAlert('Adminlik olib tashlandi', 'success');
                 loadUsers();
                 loadAdmins();
             } catch (error) {
-                showAlert('Xatolik: ' + error.message);
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
             }
         }
 
