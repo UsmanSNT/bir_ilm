@@ -444,7 +444,10 @@
                         window.location.href = '../index.html';
                         return;
                     }
-                    document.getElementById('admin-name').textContent = currentUser.username;
+                    document.getElementById('admin-name').textContent = currentUser.username || currentUser.email;
+                    
+                    // Auth muvaffaqiyatli bo'lgandan keyin kitoblarni yuklash
+                    await loadBooks();
                 } else {
                     window.location.href = '../index.html';
                 }
@@ -454,7 +457,10 @@
             }
         }
 
-        checkAuth();
+        // Sahifa yuklanganda auth tekshirish
+        (async () => {
+            await checkAuth();
+        })();
 
         // Rating ko'rsatish
         const ratingInput = document.getElementById('book-rating');
@@ -771,16 +777,33 @@
 
         // Tab Navigation
         document.querySelectorAll('.tab-nav').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 document.querySelectorAll('.tab-nav').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-                document.getElementById(btn.dataset.tab + '-tab').classList.remove('hidden');
-                
-                // Settings tab ochilganda foydalanuvchilarni yuklash
-                if (btn.dataset.tab === 'settings') {
-                    loadUsers();
+                const targetTab = document.getElementById(btn.dataset.tab + '-tab');
+                if (targetTab) {
+                    targetTab.classList.remove('hidden');
+                    
+                    // Settings tab ochilganda foydalanuvchilarni yuklash
+                    if (btn.dataset.tab === 'settings') {
+                        // currentUser ni tekshirish va yangilash
+                        if (!currentUser) {
+                            const token = getToken();
+                            if (token) {
+                                try {
+                                    const result = await authAPI.getMe();
+                                    if (result.success) {
+                                        currentUser = result.user;
+                                    }
+                                } catch (e) {
+                                    console.error('Error getting current user:', e);
+                                }
+                            }
+                        }
+                        await loadUsers();
+                    }
                 }
             });
         });
@@ -790,11 +813,29 @@
         
         async function loadUsers() {
             const usersTableBody = document.getElementById('users-table-body');
-            if (!usersTableBody) return;
+            if (!usersTableBody) {
+                console.warn('users-table-body element topilmadi');
+                return;
+            }
             
             usersTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</td></tr>';
 
             try {
+                // currentUser ni yangilash (agar mavjud bo'lmasa)
+                if (!currentUser) {
+                    const token = getToken();
+                    if (token) {
+                        try {
+                            const result = await authAPI.getMe();
+                            if (result.success) {
+                                currentUser = result.user;
+                            }
+                        } catch (e) {
+                            console.error('Error getting current user:', e);
+                        }
+                    }
+                }
+
                 // REST API orqali foydalanuvchilarni olish
                 const users = await supabaseRequest('users', {
                     query: '?order=created_at.desc'
@@ -804,13 +845,18 @@
                 renderUsers(allUsers);
                 
                 // Super Admin bo'lsa, adminlik berish bo'limini ko'rsatish
-                if (currentUser && currentUser.role === 'super_admin') {
-                    document.getElementById('super-admin-info').classList.remove('hidden');
-                    document.getElementById('admin-grant-section').classList.remove('hidden');
+                const isSuperAdmin = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'Asosiy Admin');
+                if (isSuperAdmin) {
+                    const superAdminInfo = document.getElementById('super-admin-info');
+                    const adminGrantSection = document.getElementById('admin-grant-section');
+                    if (superAdminInfo) superAdminInfo.classList.remove('hidden');
+                    if (adminGrantSection) adminGrantSection.classList.remove('hidden');
                     loadAdmins();
                 } else {
-                    document.getElementById('super-admin-info').classList.add('hidden');
-                    document.getElementById('admin-grant-section').classList.add('hidden');
+                    const superAdminInfo = document.getElementById('super-admin-info');
+                    const adminGrantSection = document.getElementById('admin-grant-section');
+                    if (superAdminInfo) superAdminInfo.classList.add('hidden');
+                    if (adminGrantSection) adminGrantSection.classList.add('hidden');
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
@@ -829,17 +875,32 @@
 
             container.innerHTML = users.map(user => {
                 const isSuperAdmin = user.role === 'super_admin';
-                const isCurrentUser = currentUser && (currentUser.email === user.email || currentUser.id === user.id);
+                
+                // currentUser ni tekshirish - email yoki id orqali
+                let isCurrentUser = false;
+                if (currentUser) {
+                    isCurrentUser = (
+                        currentUser.email === user.email || 
+                        currentUser.id === user.id ||
+                        (currentUser.username && currentUser.username === user.username) ||
+                        (currentUser.email && currentUser.email.toLowerCase() === user.email.toLowerCase())
+                    );
+                }
+                
+                // Super Admin ekanligini tekshirish
+                const isUserSuperAdmin = currentUser && (
+                    currentUser.role === 'super_admin' || 
+                    currentUser.role === 'Asosiy Admin' ||
+                    currentUser.role === 'Super Admin'
+                );
+                const canChangeRole = isUserSuperAdmin && !isSuperAdmin && !isCurrentUser;
                 const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
-                const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-pink-500'];
-                const colorIndex = firstLetter.charCodeAt(0) % colors.length;
-                const avatarColor = colors[colorIndex];
                 
                 return `
                 <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition">
                     <td class="py-4 px-4">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : avatarColor} flex items-center justify-center ${isSuperAdmin ? '' : 'text-white font-bold'}" style="${isSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
+                            <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center ${isSuperAdmin ? '' : 'text-white font-bold'}" style="${isSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
                                 ${isSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
                             </div>
                             <div>
@@ -859,8 +920,8 @@
                     <td class="py-4 px-4">
                         ${isCurrentUser ? 
                             '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
-                            currentUser && currentUser.role === 'super_admin' && user.role !== 'super_admin' ? `
-                                <select onchange="handleRoleChange('${user.email}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500">
+                            canChangeRole ? `
+                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer">
                                     <option value="${user.role}" selected>${getRoleName(user.role)}</option>
                                     ${user.role !== 'admin' ? '<option value="admin">Admin</option>' : ''}
                                     ${user.role !== 'user' ? '<option value="user">Foydalanuvchi</option>' : ''}
@@ -892,6 +953,13 @@
         async function handleRoleChange(email, currentRole, newRole) {
             if (currentRole === newRole) return;
             
+            // Super Admin ekanligini tekshirish
+            if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'Asosiy Admin')) {
+                showAlert('Faqat Super Admin rol o\'zgartira oladi!', 'error');
+                loadUsers(); // Dropdown'ni qayta yuklash
+                return;
+            }
+            
             if (!confirm(`${email} foydalanuvchisining rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) {
                 // Dropdown'ni eski qiymatga qaytarish
                 loadUsers();
@@ -907,8 +975,11 @@
 
                 showAlert(`Rol "${getRoleName(newRole)}" ga o'zgartirildi`, 'success');
                 loadUsers();
-                loadAdmins();
+                if (document.getElementById('admins-list')) {
+                    loadAdmins();
+                }
             } catch (error) {
+                console.error('Role change error:', error);
                 showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
                 loadUsers(); // Dropdown'ni qayta yuklash
             }
