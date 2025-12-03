@@ -144,6 +144,16 @@
             border-color: #4CAF50;
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
         }
+        
+        /* Super Admin uchun alohida ko'rinish */
+        table tr.border-yellow-500\/50 {
+            background: linear-gradient(90deg, rgba(234, 179, 8, 0.1) 0%, rgba(234, 179, 8, 0.05) 100%);
+            border-left: 3px solid rgba(234, 179, 8, 0.5);
+        }
+        
+        table tr.border-yellow-500\/50:hover {
+            background: linear-gradient(90deg, rgba(234, 179, 8, 0.15) 0%, rgba(234, 179, 8, 0.08) 100%);
+        }
     </style>
 </head>
 <body>
@@ -950,10 +960,22 @@
                 }
                 // Super Admin barcha foydalanuvchilarga (o'zi bundan tashqari) adminlik berishi mumkin
                 const canChangeRole = isUserSuperAdmin && !isCurrentUser;
+                
+                // Debug: console'da tekshirish (faqat birinchi foydalanuvchi uchun)
+                if (users.indexOf(user) === 0 && isUserSuperAdmin) {
+                    console.log('=== DEBUG ROLE CHANGE ===');
+                    console.log('Current User:', currentUser);
+                    console.log('Current User Role:', currentUser?.role);
+                    console.log('isUserSuperAdmin:', isUserSuperAdmin);
+                    console.log('User:', user.email, 'Role:', user.role);
+                    console.log('isCurrentUser:', isCurrentUser);
+                    console.log('canChangeRole:', canChangeRole);
+                }
+                
                 const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
                 
                 return `
-                <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition">
+                <tr class="border-b ${isSuperAdmin ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-gray-700'} hover:bg-gray-800/50 transition ${isSuperAdmin ? 'ring-1 ring-yellow-500/30' : ''}">
                     <td class="py-4 px-4">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center ${isSuperAdmin ? '' : 'text-white font-bold'}" style="${isSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
@@ -979,9 +1001,9 @@
                             canChangeRole ? `
                                 <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition">
                                     <option value="${user.role}" selected>${getRoleName(user.role)}</option>
-                                    ${user.role !== 'super_admin' ? '<option value="super_admin">Super Admin</option>' : ''}
-                                    ${user.role !== 'admin' ? '<option value="admin">Admin</option>' : ''}
-                                    ${user.role !== 'user' ? '<option value="user">Foydalanuvchi</option>' : ''}
+                                    <option value="super_admin">Super Admin</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">Foydalanuvchi</option>
                                 </select>
                             ` : 
                             `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
