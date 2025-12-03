@@ -865,6 +865,20 @@
 
                 allUsers = Array.isArray(users) ? users : [];
                 
+                // Ro'yxatni tartiblash: Super Admin va Adminlar yuqorida, qolganlar pastda
+                allUsers.sort((a, b) => {
+                    // Super Admin birinchi
+                    if (a.role === 'super_admin' && b.role !== 'super_admin') return -1;
+                    if (b.role === 'super_admin' && a.role !== 'super_admin') return 1;
+                    
+                    // Adminlar ikkinchi
+                    if (a.role === 'admin' && b.role === 'user') return -1;
+                    if (b.role === 'admin' && a.role === 'user') return 1;
+                    
+                    // O'xshash rollar uchun sana bo'yicha tartiblash (yangi yuqorida)
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
+                
                 renderUsers(allUsers);
                 
                 // Super Admin bo'lsa, adminlik berish bo'limini ko'rsatish
@@ -934,7 +948,8 @@
                         currentUser.is_super_admin === 'true'
                     );
                 }
-                const canChangeRole = isUserSuperAdmin && !isSuperAdmin && !isCurrentUser;
+                // Super Admin barcha foydalanuvchilarga (o'zi bundan tashqari) adminlik berishi mumkin
+                const canChangeRole = isUserSuperAdmin && !isCurrentUser;
                 const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
                 
                 return `
@@ -964,6 +979,7 @@
                             canChangeRole ? `
                                 <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition">
                                     <option value="${user.role}" selected>${getRoleName(user.role)}</option>
+                                    ${user.role !== 'super_admin' ? '<option value="super_admin">Super Admin</option>' : ''}
                                     ${user.role !== 'admin' ? '<option value="admin">Admin</option>' : ''}
                                     ${user.role !== 'user' ? '<option value="user">Foydalanuvchi</option>' : ''}
                                 </select>
@@ -1013,10 +1029,18 @@
                 return;
             }
             
-            if (!confirm(`${email} foydalanuvchisining rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) {
-                // Dropdown'ni eski qiymatga qaytarish
-                loadUsers();
-                return;
+            // Super Admin rolini berishda ogohlantirish
+            if (newRole === 'super_admin') {
+                if (!confirm(`DIQQAT: ${email} foydalanuvchisiga Super Admin rolini berishni xohlaysizmi?\n\nBu foydalanuvchi barcha huquqlarga ega bo'ladi va boshqa foydalanuvchilarga ham adminlik bera oladi!`)) {
+                    loadUsers();
+                    return;
+                }
+            } else {
+                if (!confirm(`${email} foydalanuvchisining rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) {
+                    // Dropdown'ni eski qiymatga qaytarish
+                    loadUsers();
+                    return;
+                }
             }
 
             try {
