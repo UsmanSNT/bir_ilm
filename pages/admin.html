@@ -101,6 +101,49 @@
         .badge-super { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
         .badge-admin { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
         .badge-user { background: rgba(100, 100, 100, 0.5); color: #9ca3af; }
+        
+        /* Jadval stillari */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        table th {
+            text-align: left;
+            font-weight: 600;
+            color: #9ca3af;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.5);
+        }
+        
+        table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        table tr:hover {
+            background: rgba(55, 65, 81, 0.3);
+        }
+        
+        table select {
+            background: rgba(30, 30, 40, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        table select:hover {
+            border-color: #4CAF50;
+        }
+        
+        table select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -248,7 +291,7 @@
             </div>
 
             <!-- Ro'yxatdan o'tganlar -->
-            <div class="card p-6">
+            <div class="card p-6 mb-6">
                 <h2 class="text-2xl font-bold mb-6 text-green-400">
                     <i class="fas fa-users mr-2"></i>Ro'yxatdan O'tganlar
                 </h2>
@@ -258,9 +301,115 @@
                     <input type="text" id="user-search" placeholder="Foydalanuvchi qidirish..." class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none">
                 </div>
 
-                <!-- Foydalanuvchilar ro'yxati -->
-                <div id="users-list" class="space-y-3">
-                    <!-- Foydalanuvchilar bu yerda ko'rsatiladi -->
+                <!-- Foydalanuvchilar jadvali -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Foydalanuvchi</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Email</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Rol</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Sana</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Foydalanuvchilar bu yerda ko'rsatiladi -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rol huquqlari -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-green-400">
+                    <i class="fas fa-shield-alt mr-2"></i>Rol Huquqlari
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Asosiy Admin -->
+                    <div class="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border-2 border-yellow-500/50 rounded-lg p-5 hover:shadow-lg hover:shadow-yellow-500/20 transition">
+                        <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-yellow-500/30">
+                            <div class="w-12 h-12 rounded-full bg-yellow-500/30 flex items-center justify-center ring-2 ring-yellow-500/50">
+                                <i class="fas fa-crown text-yellow-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-yellow-400">Asosiy Admin</h3>
+                        </div>
+                        <ul class="space-y-2.5 text-sm">
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Barcha ma'lumotlarni o'zgartirish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Boshqalarga admin berish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Adminlikni olib tashlash</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span class="font-semibold">Faqat 1 ta bo'ladi (Siz)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Admin -->
+                    <div class="bg-gradient-to-br from-purple-500/20 to-pink-600/10 border-2 border-purple-500/50 rounded-lg p-5 hover:shadow-lg hover:shadow-purple-500/20 transition">
+                        <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-purple-500/30">
+                            <div class="w-12 h-12 rounded-full bg-purple-500/30 flex items-center justify-center ring-2 ring-purple-500/50">
+                                <i class="fas fa-user-shield text-purple-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-purple-400">Admin</h3>
+                        </div>
+                        <ul class="space-y-2.5 text-sm">
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Barcha ma'lumotlarni o'zgartirish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Kitob fikrlari, galereya, qaydlar</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Boshqalarga admin bera olmaydi</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Rollarni o'zgartira olmaydi</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Oddiy Foydalanuvchi -->
+                    <div class="bg-gradient-to-br from-green-500/20 to-emerald-600/10 border-2 border-green-500/50 rounded-lg p-5 hover:shadow-lg hover:shadow-green-500/20 transition">
+                        <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-green-500/30">
+                            <div class="w-12 h-12 rounded-full bg-green-500/30 flex items-center justify-center ring-2 ring-green-500/50">
+                                <i class="fas fa-user text-green-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-green-400">Oddiy Foydalanuvchi</h3>
+                        </div>
+                        <ul class="space-y-2.5 text-sm">
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Ma'lumotlarni ko'rish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Reaksiya bildirish (like/dislike)</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Ma'lumot qo'sha olmaydi</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Ma'lumot o'zgartira olmaydi</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -667,45 +816,100 @@
             }
         }
 
-        // Foydalanuvchilarni ko'rsatish
+        // Foydalanuvchilarni ko'rsatish (jadval ko'rinishida)
         function renderUsers(users) {
-            const container = document.getElementById('users-list');
+            const container = document.getElementById('users-table-body');
             
             if (users.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 py-8">Foydalanuvchilar topilmadi</p>';
+                container.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-8">Foydalanuvchilar topilmadi</td></tr>';
                 return;
             }
 
             container.innerHTML = users.map(user => {
                 const isSuperAdmin = user.role === 'super_admin';
                 const isCurrentUser = currentUser && (currentUser.email === user.email || currentUser.id === user.id);
+                const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
+                const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-pink-500'];
+                const colorIndex = firstLetter.charCodeAt(0) % colors.length;
+                const avatarColor = colors[colorIndex];
                 
                 return `
-                <div class="user-card flex items-center justify-between ${isSuperAdmin ? 'border-2 border-yellow-500/50 bg-yellow-500/5' : ''}">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20' : 'bg-gray-700'} flex items-center justify-center ${isSuperAdmin ? 'ring-2 ring-yellow-500/50' : ''}">
-                            ${isSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : '<i class="fas fa-user text-gray-400"></i>'}
-                        </div>
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <p class="font-semibold ${isSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
-                                ${isCurrentUser ? '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">Siz</span>' : ''}
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition">
+                    <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : avatarColor} flex items-center justify-center ${isSuperAdmin ? '' : 'text-white font-bold'}" style="${isSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
+                                ${isSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
                             </div>
-                            <p class="text-sm text-gray-400">${escapeHtml(user.email)}</p>
-                            <p class="text-xs text-gray-500">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
+                            <div>
+                                <p class="font-semibold ${isSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
+                    </td>
+                    <td class="py-4 px-4">
+                        <p class="text-sm text-gray-300">${escapeHtml(user.email)}</p>
+                    </td>
+                    <td class="py-4 px-4">
                         <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
-                        ${currentUser && currentUser.role === 'super_admin' && user.role !== 'super_admin' ? `
-                            <button onclick="toggleAdminRole('${user.email}', '${user.role}')" class="px-3 py-1 rounded text-xs ${user.role === 'admin' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white transition">
-                                ${user.role === 'admin' ? '<i class="fas fa-times mr-1"></i>Adminlikni olib tashlash' : '<i class="fas fa-plus mr-1"></i>Admin qilish'}
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
+                    </td>
+                    <td class="py-4 px-4">
+                        <p class="text-sm text-gray-400">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
+                    </td>
+                    <td class="py-4 px-4">
+                        ${isCurrentUser ? 
+                            '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
+                            currentUser && currentUser.role === 'super_admin' && user.role !== 'super_admin' ? `
+                                <select onchange="handleRoleChange('${user.email}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500">
+                                    <option value="${user.role}" selected>${getRoleName(user.role)}</option>
+                                    ${user.role !== 'admin' ? '<option value="admin">Admin</option>' : ''}
+                                    ${user.role !== 'user' ? '<option value="user">Foydalanuvchi</option>' : ''}
+                                </select>
+                            ` : 
+                            `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
+                        }
+                    </td>
+                </tr>
             `;
             }).join('');
+        }
+
+        // Avatar rangini olish
+        function getAvatarColor(letter) {
+            const colors = [
+                'rgba(239, 68, 68, 0.8)',   // red
+                'rgba(59, 130, 246, 0.8)',  // blue
+                'rgba(34, 197, 94, 0.8)',   // green
+                'rgba(168, 85, 247, 0.8)',  // purple
+                'rgba(234, 179, 8, 0.8)',   // yellow
+                'rgba(236, 72, 153, 0.8)'   // pink
+            ];
+            const index = letter.charCodeAt(0) % colors.length;
+            return colors[index];
+        }
+
+        // Rol o'zgarishini boshqarish
+        async function handleRoleChange(email, currentRole, newRole) {
+            if (currentRole === newRole) return;
+            
+            if (!confirm(`${email} foydalanuvchisining rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) {
+                // Dropdown'ni eski qiymatga qaytarish
+                loadUsers();
+                return;
+            }
+
+            try {
+                await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: newRole }
+                });
+
+                showAlert(`Rol "${getRoleName(newRole)}" ga o'zgartirildi`, 'success');
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
+                loadUsers(); // Dropdown'ni qayta yuklash
+            }
         }
 
         // Adminlar ro'yxatini yuklash
