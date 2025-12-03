@@ -111,6 +111,9 @@
                         <a id="admin-panel-link" href="pages/admin.html" class="hidden text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-150">
                             <i class="fas fa-cog mr-1"></i>Admin Panel
                         </a>
+                        <a id="super-admin-link" href="pages/super-admin.html" class="hidden text-yellow-400 hover:text-yellow-300 px-3 py-2 rounded-md text-sm font-medium transition duration-150">
+                            <i class="fas fa-crown mr-1"></i>Super Admin
+                        </a>
                         <button id="logout-btn" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-150">
                             <i class="fas fa-sign-out-alt mr-1"></i>Chiqish
                         </button>
@@ -145,6 +148,9 @@
                     <span id="mobile-user-name" class="block text-gray-300 px-3 py-2 text-sm"></span>
                     <a id="mobile-admin-panel-link" href="pages/admin.html" class="hidden block text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium transition duration-150">
                         <i class="fas fa-cog mr-2"></i>Admin Panel
+                    </a>
+                    <a id="mobile-super-admin-link" href="pages/super-admin.html" class="hidden block text-yellow-400 hover:bg-gray-700 hover:text-yellow-300 px-3 py-2 rounded-md text-base font-medium transition duration-150">
+                        <i class="fas fa-crown mr-2"></i>Super Admin
                     </a>
                     <button id="mobile-logout-btn" class="block w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-base font-medium transition duration-150">
                         <i class="fas fa-sign-out-alt mr-2"></i>Chiqish
@@ -444,12 +450,23 @@
                         mobileUserName.textContent = result.user.username;
                         
                         // Admin bo'lsa, admin panel linkini ko'rsatish
-                        if (result.user.role === 'admin') {
+                        if (result.user.role === 'admin' || result.user.role === 'super_admin') {
                             adminPanelLink.classList.remove('hidden');
                             mobileAdminPanelLink.classList.remove('hidden');
                         } else {
                             adminPanelLink.classList.add('hidden');
                             mobileAdminPanelLink.classList.add('hidden');
+                        }
+                        
+                        // Super Admin bo'lsa, super admin linkini ko'rsatish
+                        const superAdminLink = document.getElementById('super-admin-link');
+                        const mobileSuperAdminLink = document.getElementById('mobile-super-admin-link');
+                        if (result.user.role === 'super_admin') {
+                            if (superAdminLink) superAdminLink.classList.remove('hidden');
+                            if (mobileSuperAdminLink) mobileSuperAdminLink.classList.remove('hidden');
+                        } else {
+                            if (superAdminLink) superAdminLink.classList.add('hidden');
+                            if (mobileSuperAdminLink) mobileSuperAdminLink.classList.add('hidden');
                         }
                         
                         // Barcha Taqrizlar linkini ko'rsatish

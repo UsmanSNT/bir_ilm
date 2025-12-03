@@ -115,6 +115,27 @@
                 <button id="login-btn" class="btn-primary w-full py-3 rounded-lg font-bold text-white">
                     <i class="fas fa-sign-in-alt mr-2"></i>Kirish
                 </button>
+                <button type="button" onclick="showForgotPassword()" class="text-sm text-gray-400 hover:text-green-400 mt-3 block w-full text-center">
+                    <i class="fas fa-key mr-1"></i>Parolni unutdingizmi?
+                </button>
+            </div>
+            
+            <!-- Forgot Password Form -->
+            <div id="forgot-form" class="hidden space-y-4">
+                <p class="text-sm text-gray-400 mb-4">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Email manzilingizni kiriting, sizga parol tiklash havolasi yuboriladi.
+                </p>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="forgot-email" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="email@example.com">
+                </div>
+                <button id="forgot-btn" onclick="sendResetEmail()" class="btn-primary w-full py-3 rounded-lg font-bold text-white">
+                    <i class="fas fa-paper-plane mr-2"></i>Yuborish
+                </button>
+                <button type="button" onclick="hideForgotPassword()" class="text-sm text-gray-400 hover:text-white mt-2 block w-full text-center">
+                    <i class="fas fa-arrow-left mr-1"></i>Orqaga qaytish
+                </button>
             </div>
 
             <!-- Register Form -->
@@ -296,6 +317,46 @@
                 document.getElementById('register-btn').click();
             }
         });
+
+        // Parolni unutdim
+        function showForgotPassword() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-form').classList.remove('hidden');
+            document.querySelector('.flex.mb-6').classList.add('hidden');
+        }
+        
+        function hideForgotPassword() {
+            document.getElementById('forgot-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.querySelector('.flex.mb-6').classList.remove('hidden');
+        }
+        
+        async function sendResetEmail() {
+            const email = document.getElementById('forgot-email').value.trim();
+            
+            if (!email) {
+                showAlert('Email kiriting!');
+                return;
+            }
+            
+            try {
+                // Supabase password reset
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/pages/reset-password.html'
+                });
+                
+                if (error) {
+                    showAlert('Xatolik: ' + error.message);
+                    return;
+                }
+                
+                showAlert('Parol tiklash havolasi emailingizga yuborildi!', 'success');
+                hideForgotPassword();
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
 
         // Agar allaqachon kirgan bo'lsa, to'g'ri sahifaga yo'naltirish
         window.addEventListener('DOMContentLoaded', async () => {
