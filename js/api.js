@@ -254,13 +254,46 @@ const authAPI = {
             throw new Error('Parol kamida 6 ta belgidan iborat bo\'lishi kerak!');
         }
 
-        // RPC funksiyasini chaqirish
-        const result = await supabaseRPC('reset_user_password', {
-            p_email: email,
-            p_new_password: newPassword
-        });
+        try {
+            // RPC funksiyasini chaqirish
+            const result = await supabaseRPC('reset_user_password', {
+                p_email: email,
+                p_new_password: newPassword
+            });
 
-        return result;
+            // Agar natija funksiya nomi bilan o'ralgan bo'lsa
+            if (result && result.reset_user_password) {
+                return result.reset_user_password;
+            }
+
+            return result;
+        } catch (error) {
+            console.error('RPC error, trying direct update:', error);
+
+            // Alternativ: to'g'ridan-to'g'ri UPDATE
+            const hashedPassword = await hashPassword(newPassword);
+
+            // Foydalanuvchi mavjudligini tekshirish
+            const users = await supabaseRequest('users', {
+                query: `?email=eq.${encodeURIComponent(email)}`
+            });
+
+            if (!users || users.length === 0) {
+                throw new Error('Foydalanuvchi topilmadi');
+            }
+
+            // Parolni yangilash
+            await supabaseRequest('users', {
+                method: 'PATCH',
+                query: `?email=eq.${encodeURIComponent(email)}`,
+                body: { password: hashedPassword }
+            });
+
+            return {
+                success: true,
+                message: 'Parol muvaffaqiyatli yangilandi'
+            };
+        }
     },
 
     requestPasswordReset: async (email) => {
