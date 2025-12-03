@@ -58,6 +58,49 @@
         .star-rating {
             color: #ffc107;
         }
+        .tab-nav {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-nav:hover {
+            color: #4CAF50;
+        }
+        .tab-nav.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+        .tab-content {
+            display: block;
+        }
+        .tab-content.hidden {
+            display: none;
+        }
+        .user-card {
+            background: rgba(11, 17, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+        .user-card:hover {
+            background: rgba(11, 17, 26, 0.8);
+            border-color: #4CAF50;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-super { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        .badge-admin { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .badge-user { background: rgba(100, 100, 100, 0.5); color: #9ca3af; }
     </style>
 </head>
 <body>
@@ -85,6 +128,18 @@
         <!-- Xabar ko'rsatish -->
         <div id="alert-message" class="hidden mb-4 p-4 rounded-lg"></div>
 
+        <!-- Tabs Navigation -->
+        <div class="flex space-x-2 mb-6 border-b border-gray-700">
+            <button class="tab-nav active" data-tab="reviews">
+                <i class="fas fa-book mr-2"></i>Taqrizlar
+            </button>
+            <button class="tab-nav" data-tab="settings" id="settings-tab-btn">
+                <i class="fas fa-cog mr-2"></i>Sozlamalar
+            </button>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div id="reviews-tab" class="tab-content">
         <!-- Yangi taqriz yozish -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold mb-6 text-green-400">
@@ -146,6 +201,55 @@
                 <!-- Kitoblar bu yerda ko'rsatiladi -->
             </div>
         </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content hidden">
+            <div class="card p-6 mb-6">
+                <h2 class="text-2xl font-bold mb-6 text-green-400">
+                    <i class="fas fa-users mr-2"></i>Ro'yxatdan O'tganlar
+                </h2>
+                
+                <!-- Qidiruv -->
+                <div class="mb-4">
+                    <input type="text" id="user-search" placeholder="Foydalanuvchi qidirish..." class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none">
+                </div>
+
+                <!-- Foydalanuvchilar ro'yxati -->
+                <div id="users-list" class="space-y-3">
+                    <!-- Foydalanuvchilar bu yerda ko'rsatiladi -->
+                </div>
+            </div>
+
+            <!-- Adminlik berish (faqat Super Admin uchun) -->
+            <div id="admin-grant-section" class="card p-6 hidden">
+                <h2 class="text-2xl font-bold mb-6 text-yellow-400">
+                    <i class="fas fa-user-shield mr-2"></i>Adminlik Boshqaruvi
+                </h2>
+                
+                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                    <p class="text-yellow-400 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Faqat Super Admin boshqa foydalanuvchilarga admin roli berishi mumkin.
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Foydalanuvchi emaili</label>
+                        <div class="flex space-x-2">
+                            <input type="email" id="admin-email-input" placeholder="email@example.com" class="form-input flex-1 px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none">
+                            <button onclick="grantAdmin()" class="btn-primary px-6 py-3 rounded-lg font-bold text-white">
+                                <i class="fas fa-plus mr-2"></i>Admin qilish
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <h4 class="font-semibold mb-3">Hozirgi adminlar</h4>
+                    <div id="admins-list" class="space-y-2">
+                        <!-- Adminlar bu yerda ko'rsatiladi -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Footer -->
@@ -157,7 +261,14 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/api.js"></script>
+    <script>
+        // Supabase client
+        const SUPABASE_URL = 'https://oynqygopnfowjylshuji.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
     <script>
         // Authentication tekshiruvi
         let currentUser = null;
@@ -173,7 +284,7 @@
                 const result = await authAPI.getMe();
                 if (result.success) {
                     currentUser = result.user;
-                    if (currentUser.role !== 'admin') {
+                    if (currentUser.role !== 'admin' && currentUser.role !== 'super_admin') {
                         window.location.href = '../index.html';
                         return;
                     }
@@ -501,6 +612,232 @@
         setTimeout(() => {
             loadBooks();
         }, 500);
+
+        // Tab Navigation
+        document.querySelectorAll('.tab-nav').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-nav').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(btn.dataset.tab + '-tab').classList.remove('hidden');
+                
+                // Settings tab ochilganda foydalanuvchilarni yuklash
+                if (btn.dataset.tab === 'settings') {
+                    loadUsers();
+                }
+            });
+        });
+
+        // Foydalanuvchilarni yuklash
+        let allUsers = [];
+        
+        async function loadUsers() {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = '<p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+
+            try {
+                // Supabase'dan foydalanuvchilarni olish
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allUsers = data || [];
+                renderUsers(allUsers);
+                
+                // Super Admin bo'lsa, adminlik berish bo'limini ko'rsatish
+                if (currentUser && currentUser.role === 'super_admin') {
+                    document.getElementById('admin-grant-section').classList.remove('hidden');
+                    loadAdmins();
+                } else {
+                    document.getElementById('admin-grant-section').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                usersList.innerHTML = '<p class="text-center text-red-400 py-8">Xatolik yuz berdi</p>';
+            }
+        }
+
+        // Foydalanuvchilarni ko'rsatish
+        function renderUsers(users) {
+            const container = document.getElementById('users-list');
+            
+            if (users.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-8">Foydalanuvchilar topilmadi</p>';
+                return;
+            }
+
+            container.innerHTML = users.map(user => `
+                <div class="user-card flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold">${escapeHtml(user.username || user.email)}</p>
+                            <p class="text-sm text-gray-400">${escapeHtml(user.email)}</p>
+                            <p class="text-xs text-gray-500">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
+                        ${currentUser && currentUser.role === 'super_admin' && user.role !== 'super_admin' ? `
+                            <button onclick="toggleAdminRole('${user.email}', '${user.role}')" class="px-3 py-1 rounded text-xs ${user.role === 'admin' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white">
+                                ${user.role === 'admin' ? '<i class="fas fa-times mr-1"></i>Adminlikni olib tashlash' : '<i class="fas fa-plus mr-1"></i>Admin qilish'}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Adminlar ro'yxatini yuklash
+        async function loadAdmins() {
+            const adminsList = document.getElementById('admins-list');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .in('role', ['admin', 'super_admin'])
+                    .order('role', { ascending: false });
+
+                if (error) throw error;
+
+                const admins = data || [];
+                adminsList.innerHTML = admins.map(admin => `
+                    <div class="user-card flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                                <i class="fas fa-user-shield text-green-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">${escapeHtml(admin.username || admin.email)}</p>
+                                <p class="text-xs text-gray-400">${escapeHtml(admin.email)}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge ${getBadgeClass(admin.role)}">${getRoleName(admin.role)}</span>
+                            ${admin.role !== 'super_admin' ? `
+                                <button onclick="revokeAdmin('${admin.email}')" class="px-3 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading admins:', error);
+            }
+        }
+
+        // Adminlik berish/olish
+        async function toggleAdminRole(email, currentRole) {
+            try {
+                if (currentRole === 'admin') {
+                    // Adminlikni olib tashlash
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ role: 'user' })
+                        .eq('email', email);
+
+                    if (error) throw error;
+                    showAlert('Adminlik olib tashlandi', 'success');
+                } else {
+                    // Adminlik berish
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ role: 'admin' })
+                        .eq('email', email);
+
+                    if (error) throw error;
+                    showAlert('Adminlik berildi', 'success');
+                }
+                
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + error.message);
+            }
+        }
+
+        // Email orqali adminlik berish
+        async function grantAdmin() {
+            const email = document.getElementById('admin-email-input').value.trim();
+            
+            if (!email) {
+                showAlert('Email kiriting!');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ role: 'admin' })
+                    .eq('email', email);
+
+                if (error) throw error;
+
+                showAlert('Adminlik berildi!', 'success');
+                document.getElementById('admin-email-input').value = '';
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + error.message);
+            }
+        }
+
+        // Adminlikni olib tashlash
+        async function revokeAdmin(email) {
+            if (!confirm(`${email} dan adminlikni olib tashlashni xohlaysizmi?`)) return;
+
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ role: 'user' })
+                    .eq('email', email);
+
+                if (error) throw error;
+
+                showAlert('Adminlik olib tashlandi', 'success');
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + error.message);
+            }
+        }
+
+        // Qidiruv
+        document.getElementById('user-search')?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                u.email.toLowerCase().includes(query) || 
+                (u.username && u.username.toLowerCase().includes(query))
+            );
+            renderUsers(filtered);
+        });
+
+        // Helper functions
+        function getBadgeClass(role) {
+            if (role === 'super_admin') return 'badge-super';
+            if (role === 'admin') return 'badge-admin';
+            return 'badge-user';
+        }
+
+        function getRoleName(role) {
+            if (role === 'super_admin') return 'Super Admin';
+            if (role === 'admin') return 'Admin';
+            return 'User';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
 </body>
 </html>
