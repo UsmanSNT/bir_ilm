@@ -789,8 +789,10 @@
         let allUsers = [];
         
         async function loadUsers() {
-            const usersList = document.getElementById('users-list');
-            usersList.innerHTML = '<p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+            const usersTableBody = document.getElementById('users-table-body');
+            if (!usersTableBody) return;
+            
+            usersTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</td></tr>';
 
             try {
                 // REST API orqali foydalanuvchilarni olish
@@ -812,7 +814,7 @@
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                usersList.innerHTML = `<p class="text-center text-red-400 py-8">Xatolik: ${error.message || 'Noma\'lum xatolik'}</p>`;
+                usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-red-400 py-8">Xatolik: ${error.message || 'Noma\'lum xatolik'}</td></tr>`;
             }
         }
 
