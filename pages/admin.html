@@ -426,6 +426,15 @@
     <!-- Scripts -->
     <script src="../js/api.js"></script>
     <script>
+        // getUser funksiyasini qo'shish (agar api.js'da mavjud bo'lmasa)
+        if (typeof getUser === 'undefined') {
+            function getUser() {
+                const user = localStorage.getItem('birilm_user');
+                return user ? JSON.parse(user) : null;
+            }
+        }
+    </script>
+    <script>
         // Authentication tekshiruvi
         let currentUser = null;
         
@@ -821,18 +830,31 @@
             usersTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</td></tr>';
 
             try {
-                // currentUser ni yangilash (agar mavjud bo'lmasa)
-                if (!currentUser) {
-                    const token = getToken();
-                    if (token) {
-                        try {
-                            const result = await authAPI.getMe();
-                            if (result.success) {
-                                currentUser = result.user;
-                            }
-                        } catch (e) {
-                            console.error('Error getting current user:', e);
+                // currentUser ni yangilash (har doim yangilash)
+                const token = getToken();
+                if (token) {
+                    try {
+                        const result = await authAPI.getMe();
+                        if (result.success) {
+                            currentUser = result.user;
+                            console.log('Current User loaded:', currentUser);
+                            console.log('Current User Role:', currentUser?.role);
                         }
+                    } catch (e) {
+                        console.error('Error getting current user:', e);
+                        // Agar getMe() ishlamasa, localStorage'dan olish
+                        const storedUser = getUser();
+                        if (storedUser) {
+                            currentUser = storedUser;
+                            console.log('Using stored user:', currentUser);
+                        }
+                    }
+                } else {
+                    // Token yo'q bo'lsa, localStorage'dan olish
+                    const storedUser = getUser();
+                    if (storedUser) {
+                        currentUser = storedUser;
+                        console.log('Using stored user (no token):', currentUser);
                     }
                 }
 
@@ -842,10 +864,23 @@
                 });
 
                 allUsers = Array.isArray(users) ? users : [];
+                
                 renderUsers(allUsers);
                 
                 // Super Admin bo'lsa, adminlik berish bo'limini ko'rsatish
-                const isSuperAdmin = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'Asosiy Admin');
+                let isSuperAdmin = false;
+                if (currentUser) {
+                    const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                    isSuperAdmin = (
+                        role === 'super_admin' || 
+                        role === 'asosiy admin' ||
+                        role === 'super admin' ||
+                        currentUser.is_super_admin === true ||
+                        currentUser.is_super_admin === 'true'
+                    );
+                }
+                console.log('Is Super Admin:', isSuperAdmin);
+                
                 if (isSuperAdmin) {
                     const superAdminInfo = document.getElementById('super-admin-info');
                     const adminGrantSection = document.getElementById('admin-grant-section');
@@ -887,12 +922,18 @@
                     );
                 }
                 
-                // Super Admin ekanligini tekshirish
-                const isUserSuperAdmin = currentUser && (
-                    currentUser.role === 'super_admin' || 
-                    currentUser.role === 'Asosiy Admin' ||
-                    currentUser.role === 'Super Admin'
-                );
+                // Super Admin ekanligini tekshirish (barcha variantlarni tekshirish)
+                let isUserSuperAdmin = false;
+                if (currentUser) {
+                    const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                    isUserSuperAdmin = (
+                        role === 'super_admin' || 
+                        role === 'asosiy admin' ||
+                        role === 'super admin' ||
+                        currentUser.is_super_admin === true ||
+                        currentUser.is_super_admin === 'true'
+                    );
+                }
                 const canChangeRole = isUserSuperAdmin && !isSuperAdmin && !isCurrentUser;
                 const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
                 
@@ -921,7 +962,7 @@
                         ${isCurrentUser ? 
                             '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
                             canChangeRole ? `
-                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer">
+                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition">
                                     <option value="${user.role}" selected>${getRoleName(user.role)}</option>
                                     ${user.role !== 'admin' ? '<option value="admin">Admin</option>' : ''}
                                     ${user.role !== 'user' ? '<option value="user">Foydalanuvchi</option>' : ''}
@@ -953,8 +994,20 @@
         async function handleRoleChange(email, currentRole, newRole) {
             if (currentRole === newRole) return;
             
-            // Super Admin ekanligini tekshirish
-            if (!currentUser || (currentUser.role !== 'super_admin' && currentUser.role !== 'Asosiy Admin')) {
+            // Super Admin ekanligini tekshirish (barcha variantlarni tekshirish)
+            let isUserSuperAdmin = false;
+            if (currentUser) {
+                const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                isUserSuperAdmin = (
+                    role === 'super_admin' || 
+                    role === 'asosiy admin' ||
+                    role === 'super admin' ||
+                    currentUser.is_super_admin === true ||
+                    currentUser.is_super_admin === 'true'
+                );
+            }
+            
+            if (!isUserSuperAdmin) {
                 showAlert('Faqat Super Admin rol o\'zgartira oladi!', 'error');
                 loadUsers(); // Dropdown'ni qayta yuklash
                 return;
