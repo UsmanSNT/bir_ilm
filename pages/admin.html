@@ -841,22 +841,34 @@
 
             try {
                 // currentUser ni yangilash (har doim yangilash)
+                console.log('=== LOAD USERS START ===');
                 const token = getToken();
+                console.log('Token exists:', !!token);
+                
                 if (token) {
                     try {
                         const result = await authAPI.getMe();
+                        console.log('getMe() result:', result);
                         if (result.success) {
                             currentUser = result.user;
-                            console.log('Current User loaded:', currentUser);
+                            console.log('Current User loaded from API:', currentUser);
                             console.log('Current User Role:', currentUser?.role);
+                        } else {
+                            console.warn('getMe() returned success: false');
+                            // localStorage'dan olish
+                            const storedUser = getUser();
+                            if (storedUser) {
+                                currentUser = storedUser;
+                                console.log('Using stored user (API failed):', currentUser);
+                            }
                         }
                     } catch (e) {
-                        console.error('Error getting current user:', e);
+                        console.error('Error getting current user from API:', e);
                         // Agar getMe() ishlamasa, localStorage'dan olish
                         const storedUser = getUser();
                         if (storedUser) {
                             currentUser = storedUser;
-                            console.log('Using stored user:', currentUser);
+                            console.log('Using stored user (API error):', currentUser);
                         }
                     }
                 } else {
@@ -865,8 +877,12 @@
                     if (storedUser) {
                         currentUser = storedUser;
                         console.log('Using stored user (no token):', currentUser);
+                    } else {
+                        console.warn('No token and no stored user!');
                     }
                 }
+                
+                console.log('Final currentUser before renderUsers:', currentUser);
 
                 // REST API orqali foydalanuvchilarni olish
                 const users = await supabaseRequest('users', {
@@ -927,6 +943,12 @@
         function renderUsers(users) {
             const container = document.getElementById('users-table-body');
             
+            // Debug: currentUser ni tekshirish
+            console.log('=== RENDER USERS DEBUG ===');
+            console.log('currentUser:', currentUser);
+            console.log('currentUser?.role:', currentUser?.role);
+            console.log('users count:', users.length);
+            
             if (users.length === 0) {
                 container.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">Foydalanuvchilar topilmadi</td></tr>';
                 return;
@@ -957,6 +979,20 @@
                         currentUser.is_super_admin === true ||
                         currentUser.is_super_admin === 'true'
                     );
+                    
+                    // Debug: agar birinchi foydalanuvchi bo'lsa
+                    if (users.indexOf(user) === 0) {
+                        console.log('=== SUPER ADMIN CHECK ===');
+                        console.log('currentUser.role:', currentUser.role);
+                        console.log('role (lowercase):', role);
+                        console.log('loggedInUserIsSuperAdmin:', loggedInUserIsSuperAdmin);
+                    }
+                } else {
+                    // Debug: currentUser null bo'lsa
+                    if (users.indexOf(user) === 0) {
+                        console.error('=== ERROR: currentUser is null! ===');
+                        console.log('This means dropdown will NOT appear!');
+                    }
                 }
                 
                 // Super Admin faqat oddiy foydalanuvchilar va adminlarga rol o'zgartirishi mumkin
@@ -964,8 +1000,8 @@
                 const canChangeRole = loggedInUserIsSuperAdmin && !isCurrentUser && !userIsSuperAdmin;
                 
                 // Debug: console'da tekshirish (faqat birinchi foydalanuvchi uchun)
-                if (users.indexOf(user) === 0 && loggedInUserIsSuperAdmin) {
-                    console.log('=== DEBUG ROLE CHANGE ===');
+                if (users.indexOf(user) === 0) {
+                    console.log('=== FIRST USER DEBUG ===');
                     console.log('Current User:', currentUser);
                     console.log('Current User Role:', currentUser?.role);
                     console.log('loggedInUserIsSuperAdmin:', loggedInUserIsSuperAdmin);
@@ -1012,6 +1048,11 @@
                             ` :
                             `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
                         }
+                        ${users.indexOf(user) === 0 ? `
+                            <div class="text-xs text-gray-500 mt-1">
+                                Debug: canChangeRole=${canChangeRole}, loggedInUserIsSuperAdmin=${loggedInUserIsSuperAdmin}, isCurrentUser=${isCurrentUser}, userIsSuperAdmin=${userIsSuperAdmin}
+                            </div>
+                        ` : ''}
                     </td>
                     <td class="py-4 px-4">
                         ${isCurrentUser ? 
