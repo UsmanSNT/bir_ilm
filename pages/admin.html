@@ -841,25 +841,17 @@
 
             try {
                 // currentUser ni yangilash (har doim yangilash)
-                console.log('=== LOAD USERS START ===');
                 const token = getToken();
-                console.log('Token exists:', !!token);
-                
                 if (token) {
                     try {
                         const result = await authAPI.getMe();
-                        console.log('getMe() result:', result);
                         if (result.success) {
                             currentUser = result.user;
-                            console.log('Current User loaded from API:', currentUser);
-                            console.log('Current User Role:', currentUser?.role);
                         } else {
-                            console.warn('getMe() returned success: false');
                             // localStorage'dan olish
                             const storedUser = getUser();
                             if (storedUser) {
                                 currentUser = storedUser;
-                                console.log('Using stored user (API failed):', currentUser);
                             }
                         }
                     } catch (e) {
@@ -868,7 +860,6 @@
                         const storedUser = getUser();
                         if (storedUser) {
                             currentUser = storedUser;
-                            console.log('Using stored user (API error):', currentUser);
                         }
                     }
                 } else {
@@ -876,13 +867,8 @@
                     const storedUser = getUser();
                     if (storedUser) {
                         currentUser = storedUser;
-                        console.log('Using stored user (no token):', currentUser);
-                    } else {
-                        console.warn('No token and no stored user!');
                     }
                 }
-                
-                console.log('Final currentUser before renderUsers:', currentUser);
 
                 // REST API orqali foydalanuvchilarni olish
                 const users = await supabaseRequest('users', {
@@ -919,7 +905,6 @@
                         currentUser.is_super_admin === 'true'
                     );
                 }
-                console.log('Is Super Admin:', isSuperAdmin);
                 
                 if (isSuperAdmin) {
                     const superAdminInfo = document.getElementById('super-admin-info');
@@ -942,12 +927,6 @@
         // Foydalanuvchilarni ko'rsatish (jadval ko'rinishida)
         function renderUsers(users) {
             const container = document.getElementById('users-table-body');
-            
-            // Debug: currentUser ni tekshirish
-            console.log('=== RENDER USERS DEBUG ===');
-            console.log('currentUser:', currentUser);
-            console.log('currentUser?.role:', currentUser?.role);
-            console.log('users count:', users.length);
             
             if (users.length === 0) {
                 container.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">Foydalanuvchilar topilmadi</td></tr>';
@@ -979,37 +958,12 @@
                         currentUser.is_super_admin === true ||
                         currentUser.is_super_admin === 'true'
                     );
-                    
-                    // Debug: agar birinchi foydalanuvchi bo'lsa
-                    if (users.indexOf(user) === 0) {
-                        console.log('=== SUPER ADMIN CHECK ===');
-                        console.log('currentUser.role:', currentUser.role);
-                        console.log('role (lowercase):', role);
-                        console.log('loggedInUserIsSuperAdmin:', loggedInUserIsSuperAdmin);
-                    }
-                } else {
-                    // Debug: currentUser null bo'lsa
-                    if (users.indexOf(user) === 0) {
-                        console.error('=== ERROR: currentUser is null! ===');
-                        console.log('This means dropdown will NOT appear!');
-                    }
                 }
                 
                 // Super Admin faqat oddiy foydalanuvchilar va adminlarga rol o'zgartirishi mumkin
                 // Super Admin o'ziga va boshqa super_adminlarga rol o'zgartira olmaydi
                 const canChangeRole = loggedInUserIsSuperAdmin && !isCurrentUser && !userIsSuperAdmin;
                 
-                // Debug: console'da tekshirish (faqat birinchi foydalanuvchi uchun)
-                if (users.indexOf(user) === 0) {
-                    console.log('=== FIRST USER DEBUG ===');
-                    console.log('Current User:', currentUser);
-                    console.log('Current User Role:', currentUser?.role);
-                    console.log('loggedInUserIsSuperAdmin:', loggedInUserIsSuperAdmin);
-                    console.log('User:', user.email, 'Role:', user.role);
-                    console.log('isCurrentUser:', isCurrentUser);
-                    console.log('userIsSuperAdmin:', userIsSuperAdmin);
-                    console.log('canChangeRole:', canChangeRole);
-                }
                 
                 const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
                 
@@ -1048,11 +1002,6 @@
                             ` :
                             `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
                         }
-                        ${users.indexOf(user) === 0 ? `
-                            <div class="text-xs text-gray-500 mt-1">
-                                Debug: canChangeRole=${canChangeRole}, loggedInUserIsSuperAdmin=${loggedInUserIsSuperAdmin}, isCurrentUser=${isCurrentUser}, userIsSuperAdmin=${userIsSuperAdmin}
-                            </div>
-                        ` : ''}
                     </td>
                     <td class="py-4 px-4">
                         ${isCurrentUser ? 
@@ -1101,15 +1050,8 @@
 
         // Rol o'zgarishini boshqarish
         async function handleRoleChange(email, currentRole, newRole) {
-            console.log('=== handleRoleChange called ===');
-            console.log('Email:', email);
-            console.log('Current Role:', currentRole);
-            console.log('New Role:', newRole);
-            console.log('Current User:', currentUser);
-            
             // Agar rol o'zgarmagan bo'lsa
             if (currentRole === newRole) {
-                console.log('Role unchanged, returning');
                 return;
             }
             
@@ -1125,8 +1067,6 @@
                     currentUser.is_super_admin === 'true'
                 );
             }
-            
-            console.log('Is Super Admin:', isUserSuperAdmin);
             
             if (!isUserSuperAdmin) {
                 showAlert('Faqat Super Admin rol o\'zgartira oladi!', 'error');
@@ -1151,14 +1091,11 @@
             }
 
             try {
-                console.log('Updating role in Supabase...');
                 const result = await supabaseRequest('users', {
                     method: 'PATCH',
                     query: `?email=eq.${encodeURIComponent(email)}`,
                     body: { role: newRole }
                 });
-                
-                console.log('Supabase response:', result);
 
                 showAlert(`Rol "${roleName}" ga muvaffaqiyatli o'zgartirildi!`, 'success');
                 

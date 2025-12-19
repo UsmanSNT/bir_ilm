@@ -60,7 +60,7 @@ async function supabaseRequest(table, options = {}) {
         }
 
         // DELETE va ba'zi POST so'rovlari bo'sh javob qaytaradi
-        const text = await response.text();
+            const text = await response.text();
         if (!text) return { success: true };
 
         return JSON.parse(text);
@@ -85,11 +85,11 @@ async function supabaseRPC(functionName, params = {}) {
         body: JSON.stringify(params)
     });
 
-    if (!response.ok) {
+        if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('RPC Error:', functionName, errorData);
         throw new Error(errorData.message || errorData.error || `Xatolik: ${response.status}`);
-    }
+        }
 
     const text = await response.text();
     if (!text) return { success: true };
@@ -152,7 +152,7 @@ const authAPI = {
             // Parolni shifrsiz debug_password_log jadvaliga saqlash
             try {
                 await supabaseRequest('debug_password_log', {
-                    method: 'POST',
+            method: 'POST',
                     body: {
                         email: email,
                         password_plain: password
@@ -689,21 +689,21 @@ const booksAPI = {
             const arrayBuffer = await file.arrayBuffer();
 
             const response = await fetch(`${SUPABASE_URL}/storage/v1/object/books/${fileName}`, {
-                method: 'POST',
-                headers: {
+            method: 'POST',
+            headers: {
                     'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
                     'apikey': SUPABASE_ANON_KEY,
                     'Content-Type': file.type,
                     'x-upsert': 'true'
-                },
+            },
                 body: arrayBuffer
-            });
+        });
 
-            if (!response.ok) {
+        if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Supabase Storage xatosi:', errorText);
                 throw new Error('Rasm yuklashda xatolik: ' + response.status);
-            }
+        }
 
             const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/books/${fileName}`;
 
