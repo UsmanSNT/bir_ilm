@@ -82,3 +82,4 @@ CREATE INDEX IF NOT EXISTS idx_portfolio_book_quotes_author ON portfolio_book_qu
 CREATE INDEX IF NOT EXISTS idx_portfolio_notes_category ON portfolio_notes(category);
 CREATE INDEX IF NOT EXISTS idx_portfolio_contacts_is_read ON portfolio_contacts(is_read);
 
+

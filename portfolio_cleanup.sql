@@ -37,3 +37,4 @@ DROP SEQUENCE IF EXISTS portfolio_contacts_id_seq CASCADE;
 -- 4. Tekshirish
 SELECT 'Portfolio jadvallari muvaffaqiyatli o\'chirildi!' as status;
 
+
