@@ -933,7 +933,7 @@
             }
 
             container.innerHTML = users.map(user => {
-                const isSuperAdmin = user.role === 'super_admin';
+                const userIsSuperAdmin = user.role === 'super_admin';
                 
                 // currentUser ni tekshirish - email yoki id orqali
                 let isCurrentUser = false;
@@ -947,10 +947,10 @@
                 }
                 
                 // Super Admin ekanligini tekshirish (barcha variantlarni tekshirish)
-                let isUserSuperAdmin = false;
+                let loggedInUserIsSuperAdmin = false;
                 if (currentUser) {
-                    const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
-                    isUserSuperAdmin = (
+                    const role = currentUser.role ? String(currentUser.role).toLowerCase().trim() : '';
+                    loggedInUserIsSuperAdmin = (
                         role === 'super_admin' || 
                         role === 'asosiy admin' ||
                         role === 'super admin' ||
@@ -958,32 +958,34 @@
                         currentUser.is_super_admin === 'true'
                     );
                 }
-                // Super Admin barcha oddiy foydalanuvchilarga (o'zi va super_admin bundan tashqari) adminlik berishi mumkin
-                const canChangeRole = isUserSuperAdmin && !isCurrentUser && !isSuperAdmin;
+                
+                // Super Admin faqat oddiy foydalanuvchilar va adminlarga rol o'zgartirishi mumkin
+                // Super Admin o'ziga va boshqa super_adminlarga rol o'zgartira olmaydi
+                const canChangeRole = loggedInUserIsSuperAdmin && !isCurrentUser && !userIsSuperAdmin;
                 
                 // Debug: console'da tekshirish (faqat birinchi foydalanuvchi uchun)
-                if (users.indexOf(user) === 0 && isUserSuperAdmin) {
+                if (users.indexOf(user) === 0 && loggedInUserIsSuperAdmin) {
                     console.log('=== DEBUG ROLE CHANGE ===');
                     console.log('Current User:', currentUser);
                     console.log('Current User Role:', currentUser?.role);
-                    console.log('isUserSuperAdmin:', isUserSuperAdmin);
+                    console.log('loggedInUserIsSuperAdmin:', loggedInUserIsSuperAdmin);
                     console.log('User:', user.email, 'Role:', user.role);
                     console.log('isCurrentUser:', isCurrentUser);
-                    console.log('isSuperAdmin (user):', isSuperAdmin);
+                    console.log('userIsSuperAdmin:', userIsSuperAdmin);
                     console.log('canChangeRole:', canChangeRole);
                 }
                 
                 const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
                 
                 return `
-                <tr class="border-b ${isSuperAdmin ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-gray-700'} hover:bg-gray-800/50 transition ${isSuperAdmin ? 'ring-1 ring-yellow-500/30' : ''}">
+                <tr class="border-b ${userIsSuperAdmin ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-gray-700'} hover:bg-gray-800/50 transition ${userIsSuperAdmin ? 'ring-1 ring-yellow-500/30' : ''}">
                     <td class="py-4 px-4">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center ${isSuperAdmin ? '' : 'text-white font-bold'}" style="${isSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
-                                ${isSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
+                            <div class="w-10 h-10 rounded-full ${userIsSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center ${userIsSuperAdmin ? '' : 'text-white font-bold'}" style="${userIsSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
+                                ${userIsSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
                             </div>
                             <div>
-                                <p class="font-semibold ${isSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
+                                <p class="font-semibold ${userIsSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
                             </div>
                         </div>
                     </td>
@@ -999,13 +1001,13 @@
                     <td class="py-4 px-4">
                         ${isCurrentUser ? 
                             '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
-                            canChangeRole && !isSuperAdmin ? `
-                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${user.role}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition" title="Adminlik berish">
+                            canChangeRole ? `
+                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${escapeHtml(user.role)}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition" title="Adminlik berish">
                                     <option value="user" ${user.role === 'user' ? 'selected' : ''}>Foydalanuvchi</option>
                                     <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
                                 </select>
                             ` : 
-                            canChangeRole && isSuperAdmin ? `
+                            userIsSuperAdmin ? `
                                 <span class="text-sm text-yellow-400 font-semibold">${getRoleName(user.role)}</span>
                             ` :
                             `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
@@ -1014,9 +1016,9 @@
                     <td class="py-4 px-4">
                         ${isCurrentUser ? 
                             '<span class="text-xs text-gray-500">-</span>' :
-                            canChangeRole ? `
+                            loggedInUserIsSuperAdmin ? `
                                 <div class="flex items-center space-x-2">
-                                    ${user.role !== 'user' ? `
+                                    ${user.role !== 'user' && !userIsSuperAdmin ? `
                                         <button onclick="handleRemoveRole('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
                                                 class="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-3 py-1.5 rounded text-xs font-medium transition flex items-center space-x-1" 
                                                 title="Rolni o'chirish (User ga qaytarish)">
@@ -1024,12 +1026,14 @@
                                             <span>Rolni o'chirish</span>
                                         </button>
                                     ` : ''}
-                                    <button onclick="handleDeleteUser('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
-                                            class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-1.5 rounded text-xs font-medium transition flex items-center space-x-1" 
-                                            title="Foydalanuvchini o'chirish">
-                                        <i class="fas fa-trash text-xs"></i>
-                                        <span>O'chirish</span>
-                                    </button>
+                                    ${!userIsSuperAdmin ? `
+                                        <button onclick="handleDeleteUser('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
+                                                class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-1.5 rounded text-xs font-medium transition flex items-center space-x-1" 
+                                                title="Foydalanuvchini o'chirish">
+                                            <i class="fas fa-trash text-xs"></i>
+                                            <span>O'chirish</span>
+                                        </button>
+                                    ` : ''}
                                 </div>
                             ` : 
                             '<span class="text-xs text-gray-500">-</span>'
@@ -1056,12 +1060,22 @@
 
         // Rol o'zgarishini boshqarish
         async function handleRoleChange(email, currentRole, newRole) {
-            if (currentRole === newRole) return;
+            console.log('=== handleRoleChange called ===');
+            console.log('Email:', email);
+            console.log('Current Role:', currentRole);
+            console.log('New Role:', newRole);
+            console.log('Current User:', currentUser);
             
-            // Super Admin ekanligini tekshirish (barcha variantlarni tekshirish)
+            // Agar rol o'zgarmagan bo'lsa
+            if (currentRole === newRole) {
+                console.log('Role unchanged, returning');
+                return;
+            }
+            
+            // Super Admin ekanligini tekshirish
             let isUserSuperAdmin = false;
             if (currentUser) {
-                const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                const role = currentUser.role ? String(currentUser.role).toLowerCase().trim() : '';
                 isUserSuperAdmin = (
                     role === 'super_admin' || 
                     role === 'asosiy admin' ||
@@ -1071,13 +1085,15 @@
                 );
             }
             
+            console.log('Is Super Admin:', isUserSuperAdmin);
+            
             if (!isUserSuperAdmin) {
                 showAlert('Faqat Super Admin rol o\'zgartira oladi!', 'error');
-                loadUsers(); // Dropdown'ni qayta yuklash
+                loadUsers();
                 return;
             }
             
-            // Faqat 'user' va 'admin' rollarini o'zgartirish mumkin (super_admin emas)
+            // Faqat 'user' va 'admin' rollarini o'zgartirish mumkin
             if (newRole === 'super_admin') {
                 showAlert('Super Admin rolini berish mumkin emas!', 'error');
                 loadUsers();
@@ -1086,28 +1102,37 @@
             
             // Tasdiqlash
             const roleName = newRole === 'admin' ? 'Admin' : 'Foydalanuvchi';
-            if (!confirm(`${email} foydalanuvchisining rolini "${roleName}" ga o'zgartirishni xohlaysizmi?`)) {
-                // Dropdown'ni eski qiymatga qaytarish
+            const currentRoleName = currentRole === 'admin' ? 'Admin' : (currentRole === 'super_admin' ? 'Super Admin' : 'Foydalanuvchi');
+            
+            if (!confirm(`${email} foydalanuvchisining rolini "${currentRoleName}" dan "${roleName}" ga o'zgartirishni xohlaysizmi?`)) {
                 loadUsers();
                 return;
             }
 
             try {
-                await supabaseRequest('users', {
+                console.log('Updating role in Supabase...');
+                const result = await supabaseRequest('users', {
                     method: 'PATCH',
                     query: `?email=eq.${encodeURIComponent(email)}`,
                     body: { role: newRole }
                 });
+                
+                console.log('Supabase response:', result);
 
-                showAlert(`Rol "${roleName}" ga o'zgartirildi`, 'success');
-                loadUsers();
+                showAlert(`Rol "${roleName}" ga muvaffaqiyatli o'zgartirildi!`, 'success');
+                
+                // Foydalanuvchilarni qayta yuklash
+                await loadUsers();
+                
+                // Adminlar ro'yxatini yangilash
                 if (document.getElementById('admins-list')) {
                     loadAdmins();
                 }
             } catch (error) {
                 console.error('Role change error:', error);
-                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
-                loadUsers(); // Dropdown'ni qayta yuklash
+                console.error('Error details:', JSON.stringify(error, null, 2));
+                showAlert('Xatolik: ' + (error.message || error.toString() || 'Noma\'lum xatolik'), 'error');
+                loadUsers();
             }
         }
 
