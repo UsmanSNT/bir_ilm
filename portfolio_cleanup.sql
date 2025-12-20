@@ -38,3 +38,4 @@ DROP SEQUENCE IF EXISTS portfolio_contacts_id_seq CASCADE;
 SELECT 'Portfolio jadvallari muvaffaqiyatli o\'chirildi!' as status;
 
 
+

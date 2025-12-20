@@ -16,3 +16,4 @@ SELECT id, username, email, role
 FROM users 
 WHERE email = 'avrangzebabdujalilov@gmail.com';
 
+

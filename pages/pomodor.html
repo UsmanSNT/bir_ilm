@@ -896,6 +896,13 @@
             <span class="settings-label">Tanaffus</span>
             <span class="settings-value" id="break-value">5 daqiqa</span>
         </div>
+        <div class="settings-row">
+            <span class="settings-label">Ovoz</span>
+            <label class="settings-value" style="cursor: pointer;">
+                <input type="checkbox" id="sound-toggle" checked style="margin-right: 8px; cursor: pointer;">
+                <span id="sound-status">Yoqilgan</span>
+            </label>
+        </div>
 
         <!-- Confirm Button -->
         <button class="confirm-btn" id="confirm-settings">
@@ -919,6 +926,9 @@
             shortBreak: 5 * 60 * 1000,
             longBreak: 15 * 60 * 1000
         };
+
+        // Sound Settings
+        let soundEnabled = true;
 
         // Picker State
         let pickerMode = 'work';
@@ -1022,11 +1032,45 @@
             handleTimerComplete();
         }
 
+        // Play Sound
+        function playNotificationSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 3 marta beep tovushi
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 800; // Yuqori ton
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.5);
+                    }, i * 300);
+                }
+            } catch (error) {
+                console.error('Ovoz chalishda xatolik:', error);
+            }
+        }
+
         // Handle Timer Complete
         async function handleTimerComplete() {
-            // Play sound or vibrate
+            // Play sound
+            playNotificationSound();
+            
+            // Vibrate
             if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200]);
+                navigator.vibrate([200, 100, 200, 100, 200]);
             }
 
             // Notification
@@ -1264,6 +1308,29 @@
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
         }
+
+        // Sound Toggle
+        const soundToggle = document.getElementById('sound-toggle');
+        const soundStatus = document.getElementById('sound-status');
+        
+        // Load sound setting from localStorage
+        const savedSoundSetting = localStorage.getItem('pomodoro_sound_enabled');
+        if (savedSoundSetting !== null) {
+            soundEnabled = savedSoundSetting === 'true';
+            soundToggle.checked = soundEnabled;
+            soundStatus.textContent = soundEnabled ? 'Yoqilgan' : 'O\'chirilgan';
+        }
+        
+        soundToggle.addEventListener('change', () => {
+            soundEnabled = soundToggle.checked;
+            localStorage.setItem('pomodoro_sound_enabled', soundEnabled.toString());
+            soundStatus.textContent = soundEnabled ? 'Yoqilgan' : 'O\'chirilgan';
+            
+            // Test sound
+            if (soundEnabled) {
+                playNotificationSound();
+            }
+        });
 
         // Initialize
         window.addEventListener('DOMContentLoaded', () => {
