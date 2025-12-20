@@ -991,6 +991,7 @@
         // Start Timer
         function startTimer() {
             if (isRunning) return;
+            playButtonSound(500, 0.15); // Yuqori ton - boshlash
             isRunning = true;
             playIcon.className = 'fas fa-pause';
             
@@ -1014,6 +1015,7 @@
         // Pause Timer
         function pauseTimer() {
             if (!isRunning) return;
+            playButtonSound(300, 0.12); // Past ton - to'xtatish
             isRunning = false;
             clearInterval(timerInterval);
             playIcon.className = 'fas fa-play';
@@ -1021,6 +1023,7 @@
 
         // Stop Timer
         function stopTimer() {
+            playButtonSound(250, 0.15); // Eng past ton - to'xtatish
             pauseTimer();
             timeLeft = settings[currentMode];
             updateDisplay();
@@ -1028,6 +1031,7 @@
 
         // Skip to Next
         function skipToNext() {
+            playButtonSound(600, 0.1); // O'rtacha ton - o'tkazib yuborish
             pauseTimer();
             handleTimerComplete();
         }
@@ -1060,6 +1064,31 @@
                 }
             } catch (error) {
                 console.error('Ovoz chalishda xatolik:', error);
+            }
+        }
+
+        // Play Button Click Sound
+        function playButtonSound(frequency = 400, duration = 0.1) {
+            if (!soundEnabled) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (error) {
+                console.error('Tugma tovushi chalishda xatolik:', error);
             }
         }
 
@@ -1196,6 +1225,7 @@
 
         // Save Settings
         function saveSettings() {
+            playButtonSound(450, 0.12); // Saqlash tovushi
             const { hours, minutes, seconds } = pickerTime;
             settings[pickerMode] = (hours * 3600 + minutes * 60 + seconds) * 1000;
             

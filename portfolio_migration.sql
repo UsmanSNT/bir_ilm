@@ -84,3 +84,4 @@ CREATE INDEX IF NOT EXISTS idx_portfolio_contacts_is_read ON portfolio_contacts(
 
 
 
+
