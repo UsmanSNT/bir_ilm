@@ -75,10 +75,10 @@ class AuthSystem {
         }
     }
 
-    // Admin tekshiruvi
+    // Admin tekshiruvi (admin va super_admin uchun)
     isAdmin() {
         const user = this.getCurrentUser();
-        return user && user.role === 'admin';
+        return user && (user.role === 'admin' || user.role === 'super_admin');
     }
 
     // Tizimga kirganligini tekshirish

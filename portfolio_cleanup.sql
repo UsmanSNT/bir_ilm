@@ -40,3 +40,5 @@ SELECT 'Portfolio jadvallari muvaffaqiyatli o\'chirildi!' as status;
 
 
 
+
+

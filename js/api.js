@@ -467,7 +467,7 @@ const booksAPI = {
 
     create: async (title, author, review, rating, image_url) => {
         const user = getUser();
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
             throw new Error('Faqat adminlar kitob qo\'sha oladi!');
         }
 
@@ -500,7 +500,7 @@ const booksAPI = {
 
     update: async (bookId, title, author, review, rating, image_url) => {
         const user = getUser();
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
             throw new Error('Faqat adminlar kitobni tahrirlay oladi!');
         }
 
@@ -524,7 +524,7 @@ const booksAPI = {
 
     delete: async (bookId) => {
         const user = getUser();
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
             throw new Error('Faqat adminlar kitobni o\'chira oladi!');
         }
 

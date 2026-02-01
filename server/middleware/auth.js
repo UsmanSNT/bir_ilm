@@ -29,9 +29,9 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// Admin tekshiruvi
+// Admin tekshiruvi (admin va super_admin uchun)
 function requireAdmin(req, res, next) {
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
         return res.status(403).json({ success: false, message: 'Admin huquqi kerak' });
     }
     next();
