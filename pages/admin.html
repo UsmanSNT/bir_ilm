@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bir Ilm</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Bir Ilm - Admin Panel</title>
+    <meta name="title" content="Bir Ilm - Admin Panel">
+    <meta name="description" content="Bir Ilm admin paneli - kitoblar, taqrizlar va foydalanuvchilarni boshqarish">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bir Ilm - Admin Panel">
+    <meta property="og:description" content="Bir Ilm admin paneli">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="../assets/images/logo.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
@@ -220,6 +233,12 @@
                         <span id="rating-display" class="text-2xl star-rating">★★★★★</span>
                         <span class="text-sm text-gray-400" id="rating-value">5</span>
                     </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Hashtaglar (ixtiyoriy)</label>
+                    <input type="text" id="book-hashtags" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Masalan: #kitob #adabiyot #roman (vergul bilan ajrating)">
+                    <p class="text-xs text-gray-500 mt-1">Hashtaglarni vergul bilan ajrating. Masalan: #kitob, #adabiyot, #roman</p>
+                    <div id="hashtags-preview" class="flex flex-wrap gap-2 mt-2"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Kitob surati</label>
@@ -598,6 +617,15 @@
                     document.getElementById('image-preview').classList.add('hidden');
                 }
                 
+                // Hashtaglarni to'ldirish
+                if (book.hashtags && book.hashtags.length > 0) {
+                    document.getElementById('book-hashtags').value = book.hashtags.map(tag => '#' + tag).join(', ');
+                    updateHashtagsPreview();
+                } else {
+                    document.getElementById('book-hashtags').value = '';
+                    document.getElementById('hashtags-preview').innerHTML = '';
+                }
+                
                 // File input va fayl nomini tozalash
                 document.getElementById('book-image-file').value = '';
                 document.getElementById('selected-file-name').textContent = '';
@@ -618,6 +646,28 @@
             }
         }
 
+        // Hashtag preview funksiyasi
+        function updateHashtagsPreview() {
+            const hashtagsInput = document.getElementById('book-hashtags');
+            const preview = document.getElementById('hashtags-preview');
+            const value = hashtagsInput.value.trim();
+            
+            if (!value) {
+                preview.innerHTML = '';
+                return;
+            }
+            
+            const tags = value.split(',').map(tag => tag.trim().replace(/^#/, '')).filter(tag => tag.length > 0);
+            preview.innerHTML = tags.map(tag => `
+                <span class="inline-block bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/30">
+                    #${escapeHtml(tag)}
+                </span>
+            `).join('');
+        }
+        
+        // Hashtag input event listener
+        document.getElementById('book-hashtags')?.addEventListener('input', updateHashtagsPreview);
+        
         // Form submit handler'ni yangilash
         const reviewForm = document.getElementById('review-form');
         const originalSubmitHandler = reviewForm.onsubmit;
@@ -631,6 +681,8 @@
             const rating = parseInt(ratingInput.value);
             const imageFile = document.getElementById('book-image-file').files[0];
             const imageUrl = document.getElementById('book-image-url').value.trim();
+            const hashtagsInput = document.getElementById('book-hashtags').value.trim();
+            const hashtags = hashtagsInput ? hashtagsInput.split(',').map(tag => tag.trim().replace(/^#/, '')).filter(tag => tag.length > 0) : [];
             const submitBtn = e.target.querySelector('button[type="submit"]');
 
             if (!title || !author || !review) {
@@ -667,7 +719,7 @@
                     }
                     
                     // Tahrirlash API'ga so'rov yuborish
-                    result = await booksAPI.update(editingBookId, title, author, review, rating, finalImageUrl || '');
+                    result = await booksAPI.update(editingBookId, title, author, review, rating, finalImageUrl || '', hashtags);
                 } else {
                     // Yangi yaratish
                     let finalImageUrl = imageUrl;
@@ -681,7 +733,7 @@
                         }
                     }
 
-                    result = await booksAPI.create(title, author, review, rating, finalImageUrl);
+                    result = await booksAPI.create(title, author, review, rating, finalImageUrl, hashtags);
                 }
                 
                 if (result.success) {
@@ -694,6 +746,8 @@
                     document.getElementById('book-image-url').value = '';
                     document.getElementById('selected-file-name').textContent = '';
                     document.getElementById('image-preview').classList.add('hidden');
+                    document.getElementById('book-hashtags').value = '';
+                    document.getElementById('hashtags-preview').innerHTML = '';
                     
                     // Form sarlavhasini qaytarish
                     const formTitle = document.querySelector('.card h2');

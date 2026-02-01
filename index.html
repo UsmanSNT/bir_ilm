@@ -3,7 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bir Ilm</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Bir Ilm - Kitoblar, Taqrizlar va Bilimlar Platformasi</title>
+    <meta name="title" content="Bir Ilm - Kitoblar, Taqrizlar va Bilimlar Platformasi">
+    <meta name="description" content="Bir Ilm - O'zbek tilida kitoblar, taqrizlar, izohlar va bilimlar almashish platformasi. Eng yaxshi kitoblarni toping, o'qing va baholang. Pomodoro timer bilan samarali o'qing.">
+    <meta name="keywords" content="kitoblar, taqrizlar, o'zbek kitoblar, kitob baholash, kitob izohlar, bilimlar, o'qish, pomodoro, kitoblar platformasi, bir ilm, kitoblar ro'yxati, eng yaxshi kitoblar">
+    <meta name="author" content="Bir Ilm">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Uzbek">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://birilm.uz/">
+    <meta property="og:title" content="Bir Ilm - Kitoblar, Taqrizlar va Bilimlar Platformasi">
+    <meta property="og:description" content="O'zbek tilida kitoblar, taqrizlar, izohlar va bilimlar almashish platformasi. Eng yaxshi kitoblarni toping, o'qing va baholang.">
+    <meta property="og:image" content="https://birilm.uz/assets/images/logo.jpg">
+    <meta property="og:locale" content="uz_UZ">
+    <meta property="og:site_name" content="Bir Ilm">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://birilm.uz/">
+    <meta property="twitter:title" content="Bir Ilm - Kitoblar, Taqrizlar va Bilimlar Platformasi">
+    <meta property="twitter:description" content="O'zbek tilida kitoblar, taqrizlar, izohlar va bilimlar almashish platformasi.">
+    <meta property="twitter:image" content="https://birilm.uz/assets/images/logo.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="assets/images/logo.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
@@ -81,7 +109,50 @@
             max-height: 600px;
             opacity: 1;
         }
+        .hashtag {
+            display: inline-block;
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .hashtag:hover {
+            background: rgba(76, 175, 80, 0.3);
+            transform: scale(1.05);
+        }
     </style>
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Bir Ilm",
+        "url": "https://birilm.uz",
+        "description": "O'zbek tilida kitoblar, taqrizlar, izohlar va bilimlar almashish platformasi",
+        "inLanguage": "uz",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://birilm.uz/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Bir Ilm",
+        "url": "https://birilm.uz",
+        "logo": "https://birilm.uz/assets/images/logo.jpg",
+        "description": "Kitoblar, taqrizlar va bilimlar platformasi"
+    }
+    </script>
 </head>
 <body class="antialiased">
     <!-- Navigatsiya paneli (Header) -->
@@ -493,6 +564,15 @@
             }
         }
 
+        // Hashtag orqali qidirish
+        function searchByHashtag(tag) {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = tag;
+                performSearch();
+            }
+        }
+
         // Logout
         document.getElementById('logout-btn')?.addEventListener('click', () => {
             authAPI.logout();
@@ -634,6 +714,15 @@
                                 <span>${date}</span>
                                 <span>${escapeHtml(book.admin_name)}</span>
                             </div>
+                            ${book.hashtags && book.hashtags.length > 0 ? `
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    ${book.hashtags.map(tag => `
+                                        <span class="hashtag" onclick="searchByHashtag('${escapeHtml(tag)}')">
+                                            #${escapeHtml(tag)}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                             <div class="flex items-center space-x-4 text-sm text-gray-400 pt-4 border-t border-gray-700 mb-4">
                                 <span><i class="fas fa-thumbs-up mr-1"></i>${likesCount}</span>
                                 <span><i class="fas fa-thumbs-down mr-1"></i>${dislikesCount}</span>

@@ -465,7 +465,7 @@ const booksAPI = {
         return booksWithComments;
     },
 
-    create: async (title, author, review, rating, image_url) => {
+    create: async (title, author, review, rating, image_url, hashtags = []) => {
         const user = getUser();
         if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
             throw new Error('Faqat adminlar kitob qo\'sha oladi!');
@@ -481,6 +481,7 @@ const booksAPI = {
                 review,
                 rating: bookRating,
                 image_url: image_url || null,
+                hashtags: hashtags.length > 0 ? hashtags : null,
                 admin_id: user.id,
                 admin_name: user.username
             },
@@ -498,22 +499,28 @@ const booksAPI = {
         throw new Error('Kitob yaratishda xatolik');
     },
 
-    update: async (bookId, title, author, review, rating, image_url) => {
+    update: async (bookId, title, author, review, rating, image_url, hashtags = null) => {
         const user = getUser();
         if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
             throw new Error('Faqat adminlar kitobni tahrirlay oladi!');
         }
 
+        const updateBody = {
+            title,
+            author,
+            review,
+            rating: parseInt(rating) || 5,
+            image_url: image_url || null
+        };
+        
+        if (hashtags !== null) {
+            updateBody.hashtags = hashtags.length > 0 ? hashtags : null;
+        }
+
         await supabaseRequest('books', {
             method: 'PATCH',
             query: `?id=eq.${bookId}`,
-            body: {
-                title,
-                author,
-                review,
-                rating: parseInt(rating) || 5,
-                image_url: image_url || null
-            }
+            body: updateBody
         });
 
         return {

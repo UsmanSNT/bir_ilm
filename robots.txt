@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /pages/admin.html
+Disallow: /pages/super-admin.html
+Disallow: /api/
+
+Sitemap: https://birilm.uz/sitemap.xml
+
