@@ -279,6 +279,7 @@ function HomePage({ setActive }: { setActive: (s: Section) => void }) {
           <FeatureCard icon="🏆" title="Do'stona Raqobat" text="Jonli quizlar, ballar, seriyalar, nishonlar va ochiq reytinglar." />
           <FeatureCard icon="👥" title="Jamoa O'sishi" text="Tadbirlar, eslatmalar, seminarlar va Telegram orqali aloqa." />
         </div>
+        
       </section>
 
       {/* Mission */}
