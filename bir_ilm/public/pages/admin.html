@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Bir Ilm - Admin Panel</title>
+    <meta name="title" content="Bir Ilm - Admin Panel">
+    <meta name="description" content="Bir Ilm admin paneli - kitoblar, taqrizlar va foydalanuvchilarni boshqarish">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bir Ilm - Admin Panel">
+    <meta property="og:description" content="Bir Ilm admin paneli">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="../assets/images/logo.jpg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0b111a 0%, #1a2332 100%);
+            min-height: 100vh;
+            color: #e5e7eb;
+        }
+        #logo {
+            height: 40px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .card {
+            background: rgba(26, 35, 50, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .form-input {
+            background: rgba(11, 17, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        .form-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+        .book-card {
+            transition: all 0.3s;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+        .star-rating {
+            color: #ffc107;
+        }
+        .tab-nav {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-nav:hover {
+            color: #4CAF50;
+        }
+        .tab-nav.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+        .tab-content {
+            display: block;
+        }
+        .tab-content.hidden {
+            display: none;
+        }
+        .user-card {
+            background: rgba(11, 17, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+        .user-card:hover {
+            background: rgba(11, 17, 26, 0.8);
+            border-color: #4CAF50;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-super { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        .badge-admin { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .badge-user { background: rgba(100, 100, 100, 0.5); color: #9ca3af; }
+        
+        /* Jadval stillari */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        table th {
+            text-align: left;
+            font-weight: 600;
+            color: #9ca3af;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.5);
+        }
+        
+        table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        table tr:hover {
+            background: rgba(55, 65, 81, 0.3);
+        }
+        
+        table select {
+            background: rgba(30, 30, 40, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        table select:hover {
+            border-color: #4CAF50;
+        }
+        
+        table select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        
+        /* Super Admin uchun alohida ko'rinish */
+        table tr.border-yellow-500\/50 {
+            background: linear-gradient(90deg, rgba(234, 179, 8, 0.1) 0%, rgba(234, 179, 8, 0.05) 100%);
+            border-left: 3px solid rgba(234, 179, 8, 0.5);
+        }
+        
+        table tr.border-yellow-500\/50:hover {
+            background: linear-gradient(90deg, rgba(234, 179, 8, 0.15) 0%, rgba(234, 179, 8, 0.08) 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-black/50 backdrop-blur-sm shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="../index.html" class="flex items-center space-x-4">
+                    <img id="logo" src="../assets/images/logo.jpg" alt="Bir Ilm logo" class="mr-2">
+                    <h1 class="text-xl font-extrabold text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #4CAF50, #FFFFFF);">
+                        BIR ILM - Admin
+                    </h1>
+                </a>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-300" id="admin-name"></span>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Chiqish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Xabar ko'rsatish -->
+        <div id="alert-message" class="hidden mb-4 p-4 rounded-lg"></div>
+
+        <!-- Tabs Navigation -->
+        <div class="flex space-x-2 mb-6 border-b border-gray-700">
+            <button class="tab-nav active" data-tab="reviews">
+                <i class="fas fa-book mr-2"></i>Taqrizlar
+            </button>
+            <button class="tab-nav" data-tab="settings" id="settings-tab-btn">
+                <i class="fas fa-cog mr-2"></i>Sozlamalar
+            </button>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div id="reviews-tab" class="tab-content">
+        <!-- Yangi taqriz yozish -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-green-400">
+                <i class="fas fa-book mr-2"></i>Yangi Kitob Taqrizi Yozish
+            </h2>
+            <form id="review-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Kitob nomi *</label>
+                        <input type="text" id="book-title" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Kitob nomini kiriting" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Muallif *</label>
+                        <input type="text" id="book-author" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Muallif nomini kiriting" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Taqriz matni *</label>
+                    <textarea id="review-text" rows="6" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none resize-none" placeholder="Kitob haqida taqrizingizni yozing..." required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Baholash (1-5 yulduz)</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="range" id="book-rating" min="1" max="5" value="5" class="flex-1">
+                        <span id="rating-display" class="text-2xl star-rating">★★★★★</span>
+                        <span class="text-sm text-gray-400" id="rating-value">5</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Hashtaglar (ixtiyoriy)</label>
+                    <input type="text" id="book-hashtags" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Masalan: #kitob #adabiyot #roman (vergul bilan ajrating)">
+                    <p class="text-xs text-gray-500 mt-1">Hashtaglarni vergul bilan ajrating. Masalan: #kitob, #adabiyot, #roman</p>
+                    <div id="hashtags-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Kitob surati</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="file" id="book-image-file" accept="image/*" class="hidden">
+                        <button type="button" onclick="document.getElementById('book-image-file').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition">
+                            <i class="fas fa-upload mr-2"></i>Fayl tanlash
+                        </button>
+                        <span id="selected-file-name" class="text-sm text-gray-400 self-center"></span>
+                    </div>
+                    <input type="text" id="book-image-url" class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none" placeholder="Yoki rasm URL manzilini kiriting (ixtiyoriy)">
+                    <p class="text-xs text-gray-500 mt-1">Fayl yuklang yoki URL kiriting. JPG, PNG formatlar qo'llab-quvvatlanadi.</p>
+                    <div id="image-preview" class="mt-2 hidden">
+                        <img id="preview-img" src="" alt="Preview" class="max-w-xs h-32 object-cover rounded-lg">
+                        <button type="button" onclick="clearImage()" class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs">
+                            <i class="fas fa-times mr-1"></i>Rasmni olib tashlash
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white">
+                    <i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish
+                </button>
+            </form>
+        </div>
+
+        <!-- Barcha taqrizlar -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold mb-6 text-green-400">
+                <i class="fas fa-list mr-2"></i>Barcha Taqrizlar
+            </h2>
+            <div id="books-list" class="space-y-4">
+                <!-- Kitoblar bu yerda ko'rsatiladi -->
+            </div>
+        </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content hidden">
+            <!-- Super Admin ma'lumot paneli -->
+            <div id="super-admin-info" class="card p-6 mb-6 hidden">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center ring-2 ring-yellow-500/50">
+                        <i class="fas fa-crown text-yellow-400 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-yellow-400">Super Admin</h3>
+                        <p class="text-sm text-gray-400">Siz boshqa foydalanuvchilarga adminlik berishingiz mumkin</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adminlik berish bo'limi (faqat Super Admin uchun) -->
+            <div id="admin-grant-section" class="card p-6 mb-6 hidden">
+                <h2 class="text-2xl font-bold mb-6 text-yellow-400">
+                    <i class="fas fa-user-shield mr-2"></i>Adminlik Boshqaruvi
+                </h2>
+                
+                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                    <p class="text-yellow-400 text-sm flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Email orqali foydalanuvchiga adminlik berishingiz mumkin
+                    </p>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Foydalanuvchi emaili</label>
+                    <div class="flex space-x-2">
+                        <input type="email" id="admin-email-input" placeholder="email@example.com" class="form-input flex-1 px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none">
+                        <button onclick="grantAdmin()" class="btn-primary px-6 py-3 rounded-lg font-bold text-white">
+                            <i class="fas fa-plus mr-2"></i>Admin qilish
+                        </button>
+                    </div>
+                </div>
+                
+                <h4 class="font-semibold mb-3">Hozirgi adminlar</h4>
+                <div id="admins-list" class="space-y-2">
+                    <!-- Adminlar bu yerda ko'rsatiladi -->
+                </div>
+            </div>
+
+            <!-- Ro'yxatdan o'tganlar -->
+            <div class="card p-6 mb-6">
+                <h2 class="text-2xl font-bold mb-6 text-green-400">
+                    <i class="fas fa-users mr-2"></i>Ro'yxatdan O'tganlar
+                </h2>
+                
+                <!-- Qidiruv -->
+                <div class="mb-4">
+                    <input type="text" id="user-search" placeholder="Foydalanuvchi qidirish..." class="form-input w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none">
+                </div>
+
+                <!-- Foydalanuvchilar jadvali -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Foydalanuvchi</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Email</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Rol</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Sana</th>
+                                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-400">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Foydalanuvchilar bu yerda ko'rsatiladi -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rol huquqlari -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-green-400">
+                    <i class="fas fa-shield-alt mr-2"></i>Rol Huquqlari
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Asosiy Admin -->
+                    <div class="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border-2 border-yellow-500/50 rounded-lg p-5 hover:shadow-lg hover:shadow-yellow-500/20 transition">
+                        <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-yellow-500/30">
+                            <div class="w-12 h-12 rounded-full bg-yellow-500/30 flex items-center justify-center ring-2 ring-yellow-500/50">
+                                <i class="fas fa-crown text-yellow-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-yellow-400">Asosiy Admin</h3>
+                        </div>
+                        <ul class="space-y-2.5 text-sm">
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Barcha ma'lumotlarni o'zgartirish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Boshqalarga admin berish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Adminlikni olib tashlash</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span class="font-semibold">Faqat 1 ta bo'ladi (Siz)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Admin -->
+                    <div class="bg-gradient-to-br from-purple-500/20 to-pink-600/10 border-2 border-purple-500/50 rounded-lg p-5 hover:shadow-lg hover:shadow-purple-500/20 transition">
+                        <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-purple-500/30">
+                            <div class="w-12 h-12 rounded-full bg-purple-500/30 flex items-center justify-center ring-2 ring-purple-500/50">
+                                <i class="fas fa-user-shield text-purple-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-purple-400">Admin</h3>
+                        </div>
+                        <ul class="space-y-2.5 text-sm">
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Barcha ma'lumotlarni o'zgartirish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Kitob fikrlari, galereya, qaydlar</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Boshqalarga admin bera olmaydi</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Rollarni o'zgartira olmaydi</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Oddiy Foydalanuvchi -->
+                    <div class="bg-gradient-to-br from-green-500/20 to-emerald-600/10 border-2 border-green-500/50 rounded-lg p-5 hover:shadow-lg hover:shadow-green-500/20 transition">
+                        <div class="flex items-center space-x-3 mb-4 pb-4 border-b border-green-500/30">
+                            <div class="w-12 h-12 rounded-full bg-green-500/30 flex items-center justify-center ring-2 ring-green-500/50">
+                                <i class="fas fa-user text-green-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-green-400">Oddiy Foydalanuvchi</h3>
+                        </div>
+                        <ul class="space-y-2.5 text-sm">
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Ma'lumotlarni ko'rish</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-check-circle text-green-400 mt-0.5"></i>
+                                <span>Reaksiya bildirish (like/dislike)</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Ma'lumot qo'sha olmaydi</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fas fa-times-circle text-red-400 mt-0.5"></i>
+                                <span class="text-gray-400">Ma'lumot o'zgartira olmaydi</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 mt-8">
+        <div class="max-w-5xl mx-auto px-4 flex justify-between items-center text-xs text-gray-600">
+            <span>&copy; 2025 Bir Ilm</span>
+            <a href="https://t.me/Avrangzeb_Abdujalilov" target="_blank" class="hover:text-green-400 transition">@Usman dev</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../js/api.js"></script>
+    <script>
+        // getUser funksiyasini qo'shish (agar api.js'da mavjud bo'lmasa)
+        if (typeof getUser === 'undefined') {
+            function getUser() {
+                const user = localStorage.getItem('birilm_user');
+                return user ? JSON.parse(user) : null;
+            }
+        }
+    </script>
+    <script>
+        // Authentication tekshiruvi
+        let currentUser = null;
+        
+        async function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            try {
+                const result = await authAPI.getMe();
+                if (result.success) {
+                    currentUser = result.user;
+                    if (currentUser.role !== 'admin' && currentUser.role !== 'super_admin') {
+                        window.location.href = '../index.html';
+                        return;
+                    }
+                    document.getElementById('admin-name').textContent = currentUser.username || currentUser.email;
+                    
+                    // Auth muvaffaqiyatli bo'lgandan keyin kitoblarni yuklash
+                    await loadBooks();
+                } else {
+                    window.location.href = '../index.html';
+                }
+            } catch (error) {
+                removeToken();
+                window.location.href = '../index.html';
+            }
+        }
+
+        // Sahifa yuklanganda auth tekshirish
+        (async () => {
+            await checkAuth();
+        })();
+
+        // Rating ko'rsatish
+        const ratingInput = document.getElementById('book-rating');
+        const ratingDisplay = document.getElementById('rating-display');
+        const ratingValue = document.getElementById('rating-value');
+
+        ratingInput.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            ratingValue.textContent = value;
+            ratingDisplay.textContent = '★'.repeat(value) + '☆'.repeat(5 - value);
+        });
+
+        // Alert funksiyasi
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.getElementById('alert-message');
+            alertDiv.className = `alert mb-4 p-4 rounded-lg ${type === 'error' ? 'bg-red-900/50 text-red-200 border border-red-700' : 'bg-green-900/50 text-green-200 border border-green-700'}`;
+            alertDiv.textContent = message;
+            alertDiv.classList.remove('hidden');
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+
+        // Kitoblarni yuklash va ko'rsatish
+        async function loadBooks() {
+            const booksList = document.getElementById('books-list');
+            booksList.innerHTML = '<p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+
+            try {
+                const books = await booksAPI.getAll();
+
+                if (books.length === 0) {
+                    booksList.innerHTML = '<p class="text-center text-gray-400 py-8">Hali hech qanday taqriz yozilmagan.</p>';
+                    return;
+                }
+
+                booksList.innerHTML = books.map(book => {
+                    const date = new Date(book.created_at).toLocaleDateString('uz-UZ');
+                    const stars = '★'.repeat(book.rating) + '☆'.repeat(5 - book.rating);
+                    const likesCount = book.likes_count || 0;
+                    const dislikesCount = book.dislikes_count || 0;
+                    const commentsCount = book.comments_count || 0;
+                    
+                    const imageUrl = book.image_url || '';
+                    const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.style.display='none'">` : '';
+                    
+                    return `
+                        <div class="book-card card p-6">
+                            ${imageHtml}
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(book.title)}</h3>
+                                    <p class="text-gray-400 mb-2">Muallif: <span class="text-white">${escapeHtml(book.author)}</span></p>
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="star-rating text-lg">${stars}</span>
+                                        <span class="text-sm text-gray-400">${book.rating}/5</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500">${date} | ${escapeHtml(book.admin_name)}</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="editBook('${book.id}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90">
+                                        <i class="fas fa-edit mr-1"></i>Tahrirlash
+                                    </button>
+                                    <button onclick="deleteBook('${book.id}')" class="btn-danger px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90">
+                                        <i class="fas fa-trash mr-1"></i>O'chirish
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bg-gray-900/50 p-4 rounded-lg mb-4">
+                                <p class="text-gray-300 whitespace-pre-line">${escapeHtml(book.review)}</p>
+                            </div>
+                            <div class="flex items-center space-x-6 text-sm text-gray-400">
+                                <span><i class="fas fa-thumbs-up mr-1"></i>${likesCount} Like</span>
+                                <span><i class="fas fa-thumbs-down mr-1"></i>${dislikesCount} Dislike</span>
+                                <span><i class="fas fa-comments mr-1"></i>${commentsCount} Izoh</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                booksList.innerHTML = `<p class="text-center text-red-400 py-8">Xatolik: ${error.message}</p>`;
+            }
+        }
+
+        // Kitobni tahrirlash
+        let editingBookId = null;
+        
+        async function editBook(bookId) {
+            try {
+                const books = await booksAPI.getAll();
+                const book = books.find(b => b.id === parseInt(bookId));
+                
+                if (!book) {
+                    showAlert('Kitob topilmadi');
+                    return;
+                }
+
+                editingBookId = bookId;
+                
+                // Form maydonlarini to'ldirish
+                document.getElementById('book-title').value = book.title;
+                document.getElementById('book-author').value = book.author;
+                document.getElementById('review-text').value = book.review;
+                ratingInput.value = book.rating;
+                ratingDisplay.textContent = '★'.repeat(book.rating) + '☆'.repeat(5 - book.rating);
+                ratingValue.textContent = book.rating;
+                
+                if (book.image_url) {
+                    const fullImageUrl = book.image_url;
+                    document.getElementById('book-image-url').value = fullImageUrl;
+                    document.getElementById('preview-img').src = fullImageUrl;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                } else {
+                    document.getElementById('book-image-url').value = '';
+                    document.getElementById('image-preview').classList.add('hidden');
+                }
+                
+                // Hashtaglarni to'ldirish
+                if (book.hashtags && book.hashtags.length > 0) {
+                    document.getElementById('book-hashtags').value = book.hashtags.map(tag => '#' + tag).join(', ');
+                    updateHashtagsPreview();
+                } else {
+                    document.getElementById('book-hashtags').value = '';
+                    document.getElementById('hashtags-preview').innerHTML = '';
+                }
+                
+                // File input va fayl nomini tozalash
+                document.getElementById('book-image-file').value = '';
+                document.getElementById('selected-file-name').textContent = '';
+                
+                // Form sarlavhasini o'zgartirish
+                const formTitle = document.querySelector('.card h2');
+                formTitle.innerHTML = '<i class="fas fa-edit mr-2"></i>Taqrizni Tahrirlash';
+                
+                // Submit tugmasini o'zgartirish
+                const submitBtn = document.querySelector('#review-form button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Saqlash';
+                
+                // Formani yuqoriga scroll qilish
+                document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            }
+        }
+
+        // Hashtag preview funksiyasi
+        function updateHashtagsPreview() {
+            const hashtagsInput = document.getElementById('book-hashtags');
+            const preview = document.getElementById('hashtags-preview');
+            const value = hashtagsInput.value.trim();
+            
+            if (!value) {
+                preview.innerHTML = '';
+                return;
+            }
+            
+            const tags = value.split(',').map(tag => tag.trim().replace(/^#/, '')).filter(tag => tag.length > 0);
+            preview.innerHTML = tags.map(tag => `
+                <span class="inline-block bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/30">
+                    #${escapeHtml(tag)}
+                </span>
+            `).join('');
+        }
+        
+        // Hashtag input event listener
+        document.getElementById('book-hashtags')?.addEventListener('input', updateHashtagsPreview);
+        
+        // Form submit handler'ni yangilash
+        const reviewForm = document.getElementById('review-form');
+        const originalSubmitHandler = reviewForm.onsubmit;
+        
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const review = document.getElementById('review-text').value.trim();
+            const rating = parseInt(ratingInput.value);
+            const imageFile = document.getElementById('book-image-file').files[0];
+            const imageUrl = document.getElementById('book-image-url').value.trim();
+            const hashtagsInput = document.getElementById('book-hashtags').value.trim();
+            const hashtags = hashtagsInput ? hashtagsInput.split(',').map(tag => tag.trim().replace(/^#/, '')).filter(tag => tag.length > 0) : [];
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            if (!title || !author || !review) {
+                showAlert('Barcha maydonlarni to\'ldiring!');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saqlanmoqda...';
+
+            try {
+                let result;
+                
+                if (editingBookId) {
+                    // Tahrirlash
+                    let finalImageUrl = imageUrl;
+                    
+                    // Agar yangi rasm fayl yuklangan bo'lsa, avval yuklash
+                    if (imageFile) {
+                        try {
+                            const uploadResult = await booksAPI.uploadImage(imageFile);
+                            if (uploadResult.success) {
+                                finalImageUrl = uploadResult.image_url;
+                            } else {
+                                throw new Error('Rasm yuklashda xatolik');
+                            }
+                        } catch (uploadError) {
+                            console.error('Rasm yuklash xatosi:', uploadError);
+                            throw new Error('Rasm yuklashda xatolik: ' + (uploadError.message || 'Noma\'lum xatolik'));
+                        }
+                    } else if (!imageUrl) {
+                        // Agar rasm URL ham bo'sh bo'lsa, null yuborish
+                        finalImageUrl = null;
+                    }
+                    
+                    // Tahrirlash API'ga so'rov yuborish
+                    result = await booksAPI.update(editingBookId, title, author, review, rating, finalImageUrl || '', hashtags);
+                } else {
+                    // Yangi yaratish
+                    let finalImageUrl = imageUrl;
+                    
+                    if (imageFile) {
+                        const uploadResult = await booksAPI.uploadImage(imageFile);
+                        if (uploadResult.success) {
+                            finalImageUrl = uploadResult.image_url;
+                        } else {
+                            throw new Error('Rasm yuklashda xatolik');
+                        }
+                    }
+
+                    result = await booksAPI.create(title, author, review, rating, finalImageUrl, hashtags);
+                }
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    document.getElementById('review-form').reset();
+                    ratingInput.value = 5;
+                    ratingDisplay.textContent = '★★★★★';
+                    ratingValue.textContent = '5';
+                    document.getElementById('book-image-file').value = '';
+                    document.getElementById('book-image-url').value = '';
+                    document.getElementById('selected-file-name').textContent = '';
+                    document.getElementById('image-preview').classList.add('hidden');
+                    document.getElementById('book-hashtags').value = '';
+                    document.getElementById('hashtags-preview').innerHTML = '';
+                    
+                    // Form sarlavhasini qaytarish
+                    const formTitle = document.querySelector('.card h2');
+                    formTitle.innerHTML = '<i class="fas fa-book mr-2"></i>Yangi Kitob Taqrizi Yozish';
+                    
+                    // Submit tugmasini qaytarish
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish';
+                    
+                    editingBookId = null;
+                    await loadBooks();
+                }
+            } catch (error) {
+                showAlert(error.message || 'Xatolik yuz berdi');
+            } finally {
+                submitBtn.disabled = false;
+                if (!editingBookId) {
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish';
+                } else {
+                    submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Saqlash';
+                }
+            }
+        });
+
+        // Kitobni o'chirish
+        async function deleteBook(bookId) {
+            if (confirm('Bu taqrizni o\'chirishni xohlaysizmi?')) {
+                try {
+                    const result = await booksAPI.delete(bookId);
+                    if (result.success) {
+                        showAlert(result.message, 'success');
+                        await loadBooks();
+                    }
+                } catch (error) {
+                    showAlert(error.message || 'Xatolik yuz berdi');
+                }
+            }
+        }
+
+        // XSS himoyasi
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            authAPI.logout();
+            localStorage.removeItem('birilm_user');
+            window.location.href = '../index.html';
+        });
+
+        // File input change handler
+        document.getElementById('book-image-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Fayl nomini ko'rsatish
+                document.getElementById('selected-file-name').textContent = file.name;
+                // URL inputni tozalash
+                document.getElementById('book-image-url').value = '';
+                // Preview ko'rsatish
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('selected-file-name').textContent = '';
+                document.getElementById('image-preview').classList.add('hidden');
+            }
+        });
+
+        // URL input change handler - preview ko'rsatish
+        document.getElementById('book-image-url').addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url) {
+                document.getElementById('preview-img').src = url;
+                document.getElementById('image-preview').classList.remove('hidden');
+                // File inputni tozalash
+                document.getElementById('book-image-file').value = '';
+                document.getElementById('selected-file-name').textContent = '';
+            } else if (!document.getElementById('book-image-file').files[0]) {
+                document.getElementById('image-preview').classList.add('hidden');
+            }
+        });
+
+        // Rasmni olib tashlash
+        function clearImage() {
+            document.getElementById('book-image-file').value = '';
+            document.getElementById('book-image-url').value = '';
+            document.getElementById('selected-file-name').textContent = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        }
+
+        // Sahifa yuklanganda
+        setTimeout(() => {
+            loadBooks();
+        }, 500);
+
+        // Tab Navigation
+        document.querySelectorAll('.tab-nav').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                document.querySelectorAll('.tab-nav').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                const targetTab = document.getElementById(btn.dataset.tab + '-tab');
+                if (targetTab) {
+                    targetTab.classList.remove('hidden');
+                    
+                    // Settings tab ochilganda foydalanuvchilarni yuklash
+                    if (btn.dataset.tab === 'settings') {
+                        // currentUser ni tekshirish va yangilash
+                        if (!currentUser) {
+                            const token = getToken();
+                            if (token) {
+                                try {
+                                    const result = await authAPI.getMe();
+                                    if (result.success) {
+                                        currentUser = result.user;
+                                    }
+                                } catch (e) {
+                                    console.error('Error getting current user:', e);
+                                }
+                            }
+                        }
+                        await loadUsers();
+                    }
+                }
+            });
+        });
+
+        // Foydalanuvchilarni yuklash
+        let allUsers = [];
+        
+        async function loadUsers() {
+            const usersTableBody = document.getElementById('users-table-body');
+            if (!usersTableBody) {
+                console.warn('users-table-body element topilmadi');
+                return;
+            }
+            
+            usersTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</td></tr>';
+
+            try {
+                // currentUser ni yangilash (har doim yangilash)
+                const token = getToken();
+                if (token) {
+                    try {
+                        const result = await authAPI.getMe();
+                        if (result.success) {
+                            currentUser = result.user;
+                        } else {
+                            // localStorage'dan olish
+                            const storedUser = getUser();
+                            if (storedUser) {
+                                currentUser = storedUser;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error getting current user from API:', e);
+                        // Agar getMe() ishlamasa, localStorage'dan olish
+                        const storedUser = getUser();
+                        if (storedUser) {
+                            currentUser = storedUser;
+                        }
+                    }
+                } else {
+                    // Token yo'q bo'lsa, localStorage'dan olish
+                    const storedUser = getUser();
+                    if (storedUser) {
+                        currentUser = storedUser;
+                    }
+                }
+
+                // REST API orqali foydalanuvchilarni olish
+                const users = await supabaseRequest('users', {
+                    query: '?order=created_at.desc'
+                });
+
+                allUsers = Array.isArray(users) ? users : [];
+                
+                // Ro'yxatni tartiblash: Super Admin va Adminlar yuqorida, qolganlar pastda
+                allUsers.sort((a, b) => {
+                    // Super Admin birinchi
+                    if (a.role === 'super_admin' && b.role !== 'super_admin') return -1;
+                    if (b.role === 'super_admin' && a.role !== 'super_admin') return 1;
+                    
+                    // Adminlar ikkinchi
+                    if (a.role === 'admin' && b.role === 'user') return -1;
+                    if (b.role === 'admin' && a.role === 'user') return 1;
+                    
+                    // O'xshash rollar uchun sana bo'yicha tartiblash (yangi yuqorida)
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
+                
+                renderUsers(allUsers);
+                
+                // Super Admin bo'lsa, adminlik berish bo'limini ko'rsatish
+                let isSuperAdmin = false;
+                if (currentUser) {
+                    const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                    isSuperAdmin = (
+                        role === 'super_admin' || 
+                        role === 'asosiy admin' ||
+                        role === 'super admin' ||
+                        currentUser.is_super_admin === true ||
+                        currentUser.is_super_admin === 'true'
+                    );
+                }
+                
+                if (isSuperAdmin) {
+                    const superAdminInfo = document.getElementById('super-admin-info');
+                    const adminGrantSection = document.getElementById('admin-grant-section');
+                    if (superAdminInfo) superAdminInfo.classList.remove('hidden');
+                    if (adminGrantSection) adminGrantSection.classList.remove('hidden');
+                    loadAdmins();
+                } else {
+                    const superAdminInfo = document.getElementById('super-admin-info');
+                    const adminGrantSection = document.getElementById('admin-grant-section');
+                    if (superAdminInfo) superAdminInfo.classList.add('hidden');
+                    if (adminGrantSection) adminGrantSection.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-red-400 py-8">Xatolik: ${error.message || 'Noma\'lum xatolik'}</td></tr>`;
+            }
+        }
+
+        // Foydalanuvchilarni ko'rsatish (jadval ko'rinishida)
+        function renderUsers(users) {
+            const container = document.getElementById('users-table-body');
+            
+            if (users.length === 0) {
+                container.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-8">Foydalanuvchilar topilmadi</td></tr>';
+                return;
+            }
+
+            container.innerHTML = users.map(user => {
+                const userIsSuperAdmin = user.role === 'super_admin';
+                
+                // currentUser ni tekshirish - email yoki id orqali
+                let isCurrentUser = false;
+                if (currentUser) {
+                    isCurrentUser = (
+                        currentUser.email === user.email || 
+                        currentUser.id === user.id ||
+                        (currentUser.username && currentUser.username === user.username) ||
+                        (currentUser.email && currentUser.email.toLowerCase() === user.email.toLowerCase())
+                    );
+                }
+                
+                // Super Admin ekanligini tekshirish (barcha variantlarni tekshirish)
+                let loggedInUserIsSuperAdmin = false;
+                if (currentUser) {
+                    const role = currentUser.role ? String(currentUser.role).toLowerCase().trim() : '';
+                    loggedInUserIsSuperAdmin = (
+                        role === 'super_admin' || 
+                        role === 'asosiy admin' ||
+                        role === 'super admin' ||
+                        currentUser.is_super_admin === true ||
+                        currentUser.is_super_admin === 'true'
+                    );
+                }
+                
+                // Super Admin faqat oddiy foydalanuvchilar va adminlarga rol o'zgartirishi mumkin
+                // Super Admin o'ziga va boshqa super_adminlarga rol o'zgartira olmaydi
+                const canChangeRole = loggedInUserIsSuperAdmin && !isCurrentUser && !userIsSuperAdmin;
+                
+                
+                const firstLetter = (user.username || user.email).charAt(0).toUpperCase();
+                
+                return `
+                <tr class="border-b ${userIsSuperAdmin ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-gray-700'} hover:bg-gray-800/50 transition ${userIsSuperAdmin ? 'ring-1 ring-yellow-500/30' : ''}">
+                    <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full ${userIsSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center ${userIsSuperAdmin ? '' : 'text-white font-bold'}" style="${userIsSuperAdmin ? '' : 'background: ' + getAvatarColor(firstLetter)}">
+                                ${userIsSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
+                            </div>
+                            <div>
+                                <p class="font-semibold ${userIsSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4">
+                        <p class="text-sm text-gray-300">${escapeHtml(user.email)}</p>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <p class="text-sm text-gray-400">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
+                    </td>
+                    <td class="py-4 px-4">
+                        ${isCurrentUser ? 
+                            '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
+                            canChangeRole ? `
+                                <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${escapeHtml(user.role)}', this.value)" class="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white outline-none focus:border-green-500 cursor-pointer hover:border-green-400 transition" title="Adminlik berish">
+                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>Foydalanuvchi</option>
+                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                </select>
+                            ` : 
+                            userIsSuperAdmin ? `
+                                <span class="text-sm text-yellow-400 font-semibold">${getRoleName(user.role)}</span>
+                            ` :
+                            `<span class="text-sm text-gray-500">${getRoleName(user.role)}</span>`
+                        }
+                    </td>
+                    <td class="py-4 px-4">
+                        ${isCurrentUser ? 
+                            '<span class="text-xs text-gray-500">-</span>' :
+                            loggedInUserIsSuperAdmin ? `
+                                <div class="flex items-center space-x-2">
+                                    ${user.role !== 'user' && !userIsSuperAdmin ? `
+                                        <button onclick="handleRemoveRole('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
+                                                class="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-3 py-1.5 rounded text-xs font-medium transition flex items-center space-x-1" 
+                                                title="Rolni o'chirish (User ga qaytarish)">
+                                            <i class="fas fa-user-minus text-xs"></i>
+                                            <span>Rolni o'chirish</span>
+                                        </button>
+                                    ` : ''}
+                                    ${!userIsSuperAdmin ? `
+                                        <button onclick="handleDeleteUser('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
+                                                class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-1.5 rounded text-xs font-medium transition flex items-center space-x-1" 
+                                                title="Foydalanuvchini o'chirish">
+                                            <i class="fas fa-trash text-xs"></i>
+                                            <span>O'chirish</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            ` : 
+                            '<span class="text-xs text-gray-500">-</span>'
+                        }
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        // Avatar rangini olish
+        function getAvatarColor(letter) {
+            const colors = [
+                'rgba(239, 68, 68, 0.8)',   // red
+                'rgba(59, 130, 246, 0.8)',  // blue
+                'rgba(34, 197, 94, 0.8)',   // green
+                'rgba(168, 85, 247, 0.8)',  // purple
+                'rgba(234, 179, 8, 0.8)',   // yellow
+                'rgba(236, 72, 153, 0.8)'   // pink
+            ];
+            const index = letter.charCodeAt(0) % colors.length;
+            return colors[index];
+        }
+
+        // Rol o'zgarishini boshqarish
+        async function handleRoleChange(email, currentRole, newRole) {
+            // Agar rol o'zgarmagan bo'lsa
+            if (currentRole === newRole) {
+                return;
+            }
+            
+            // Super Admin ekanligini tekshirish
+            let isUserSuperAdmin = false;
+            if (currentUser) {
+                const role = currentUser.role ? String(currentUser.role).toLowerCase().trim() : '';
+                isUserSuperAdmin = (
+                    role === 'super_admin' || 
+                    role === 'asosiy admin' ||
+                    role === 'super admin' ||
+                    currentUser.is_super_admin === true ||
+                    currentUser.is_super_admin === 'true'
+                );
+            }
+            
+            if (!isUserSuperAdmin) {
+                showAlert('Faqat Super Admin rol o\'zgartira oladi!', 'error');
+                loadUsers();
+                return;
+            }
+            
+            // Faqat 'user' va 'admin' rollarini o'zgartirish mumkin
+            if (newRole === 'super_admin') {
+                showAlert('Super Admin rolini berish mumkin emas!', 'error');
+                loadUsers();
+                return;
+            }
+            
+            // Tasdiqlash
+            const roleName = newRole === 'admin' ? 'Admin' : 'Foydalanuvchi';
+            const currentRoleName = currentRole === 'admin' ? 'Admin' : (currentRole === 'super_admin' ? 'Super Admin' : 'Foydalanuvchi');
+            
+            if (!confirm(`${email} foydalanuvchisining rolini "${currentRoleName}" dan "${roleName}" ga o'zgartirishni xohlaysizmi?`)) {
+                loadUsers();
+                return;
+            }
+
+            try {
+                const result = await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: newRole }
+                });
+
+                showAlert(`Rol "${roleName}" ga muvaffaqiyatli o'zgartirildi!`, 'success');
+                
+                // Foydalanuvchilarni qayta yuklash
+                await loadUsers();
+                
+                // Adminlar ro'yxatini yangilash
+                if (document.getElementById('admins-list')) {
+                    loadAdmins();
+                }
+            } catch (error) {
+                console.error('Role change error:', error);
+                console.error('Error details:', JSON.stringify(error, null, 2));
+                showAlert('Xatolik: ' + (error.message || error.toString() || 'Noma\'lum xatolik'), 'error');
+                loadUsers();
+            }
+        }
+
+        // Rolni o'chirish (User ga qaytarish)
+        async function handleRemoveRole(email, username) {
+            // Super Admin ekanligini tekshirish
+            let isUserSuperAdmin = false;
+            if (currentUser) {
+                const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                isUserSuperAdmin = (
+                    role === 'super_admin' || 
+                    role === 'asosiy admin' ||
+                    role === 'super admin' ||
+                    currentUser.is_super_admin === true ||
+                    currentUser.is_super_admin === 'true'
+                );
+            }
+            
+            if (!isUserSuperAdmin) {
+                showAlert('Faqat Super Admin rol o\'chira oladi!', 'error');
+                return;
+            }
+
+            // Tasdiqlash
+            if (!confirm(`DIQQAT: ${username || email} foydalanuvchisining rolini o'chirishni (User ga qaytarishni) xohlaysizmi?\n\nBu foydalanuvchi oddiy foydalanuvchiga aylanadi va admin huquqlarini yo'qotadi!`)) {
+                return;
+            }
+
+            try {
+                await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: 'user' }
+                });
+
+                showAlert(`Rol o'chirildi. Foydalanuvchi endi oddiy foydalanuvchi`, 'success');
+                loadUsers();
+                if (document.getElementById('admins-list')) {
+                    loadAdmins();
+                }
+            } catch (error) {
+                console.error('Remove role error:', error);
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
+            }
+        }
+
+        // Foydalanuvchini o'chirish
+        async function handleDeleteUser(email, username) {
+            // Super Admin ekanligini tekshirish
+            let isUserSuperAdmin = false;
+            if (currentUser) {
+                const role = currentUser.role ? String(currentUser.role).toLowerCase() : '';
+                isUserSuperAdmin = (
+                    role === 'super_admin' || 
+                    role === 'asosiy admin' ||
+                    role === 'super admin' ||
+                    currentUser.is_super_admin === true ||
+                    currentUser.is_super_admin === 'true'
+                );
+            }
+            
+            if (!isUserSuperAdmin) {
+                showAlert('Faqat Super Admin foydalanuvchilarni o\'chira oladi!', 'error');
+                return;
+            }
+
+            // Kuchli tasdiqlash
+            if (!confirm(`DIQQAT: ${username || email} foydalanuvchisini butunlay o'chirishni xohlaysizmi?\n\nBu amal qaytarib bo'lmaydi! Foydalanuvchi va uning barcha ma'lumotlari yo'qoladi!`)) {
+                return;
+            }
+
+            // Ikkinchi tasdiqlash
+            const confirmText = prompt(`Tasdiqlash uchun "${username || email}" yozing:`);
+            if (confirmText !== (username || email)) {
+                showAlert('Tasdiqlash noto\'g\'ri! Foydalanuvchi o\'chirilmadi.', 'error');
+                return;
+            }
+
+            try {
+                await supabaseRequest('users', {
+                    method: 'DELETE',
+                    query: `?email=eq.${encodeURIComponent(email)}`
+                });
+
+                showAlert(`Foydalanuvchi "${username || email}" o'chirildi`, 'success');
+                loadUsers();
+                if (document.getElementById('admins-list')) {
+                    loadAdmins();
+                }
+            } catch (error) {
+                console.error('Delete user error:', error);
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
+            }
+        }
+
+        // Adminlar ro'yxatini yuklash
+        async function loadAdmins() {
+            const adminsList = document.getElementById('admins-list');
+            
+            try {
+                // REST API orqali adminlarni olish
+                const admins = allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin')
+                    .sort((a, b) => {
+                        if (a.role === 'super_admin') return -1;
+                        if (b.role === 'super_admin') return 1;
+                        return 0;
+                    });
+
+                adminsList.innerHTML = admins.map(admin => {
+                    const isSuperAdmin = admin.role === 'super_admin';
+                    return `
+                    <div class="user-card flex items-center justify-between ${isSuperAdmin ? 'border-2 border-yellow-500/50 bg-yellow-500/5' : ''}">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : 'bg-green-500/20'} flex items-center justify-center">
+                                ${isSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : '<i class="fas fa-user-shield text-green-400"></i>'}
+                            </div>
+                            <div>
+                                <p class="font-semibold ${isSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(admin.username || admin.email)}</p>
+                                <p class="text-xs text-gray-400">${escapeHtml(admin.email)}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge ${getBadgeClass(admin.role)}">${getRoleName(admin.role)}</span>
+                            ${admin.role !== 'super_admin' ? `
+                                <button onclick="revokeAdmin('${admin.email}')" class="px-3 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white transition">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : '<span class="text-xs text-yellow-400/70">Asosiy admin</span>'}
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading admins:', error);
+                adminsList.innerHTML = '<p class="text-center text-red-400 py-2">Xatolik yuz berdi</p>';
+            }
+        }
+
+        // Adminlik berish/olish
+        async function toggleAdminRole(email, currentRole) {
+            try {
+                if (currentRole === 'admin') {
+                    // Adminlikni olib tashlash
+                    await supabaseRequest('users', {
+                        method: 'PATCH',
+                        query: `?email=eq.${encodeURIComponent(email)}`,
+                        body: { role: 'user' }
+                    });
+                    showAlert('Adminlik olib tashlandi', 'success');
+                } else {
+                    // Adminlik berish
+                    await supabaseRequest('users', {
+                        method: 'PATCH',
+                        query: `?email=eq.${encodeURIComponent(email)}`,
+                        body: { role: 'admin' }
+                    });
+                    showAlert('Adminlik berildi', 'success');
+                }
+                
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
+            }
+        }
+
+        // Email orqali adminlik berish
+        async function grantAdmin() {
+            const email = document.getElementById('admin-email-input').value.trim();
+            
+            if (!email) {
+                showAlert('Email kiriting!');
+                return;
+            }
+
+            try {
+                await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: 'admin' }
+                });
+
+                showAlert('Adminlik berildi!', 'success');
+                document.getElementById('admin-email-input').value = '';
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
+            }
+        }
+
+        // Adminlikni olib tashlash
+        async function revokeAdmin(email) {
+            if (!confirm(`${email} dan adminlikni olib tashlashni xohlaysizmi?`)) return;
+
+            try {
+                await supabaseRequest('users', {
+                    method: 'PATCH',
+                    query: `?email=eq.${encodeURIComponent(email)}`,
+                    body: { role: 'user' }
+                });
+
+                showAlert('Adminlik olib tashlandi', 'success');
+                loadUsers();
+                loadAdmins();
+            } catch (error) {
+                showAlert('Xatolik: ' + (error.message || 'Noma\'lum xatolik'));
+            }
+        }
+
+        // Qidiruv
+        document.getElementById('user-search')?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                u.email.toLowerCase().includes(query) || 
+                (u.username && u.username.toLowerCase().includes(query))
+            );
+            renderUsers(filtered);
+        });
+
+        // Helper functions
+        function getBadgeClass(role) {
+            if (role === 'super_admin') return 'badge-super';
+            if (role === 'admin') return 'badge-admin';
+            return 'badge-user';
+        }
+
+        function getRoleName(role) {
+            if (role === 'super_admin') return 'Super Admin';
+            if (role === 'admin') return 'Admin';
+            return 'User';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

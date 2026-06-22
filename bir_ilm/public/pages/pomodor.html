@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Primary Meta Tags -->
+    <title>Bir Ilm - Pomodoro Timer</title>
+    <meta name="title" content="Bir Ilm - Pomodoro Timer">
+    <meta name="description" content="Pomodoro timer bilan samarali o'qing. Vaqtni boshqaring va tanga yuting!">
+    <meta name="keywords" content="pomodoro, timer, o'qish, vaqt boshqaruvi, tanga, bir ilm">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bir Ilm - Pomodoro Timer">
+    <meta property="og:description" content="Pomodoro timer bilan samarali o'qing">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="../assets/images/logo.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            min-height: 100dvh;
+            color: #ffffff;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 20px;
+            position: relative;
+            gap: 15px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(to right, #4CAF50, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .home-link {
+            position: absolute;
+            left: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+
+        .home-link:hover {
+            color: #fff;
+        }
+
+        /* Main Timer Container */
+        .timer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        /* Cards Wrapper - 50/50 split */
+        .cards-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Shared Card Style */
+        .flip-card,
+        .seconds-card {
+            background: #1a1a1a;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .flip-card::before,
+        .seconds-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        /* Minutes Number */
+        .flip-number {
+            font-size: clamp(140px, 45vw, 280px);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 0.8;
+            letter-spacing: -8px;
+            position: relative;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Seconds Number - Same size as minutes */
+        .seconds-number {
+            font-size: clamp(140px, 45vw, 280px);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 0.8;
+            letter-spacing: -8px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .flip-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .small-seconds {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: clamp(16px, 5vw, 24px);
+            color: #555;
+            font-weight: 600;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        /* Points Display */
+        .points-display {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+            background: rgba(30, 30, 30, 0.8);
+            padding: 6px 12px;
+            border-radius: 15px;
+        }
+
+        .points-display i {
+            color: #ffc107;
+        }
+
+        .points-display span {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 30px 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            border: none;
+            background: #2a2a2a;
+            color: #888;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: #3a3a3a;
+            color: #fff;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .control-btn.primary {
+            width: 70px;
+            height: 70px;
+            background: #ffc107;
+            color: #000;
+            border-radius: 50%;
+            font-size: 24px;
+        }
+
+        .control-btn.primary:hover {
+            background: #ffcd38;
+        }
+
+        .control-btn.stop {
+            background: #333;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-radius: 30px 30px 0 0;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 100;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            transform: translateY(0);
+        }
+
+        .settings-handle {
+            width: 40px;
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .settings-tabs {
+            display: flex;
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+
+        .settings-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .settings-tab.active {
+            background: #3a3a3a;
+            color: #fff;
+        }
+
+        /* Time Picker */
+        .time-picker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .time-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .time-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .time-nav {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .time-nav:hover {
+            background: #3a3a3a;
+            color: #fff;
+        }
+
+        .time-separator {
+            font-size: 48px;
+            font-weight: 700;
+            color: #666;
+        }
+
+        /* Preset Buttons */
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .preset-btn {
+            width: 45px;
+            height: 40px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .preset-btn.active {
+            border-color: #4CAF50;
+            background: #4CAF50;
+            color: #000;
+        }
+
+        /* Settings Row */
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-size: 15px;
+            color: #888;
+        }
+
+        .settings-value {
+            font-size: 15px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        /* Confirm Button */
+        .confirm-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: #ffc107;
+            color: #000;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 30px auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .confirm-btn:hover {
+            background: #ffcd38;
+            transform: scale(1.05);
+        }
+
+        /* Settings Toggle Button */
+        .settings-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: #2a2a2a;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 99;
+        }
+
+        .settings-toggle:hover {
+            background: #3a3a3a;
+            color: #fff;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 90;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 200;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 480px) {
+            .header {
+                padding: 12px 15px;
+            }
+
+            .timer-container {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .flip-card,
+            .seconds-card {
+                border-radius: 15px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(120px, 40vw, 200px);
+                letter-spacing: -6px;
+            }
+            
+            .controls {
+                gap: 15px;
+                padding: 12px;
+            }
+
+            .control-btn {
+                width: 45px;
+                height: 45px;
+            }
+
+            .control-btn.primary {
+                width: 60px;
+                height: 60px;
+            }
+
+            .points-display {
+                position: static;
+                transform: none;
+                margin-bottom: 10px;
+            }
+
+            .small-seconds {
+                bottom: 10px;
+                right: 15px;
+                font-size: clamp(18px, 6vw, 28px);
+            }
+
+            .status-badge {
+                font-size: 10px;
+            }
+
+            .pomodoro-dots {
+                margin-top: 8px;
+            }
+        }
+
+        /* Small phones */
+        @media (max-width: 360px) {
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(100px, 35vw, 160px);
+                letter-spacing: -5px;
+            }
+        }
+
+        /* Landscape mode - gorizontal */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 8px 15px;
+            }
+
+            .logo-img {
+                width: 25px;
+                height: 25px;
+            }
+
+            .logo-text {
+                font-size: 12px;
+            }
+
+            .timer-container {
+                padding: 5px 15px;
+                gap: 10px;
+            }
+
+            .cards-wrapper {
+                flex-direction: row;
+                max-width: 95vw;
+                gap: 15px;
+            }
+
+            .flip-card,
+            .seconds-card {
+                border-radius: 12px;
+                max-width: none;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(60px, 22vh, 120px);
+                letter-spacing: -4px;
+            }
+
+            .controls {
+                padding: 8px;
+                gap: 15px;
+            }
+
+            .control-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .control-btn.primary {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .pomodoro-dots {
+                display: none;
+            }
+
+            .status-badge {
+                font-size: 9px;
+            }
+
+            .small-seconds {
+                font-size: 14px;
+                bottom: 8px;
+                right: 12px;
+            }
+
+            .settings-toggle {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .footer {
+                display: none;
+            }
+        }
+
+        /* Tablet - Gorizontal */
+        @media (min-width: 768px) {
+            .timer-container {
+                gap: 20px;
+            }
+
+            .cards-wrapper {
+                flex-direction: row;
+                max-width: 900px;
+                gap: 20px;
+            }
+
+            .flip-card,
+            .seconds-card {
+                max-width: none;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(120px, 15vw, 200px);
+                letter-spacing: -8px;
+            }
+
+            .small-seconds {
+                font-size: 28px;
+            }
+        }
+
+        /* Large screens - Gorizontal */
+        @media (min-width: 1024px) {
+            .cards-wrapper {
+                max-width: 1100px;
+                gap: 30px;
+            }
+
+            .flip-number,
+            .seconds-number {
+                font-size: clamp(180px, 18vw, 280px);
+                letter-spacing: -10px;
+            }
+
+            .small-seconds {
+                font-size: 36px;
+            }
+        }
+
+        /* Extra large screens */
+        @media (min-width: 1440px) {
+            .flip-number,
+            .seconds-number {
+                font-size: 320px;
+            }
+        }
+
+        /* Pomodoro count indicator */
+        .pomodoro-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .pomodoro-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #333;
+            transition: background 0.3s;
+        }
+
+        .pomodoro-dot.completed {
+            background: #4CAF50;
+        }
+
+        .pomodoro-dot.current {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        /* Footer */
+        .footer {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #444;
+        }
+
+        .footer a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="../index.html" class="home-link">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        <div class="logo-section">
+            <img src="../assets/images/logo.jpg" alt="Bir Ilm" class="logo-img">
+            <span class="logo-text">BIR ILM</span>
+                    </div>
+        <div class="points-display" id="points-display" style="display: none;">
+            <i class="fas fa-coins"></i>
+            <span id="points-count">0</span> sum
+                </div>
+            </div>
+
+    <!-- Main Timer -->
+    <div class="timer-container">
+        <!-- Cards Wrapper - 50/50 -->
+        <div class="cards-wrapper">
+            <!-- Minutes Card -->
+            <div class="flip-card">
+                <div class="status-badge" id="status-text">Ish vaqti</div>
+                <div class="flip-number" id="minutes-display">25</div>
+                <div class="pomodoro-dots" id="pomodoro-dots">
+                    <div class="pomodoro-dot current"></div>
+                    <div class="pomodoro-dot"></div>
+                    <div class="pomodoro-dot"></div>
+                    <div class="pomodoro-dot"></div>
+            </div>
+                </div>
+
+            <!-- Seconds Card -->
+            <div class="seconds-card">
+                <div class="seconds-number" id="seconds-display">00</div>
+                <div class="small-seconds" id="milliseconds-display">00</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+        <div class="controls">
+            <button class="control-btn stop" id="stop-btn" title="To'xtatish">
+                <i class="fas fa-stop"></i>
+                </button>
+            <button class="control-btn primary" id="play-pause-btn" title="Boshlash">
+                <i class="fas fa-play" id="play-icon"></i>
+                </button>
+            <button class="control-btn" id="skip-btn" title="O'tkazib yuborish">
+                <i class="fas fa-forward"></i>
+                </button>
+        </div>
+            </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <span>&copy; 2025 Bir Ilm</span>
+        <a href="https://t.me/Avrangzeb_Abdujalilov" target="_blank">@Usman dev</a>
+    </div>
+
+    <!-- Settings Toggle -->
+    <button class="settings-toggle" id="settings-toggle">
+        <i class="fas fa-cog"></i>
+                </button>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-handle"></div>
+        <div class="settings-title">Sozlamalar</div>
+
+        <!-- Tabs -->
+        <div class="settings-tabs">
+            <button class="settings-tab active" data-mode="work">Pomodoro</button>
+            <button class="settings-tab" data-mode="shortBreak">Qisqa</button>
+            <button class="settings-tab" data-mode="longBreak">Uzoq</button>
+            </div>
+
+        <!-- Tez tanlash tugmalari -->
+        <div class="preset-buttons">
+            <button class="preset-btn" data-minutes="5">5</button>
+            <button class="preset-btn" data-minutes="10">10</button>
+            <button class="preset-btn" data-minutes="15">15</button>
+            <button class="preset-btn active" data-minutes="25">25</button>
+            <button class="preset-btn" data-minutes="30">30</button>
+            <button class="preset-btn" data-minutes="45">45</button>
+            <button class="preset-btn" data-minutes="50">50</button>
+            <button class="preset-btn" data-minutes="60">60</button>
+                    </div>
+
+        <!-- Time Picker -->
+        <div class="time-picker">
+            <div class="time-column">
+                <button class="time-nav" data-action="hour-up"><i class="fas fa-chevron-up"></i></button>
+                <div class="time-value" id="picker-hours">00</div>
+                <button class="time-nav" data-action="hour-down"><i class="fas fa-chevron-down"></i></button>
+                    </div>
+            <span class="time-separator">:</span>
+            <div class="time-column">
+                <button class="time-nav" data-action="min-up"><i class="fas fa-chevron-up"></i></button>
+                <div class="time-value" id="picker-minutes">25</div>
+                <button class="time-nav" data-action="min-down"><i class="fas fa-chevron-down"></i></button>
+                    </div>
+            <span class="time-separator">:</span>
+            <div class="time-column">
+                <button class="time-nav" data-action="sec-up"><i class="fas fa-chevron-up"></i></button>
+                <div class="time-value" id="picker-seconds">00</div>
+                <button class="time-nav" data-action="sec-down"><i class="fas fa-chevron-down"></i></button>
+                </div>
+            </div>
+
+        <!-- Settings Rows -->
+        <div class="settings-row">
+            <span class="settings-label">Tag</span>
+            <span class="settings-value">Bir Ilm</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Rang</span>
+            <span class="settings-value">
+                <span class="color-dot" id="color-dot" style="background: #4CAF50;"></span>
+            </span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Takrorlar</span>
+            <span class="settings-value" id="loops-value">4 marta</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Tanaffus</span>
+            <span class="settings-value" id="break-value">5 daqiqa</span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Ovoz</span>
+            <label class="settings-value" style="cursor: pointer;">
+                <input type="checkbox" id="sound-toggle" checked style="margin-right: 8px; cursor: pointer;">
+                <span id="sound-status">Yoqilgan</span>
+            </label>
+        </div>
+
+        <!-- Confirm Button -->
+        <button class="confirm-btn" id="confirm-settings">
+            <i class="fas fa-check"></i>
+        </button>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        // Timer State
+        let timerInterval = null;
+        let timeLeft = 25 * 60 * 1000;
+        let isRunning = false;
+        let currentMode = 'work';
+        let pomodoroCount = 0;
+        let totalPomodoros = 4;
+
+        // Timer Settings
+        let settings = {
+            work: 25 * 60 * 1000,
+            shortBreak: 5 * 60 * 1000,
+            longBreak: 15 * 60 * 1000
+        };
+
+        // Sound Settings
+        let soundEnabled = true;
+
+        // Picker State
+        let pickerMode = 'work';
+        let pickerTime = { hours: 0, minutes: 25, seconds: 0 };
+
+        // DOM Elements
+        const minutesDisplay = document.getElementById('minutes-display');
+        const secondsDisplay = document.getElementById('seconds-display');
+        const millisecondsDisplay = document.getElementById('milliseconds-display');
+        const statusText = document.getElementById('status-text');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const stopBtn = document.getElementById('stop-btn');
+        const skipBtn = document.getElementById('skip-btn');
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsToggle = document.getElementById('settings-toggle');
+        const overlay = document.getElementById('overlay');
+        const pomodoroDots = document.getElementById('pomodoro-dots');
+        const pointsDisplay = document.getElementById('points-display');
+        const pointsCount = document.getElementById('points-count');
+
+        // Update Display
+        function updateDisplay() {
+            const totalMs = Math.max(0, timeLeft);
+            const minutes = Math.floor(totalMs / 60000);
+            const seconds = Math.floor((totalMs % 60000) / 1000);
+            const milliseconds = Math.floor((totalMs % 1000) / 10);
+
+            minutesDisplay.textContent = minutes.toString().padStart(2, '0');
+            secondsDisplay.textContent = seconds.toString().padStart(2, '0');
+            millisecondsDisplay.textContent = milliseconds.toString().padStart(2, '0');
+        }
+
+        // Update Status
+        function updateStatus() {
+            const modes = {
+                'work': { text: 'Ish vaqti', color: '#4CAF50', name: 'Pomodoro' },
+                'shortBreak': { text: 'Qisqa tanaffus', color: '#3B82F6', name: 'Tanaffus' },
+                'longBreak': { text: 'Uzoq tanaffus', color: '#8B5CF6', name: 'Uzoq Tanaffus' }
+            };
+            
+            const mode = modes[currentMode];
+            statusText.textContent = mode.text;
+            document.getElementById('color-dot').style.background = mode.color;
+        }
+
+        // Update Pomodoro Dots
+        function updatePomodoroDots() {
+            const dots = pomodoroDots.querySelectorAll('.pomodoro-dot');
+            dots.forEach((dot, index) => {
+                dot.className = 'pomodoro-dot';
+                if (index < pomodoroCount) {
+                    dot.classList.add('completed');
+                } else if (index === pomodoroCount && currentMode === 'work') {
+                    dot.classList.add('current');
+                }
+            });
+        }
+
+        // Start Timer
+        function startTimer() {
+            if (isRunning) return;
+            playButtonSound(500, 0.15); // Yuqori ton - boshlash
+            isRunning = true;
+            playIcon.className = 'fas fa-pause';
+            
+            const startTime = Date.now();
+            const initialTime = timeLeft;
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                timeLeft = Math.max(0, initialTime - elapsed);
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    playIcon.className = 'fas fa-play';
+                    handleTimerComplete();
+                }
+            }, 10);
+        }
+
+        // Pause Timer
+        function pauseTimer() {
+            if (!isRunning) return;
+            playButtonSound(300, 0.12); // Past ton - to'xtatish
+            isRunning = false;
+            clearInterval(timerInterval);
+            playIcon.className = 'fas fa-play';
+        }
+
+        // Stop Timer
+        function stopTimer() {
+            playButtonSound(250, 0.15); // Eng past ton - to'xtatish
+            pauseTimer();
+            timeLeft = settings[currentMode];
+            updateDisplay();
+        }
+
+        // Skip to Next
+        function skipToNext() {
+            playButtonSound(600, 0.1); // O'rtacha ton - o'tkazib yuborish
+            pauseTimer();
+            handleTimerComplete();
+        }
+
+        // Play Sound
+        function playNotificationSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 3 marta beep tovushi
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 800; // Yuqori ton
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.5);
+                    }, i * 300);
+                }
+            } catch (error) {
+                console.error('Ovoz chalishda xatolik:', error);
+            }
+        }
+
+        // Play Button Click Sound
+        function playButtonSound(frequency = 400, duration = 0.1) {
+            if (!soundEnabled) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (error) {
+                console.error('Tugma tovushi chalishda xatolik:', error);
+            }
+        }
+
+        // Handle Timer Complete
+        async function handleTimerComplete() {
+            // Play sound
+            playNotificationSound();
+            
+            // Vibrate
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+
+            // Notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Pomodoro Timer', {
+                    body: currentMode === 'work' ? 'Ish vaqti tugadi! Tanaffus oling.' : 'Tanaffus tugadi! Ishga qayting.',
+                    icon: '../assets/images/logo.jpg'
+                });
+            }
+
+            if (currentMode === 'work') {
+                pomodoroCount++;
+                updatePomodoroDots();
+                
+                // Add points
+                const token = localStorage.getItem('birilm_token');
+                if (token) {
+                    try {
+                        const data = await authAPI.addPomodoroPoints();
+                            if (data.success) {
+                                updatePointsDisplay(data.sum);
+                            showNotification(`🎉 ${data.added} tanga qo'shildi!`);
+                        }
+                    } catch (error) {
+                        console.error('Tanga qo\'shishda xatolik:', error);
+                    }
+                }
+                
+                if (pomodoroCount >= totalPomodoros) {
+                    setMode('longBreak');
+                    pomodoroCount = 0;
+                } else {
+                    setMode('shortBreak');
+                }
+            } else {
+                setMode('work');
+            }
+        }
+
+        // Set Mode
+        function setMode(mode) {
+            currentMode = mode;
+            timeLeft = settings[mode];
+            updateDisplay();
+            updateStatus();
+            updatePomodoroDots();
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Update Points Display
+        function updatePointsDisplay(sum) {
+            pointsCount.textContent = sum || 0;
+        }
+
+        // Load Points
+        async function loadPoints() {
+            const token = localStorage.getItem('birilm_token');
+            if (!token) {
+                pointsDisplay.style.display = 'none';
+                return;
+            }
+
+            try {
+                const data = await authAPI.getPoints();
+                    if (data.success) {
+                        updatePointsDisplay(data.sum);
+                    pointsDisplay.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Tangalar sonini olishda xatolik:', error);
+            }
+        }
+
+        // Settings Panel
+        function openSettings() {
+            settingsPanel.classList.add('open');
+            overlay.classList.add('visible');
+            updatePicker();
+        }
+
+        function closeSettings() {
+            settingsPanel.classList.remove('open');
+            overlay.classList.remove('visible');
+        }
+
+        // Update Picker
+        function updatePicker() {
+            const time = settings[pickerMode];
+            const hours = Math.floor(time / 3600000);
+            const minutes = Math.floor((time % 3600000) / 60000);
+            const seconds = Math.floor((time % 60000) / 1000);
+
+            pickerTime = { hours, minutes, seconds };
+            document.getElementById('picker-hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('picker-minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('picker-seconds').textContent = seconds.toString().padStart(2, '0');
+
+            // Update break value display
+            document.getElementById('break-value').textContent = `${Math.floor(settings.shortBreak / 60000)} daqiqa`;
+            
+            // Preset tugmalarini yangilash
+            const totalMinutes = Math.floor(time / 60000);
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.minutes) === totalMinutes && time % 60000 === 0 && hours === 0) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Save Settings
+        function saveSettings() {
+            playButtonSound(450, 0.12); // Saqlash tovushi
+            const { hours, minutes, seconds } = pickerTime;
+            settings[pickerMode] = (hours * 3600 + minutes * 60 + seconds) * 1000;
+            
+            if (currentMode === pickerMode && !isRunning) {
+                timeLeft = settings[pickerMode];
+                updateDisplay();
+            }
+            
+            closeSettings();
+        }
+
+        // Event Listeners
+        playPauseBtn.addEventListener('click', () => {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        });
+
+        stopBtn.addEventListener('click', stopTimer);
+        skipBtn.addEventListener('click', skipToNext);
+        settingsToggle.addEventListener('click', openSettings);
+        overlay.addEventListener('click', closeSettings);
+        document.getElementById('confirm-settings').addEventListener('click', saveSettings);
+
+        // Settings Tabs
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                pickerMode = tab.dataset.mode;
+                updatePicker();
+                updatePresetButtons();
+            });
+        });
+
+        // Preset Buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const minutes = parseInt(btn.dataset.minutes);
+                pickerTime = { hours: 0, minutes: minutes, seconds: 0 };
+                
+                // UI yangilash
+                document.getElementById('picker-hours').textContent = '00';
+                document.getElementById('picker-minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('picker-seconds').textContent = '00';
+                
+                // Active tugmani belgilash
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Preset tugmalarini yangilash
+        function updatePresetButtons() {
+            const time = settings[pickerMode];
+            const totalMinutes = Math.floor(time / 60000);
+            
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.minutes) === totalMinutes && time % 60000 === 0) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Time Navigation
+        document.querySelectorAll('.time-nav').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                
+                switch(action) {
+                    case 'hour-up':
+                        pickerTime.hours = Math.min(23, pickerTime.hours + 1);
+                        break;
+                    case 'hour-down':
+                        pickerTime.hours = Math.max(0, pickerTime.hours - 1);
+                        break;
+                    case 'min-up':
+                        pickerTime.minutes = Math.min(59, pickerTime.minutes + 1);
+                        break;
+                    case 'min-down':
+                        pickerTime.minutes = Math.max(0, pickerTime.minutes - 1);
+                        break;
+                    case 'sec-up':
+                        pickerTime.seconds = Math.min(59, pickerTime.seconds + 1);
+                        break;
+                    case 'sec-down':
+                        pickerTime.seconds = Math.max(0, pickerTime.seconds - 1);
+                        break;
+                }
+
+                document.getElementById('picker-hours').textContent = pickerTime.hours.toString().padStart(2, '0');
+                document.getElementById('picker-minutes').textContent = pickerTime.minutes.toString().padStart(2, '0');
+                document.getElementById('picker-seconds').textContent = pickerTime.seconds.toString().padStart(2, '0');
+                
+                // Preset tugmalarini yangilash
+                document.querySelectorAll('.preset-btn').forEach(b => {
+                    b.classList.remove('active');
+                    if (pickerTime.hours === 0 && pickerTime.seconds === 0 && 
+                        parseInt(b.dataset.minutes) === pickerTime.minutes) {
+                        b.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Request Notification Permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Sound Toggle
+        const soundToggle = document.getElementById('sound-toggle');
+        const soundStatus = document.getElementById('sound-status');
+        
+        // Load sound setting from localStorage
+        const savedSoundSetting = localStorage.getItem('pomodoro_sound_enabled');
+        if (savedSoundSetting !== null) {
+            soundEnabled = savedSoundSetting === 'true';
+            soundToggle.checked = soundEnabled;
+            soundStatus.textContent = soundEnabled ? 'Yoqilgan' : 'O\'chirilgan';
+        }
+        
+        soundToggle.addEventListener('change', () => {
+            soundEnabled = soundToggle.checked;
+            localStorage.setItem('pomodoro_sound_enabled', soundEnabled.toString());
+            soundStatus.textContent = soundEnabled ? 'Yoqilgan' : 'O\'chirilgan';
+            
+            // Test sound
+            if (soundEnabled) {
+                playNotificationSound();
+            }
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            updateDisplay();
+            updateStatus();
+            updatePomodoroDots();
+            loadPoints();
+        });
+
+        // Prevent zoom on double tap (mobile)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
