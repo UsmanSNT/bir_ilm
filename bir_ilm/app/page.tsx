@@ -124,7 +124,7 @@ function HomeTab({ setTab, isAdmin }: { setTab: (t: Tab) => void; isAdmin: boole
         {[
           { icon: "🎯", label: "Quizlar", action: () => setTab("quiz") },
           { icon: "🏆", label: "Reyting", action: () => setTab("leaderboard") },
-          { icon: "📚", label: "Kitoblar", action: () => window.location.href = "/pages/user.html" },
+          { icon: "📚", label: "Kitoblar", action: () => window.location.href = "/index.html" },
           { icon: "💬", label: "Telegram", action: () => window.open("https://t.me/birilm1") },
         ].map(s => (
           <div key={s.label} onClick={s.action} style={{ backgroundColor: "#1e293b", borderRadius: 14, padding: "18px 16px", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }}>
