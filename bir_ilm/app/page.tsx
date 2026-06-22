@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 // ─── Supabase ────────────────────────────────────────────────────────────────
 
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
-async function supabase(table: string, options: { method?: string; query?: string; body?: object; headers?: object } = {}) {
+async function db(table: string, options: { method?: string; query?: string; body?: object; headers?: object } = {}) {
   const { method = "GET", query = "", body, headers = {} } = options;
-  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
-  const res = await fetch(url, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -28,226 +27,197 @@ async function supabase(table: string, options: { method?: string; query?: strin
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Section = "Home" | "Quiz" | "Natijalar";
+type Tab = "home" | "quiz" | "leaderboard";
+type Quiz = { id: number; title: string; description: string; type: string; is_active: boolean; created_at: string };
+type Question = { id: number; quiz_id: number; question: string; option_a: string; option_b: string; option_c: string; option_d: string; correct_answer: string };
+type Result = { id: number; quiz_id: number; username: string; score: number; total: number; created_at: string };
 
-type Quiz = {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
-  is_active: boolean;
-  created_at: string;
-};
-
-type Question = {
-  id: number;
-  quiz_id: number;
-  question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_answer: string;
-};
-
-type Result = {
-  id: number;
-  quiz_id: number;
-  username: string;
-  score: number;
-  total: number;
-  created_at: string;
-};
-
-// ─── Telegram ────────────────────────────────────────────────────────────────
-
-function getTelegramUser() {
+function getTgUser() {
   if (typeof window === "undefined") return null;
   return (window as any).Telegram?.WebApp?.initDataUnsafe?.user ?? null;
 }
-
-function bootTelegram() {
-  if (typeof window === "undefined") return false;
-  const app = (window as any).Telegram?.WebApp;
-  if (!app) return false;
-  app.ready();
-  app.expand();
-  return true;
-}
-
-// ─── Stored user ─────────────────────────────────────────────────────────────
-
-function getStoredUser() {
+function getLocalUser() {
   if (typeof window === "undefined") return null;
-  try {
-    const u = localStorage.getItem("birilm_user");
-    return u ? JSON.parse(u) : null;
-  } catch { return null; }
+  try { const u = localStorage.getItem("birilm_user"); return u ? JSON.parse(u) : null; } catch { return null; }
 }
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
+// ─── App ──────────────────────────────────────────────────────────────────────
 
-export default function Home() {
-  const [section, setSection] = useState<Section>("Home");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [telegramUser, setTelegramUser] = useState<any>(null);
-  const [storedUser, setStoredUser] = useState<any>(null);
+export default function App() {
+  const [tab, setTab] = useState<Tab>("home");
+  const [tgUser, setTgUser] = useState<any>(null);
+  const [localUser, setLocalUser] = useState<any>(null);
 
   useEffect(() => {
-    bootTelegram();
-    setTelegramUser(getTelegramUser());
-    setStoredUser(getStoredUser());
+    if (typeof window !== "undefined") {
+      const app = (window as any).Telegram?.WebApp;
+      if (app) { app.ready(); app.expand(); }
+      setTgUser(getTgUser());
+      setLocalUser(getLocalUser());
+    }
   }, []);
 
-  const displayName = telegramUser?.first_name || storedUser?.username || "Mehmon";
-  const isAdmin = storedUser?.role === "admin" || storedUser?.role === "super_admin";
+  const name = tgUser?.first_name || localUser?.username || "Mehmon";
+  const isAdmin = localUser?.role === "admin" || localUser?.role === "super_admin";
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc", color: "#0f172a", fontFamily: "system-ui, sans-serif" }}>
-      {/* Header */}
-      <header style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid #e2e8f0", backgroundColor: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px" }}>
-          <button onClick={() => setSection("Home")} style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer" }}>
-            <span style={{ width: 38, height: 38, borderRadius: 8, backgroundColor: "#0f766e", color: "#fff", fontWeight: 900, fontSize: 15, display: "grid", placeItems: "center" }}>BI</span>
-            <span style={{ fontWeight: 900, fontSize: 16, color: "#14213d" }}>BIR ILM</span>
-          </button>
-          <nav style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            {(["Home", "Quiz", "Natijalar"] as Section[]).map(s => (
-              <button key={s} onClick={() => setSection(s)} style={{ padding: "7px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, backgroundColor: section === s ? "#f0fdfa" : "transparent", color: section === s ? "#0f766e" : "#475569" }}>
-                {s === "Home" ? "🏠 Bosh" : s === "Quiz" ? "🎯 Quiz" : "🏆 Natijalar"}
-              </button>
-            ))}
-            {isAdmin && (
-              <button onClick={() => setSection("Quiz")} style={{ padding: "7px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, backgroundColor: "#fef3c7", color: "#92400e" }}>
-                ⚙️ Admin
-              </button>
-            )}
-          </nav>
-          <span style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>👤 {displayName}</span>
+    <div style={{ minHeight: "100dvh", backgroundColor: "#0f172a", color: "#f1f5f9", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "flex", flexDirection: "column" }}>
+      
+      {/* Top bar */}
+      <div style={{ padding: "16px 20px 12px", background: "linear-gradient(135deg, #0f766e 0%, #0e7490 100%)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 14, color: "#fff" }}>BI</div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 16, color: "#fff", lineHeight: 1 }}>BIR ILM</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>Bilimlar Markazi</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {isAdmin && <span style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6 }}>ADMIN</span>}
+            <div style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600 }}>👤 {name}</div>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <main style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
-        {section === "Home" && <HomePage setSection={setSection} isAdmin={isAdmin} />}
-        {section === "Quiz" && <QuizPage isAdmin={isAdmin} storedUser={storedUser} telegramUser={telegramUser} />}
-        {section === "Natijalar" && <NatijalarPage />}
-      </main>
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        {tab === "home" && <HomeTab setTab={setTab} isAdmin={isAdmin} />}
+        {tab === "quiz" && <QuizTab isAdmin={isAdmin} localUser={localUser} tgUser={tgUser} />}
+        {tab === "leaderboard" && <LeaderboardTab />}
+      </div>
 
-      <footer style={{ borderTop: "1px solid #e2e8f0", padding: "20px 16px", textAlign: "center", marginTop: 40 }}>
-        <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>© 2025 Bir Ilm · <a href="https://t.me/birilm1" style={{ color: "#0f766e" }}>Telegram</a></p>
-      </footer>
+      {/* Bottom Nav */}
+      <div style={{ position: "sticky", bottom: 0, backgroundColor: "#1e293b", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", padding: "8px 0 max(8px, env(safe-area-inset-bottom))" }}>
+        {([
+          { id: "home", icon: "🏠", label: "Bosh" },
+          { id: "quiz", icon: "🎯", label: "Quiz" },
+          { id: "leaderboard", icon: "🏆", label: "Reyting" },
+        ] as { id: Tab; icon: string; label: string }[]).map(item => (
+          <button key={item.id} onClick={() => setTab(item.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", padding: "6px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <span style={{ fontSize: 22 }}>{item.icon}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: tab === item.id ? "#14b8a6" : "#64748b" }}>{item.label}</span>
+            {tab === item.id && <div style={{ width: 20, height: 3, backgroundColor: "#14b8a6", borderRadius: 2 }} />}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ─── Home Page ────────────────────────────────────────────────────────────────
+// ─── Home Tab ─────────────────────────────────────────────────────────────────
 
-function HomePage({ setSection, isAdmin }: { setSection: (s: Section) => void; isAdmin: boolean }) {
+function HomeTab({ setTab, isAdmin }: { setTab: (t: Tab) => void; isAdmin: boolean }) {
   return (
-    <div>
-      <div style={{ textAlign: "center", padding: "40px 0 32px" }}>
-        <h1 style={{ fontSize: "clamp(32px,6vw,56px)", fontWeight: 900, color: "#14213d", margin: "0 0 12px" }}>BIR ILM</h1>
-        <p style={{ fontSize: 17, color: "#475569", maxWidth: 500, margin: "0 auto 32px", lineHeight: 1.6 }}>
-          O'qish, quiz va birgalikda o'sish uchun bilimlar platformasi
-        </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => setSection("Quiz")} style={{ backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "13px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-            🎯 Quizlarga kirish
-          </button>
-          <button onClick={() => setSection("Natijalar")} style={{ backgroundColor: "#fff", color: "#14213d", border: "2px solid #e2e8f0", borderRadius: 10, padding: "13px 28px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-            🏆 Natijalar
-          </button>
-          <a href="/pages/user.html" style={{ backgroundColor: "#fff", color: "#0f766e", border: "2px solid #0f766e", borderRadius: 10, padding: "13px 28px", fontWeight: 700, fontSize: 15, textDecoration: "none", display: "inline-block" }}>
-            📚 Kitob Taqrizlari
+    <div style={{ padding: "20px 16px" }}>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", borderRadius: 20, padding: "28px 24px", marginBottom: 20, border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🧠</div>
+        <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px", color: "#f1f5f9" }}>BIR ILM QUIZ</h1>
+        <p style={{ fontSize: 15, color: "#94a3b8", margin: "0 0 24px", lineHeight: 1.6 }}>Bilimingizni sinab ko'ring va reytingda ko'taring</p>
+        <button onClick={() => setTab("quiz")} style={{ backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontWeight: 800, fontSize: 16, cursor: "pointer", width: "100%" }}>
+          🎯 Quizni Boshlash
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+        {[
+          { icon: "🎯", label: "Quizlar", color: "#0f766e" },
+          { icon: "🏆", label: "Reyting", color: "#d97706" },
+          { icon: "📚", label: "Kitoblar", color: "#7c3aed" },
+          { icon: "👥", label: "Jamoa", color: "#0e7490" },
+        ].map(s => (
+          <div key={s.label} onClick={() => s.label === "Reyting" ? setTab("leaderboard") : s.label === "Quizlar" ? setTab("quiz") : null} style={{ backgroundColor: "#1e293b", borderRadius: 14, padding: "18px 16px", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer", transition: "all 0.2s" }}>
+            <div style={{ fontSize: 28, marginBottom: 6 }}>{s.icon}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#e2e8f0" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Links */}
+      <div style={{ backgroundColor: "#1e293b", borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
+        {[
+          { icon: "📖", label: "Kitob Taqrizlari", href: "/pages/user.html" },
+          { icon: "📅", label: "Tadbirlar", href: "https://t.me/birilm1" },
+          { icon: "💬", label: "Telegram Kanal", href: "https://t.me/birilm1" },
+        ].map((item, i) => (
+          <a key={item.label} href={item.href} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", textDecoration: "none", color: "#e2e8f0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>{item.label}</span>
+            </div>
+            <span style={{ color: "#475569", fontSize: 18 }}>›</span>
           </a>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16, marginTop: 16 }}>
-        <StatCard icon="🎯" label="Quizlar" desc="Bilimingizni sinab ko'ring" />
-        <StatCard icon="🏆" label="Reyting" desc="Eng yaxshi natijalar" />
-        <StatCard icon="📚" label="Kitoblar" desc="Taqrizlar va tavsiyalar" />
-        {isAdmin && <StatCard icon="⚙️" label="Admin" desc="Quiz yarating va boshqaring" />}
+        ))}
       </div>
     </div>
   );
 }
 
-function StatCard({ icon, label, desc }: { icon: string; label: string; desc: string }) {
-  return (
-    <div style={{ backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 20 }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-      <p style={{ fontWeight: 800, fontSize: 16, color: "#14213d", margin: "0 0 4px" }}>{label}</p>
-      <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{desc}</p>
-    </div>
-  );
-}
+// ─── Quiz Tab ─────────────────────────────────────────────────────────────────
 
-// ─── Quiz Page ────────────────────────────────────────────────────────────────
-
-function QuizPage({ isAdmin, storedUser, telegramUser }: { isAdmin: boolean; storedUser: any; telegramUser: any }) {
+function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: any; tgUser: any }) {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
+  const [active, setActive] = useState<Quiz | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => { loadQuizzes(); }, []);
+  useEffect(() => { load(); }, []);
 
-  async function loadQuizzes() {
+  async function load() {
     setLoading(true);
-    const data = await supabase("quizzes", { query: "?order=created_at.desc" });
+    const data = await db("quizzes", { query: "?order=created_at.desc" });
     setQuizzes(Array.isArray(data) ? data : []);
     setLoading(false);
   }
 
-  if (activeQuiz) {
-    return <QuizPlay quiz={activeQuiz} onBack={() => { setActiveQuiz(null); loadQuizzes(); }} storedUser={storedUser} telegramUser={telegramUser} />;
-  }
-
-  if (showCreate && isAdmin) {
-    return <QuizCreate onBack={() => { setShowCreate(false); loadQuizzes(); }} storedUser={storedUser} />;
-  }
+  if (active) return <PlayQuiz quiz={active} onBack={() => { setActive(null); load(); }} localUser={localUser} tgUser={tgUser} />;
+  if (creating && isAdmin) return <CreateQuiz onBack={() => { setCreating(false); load(); }} localUser={localUser} />;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+    <div style={{ padding: "20px 16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 26, fontWeight: 900, color: "#14213d", margin: "0 0 4px" }}>🎯 Quizlar</h2>
-          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>Bilimingizni sinab ko'ring</p>
+          <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 2px", color: "#f1f5f9" }}>🎯 Quizlar</h2>
+          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{quizzes.length} ta quiz mavjud</p>
         </div>
         {isAdmin && (
-          <button onClick={() => setShowCreate(true)} style={{ backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "10px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-            ➕ Yangi Quiz
+          <button onClick={() => setCreating(true)} style={{ backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "10px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+            ➕ Yangi
           </button>
         )}
       </div>
 
       {loading ? (
-        <p style={{ textAlign: "center", color: "#64748b", padding: 40 }}>Yuklanmoqda...</p>
+        <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>⏳</div>
+          <p>Yuklanmoqda...</p>
+        </div>
       ) : quizzes.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 60, backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-          <p style={{ fontSize: 40, margin: "0 0 12px" }}>🎯</p>
-          <p style={{ fontSize: 17, fontWeight: 700, color: "#14213d", margin: "0 0 8px" }}>Hali quiz yo'q</p>
-          {isAdmin && <p style={{ fontSize: 14, color: "#64748b" }}>Yangi quiz yarating!</p>}
+        <div style={{ textAlign: "center", padding: 60, backgroundColor: "#1e293b", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+          <p style={{ fontWeight: 700, color: "#f1f5f9", margin: "0 0 8px" }}>Hali quiz yo'q</p>
+          {isAdmin && <p style={{ color: "#64748b", fontSize: 14 }}>Birinchi quizni yarating!</p>}
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {quizzes.map(q => (
-            <div key={q.id} style={{ backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+            <div key={q.id} style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: "18px 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                <span style={{ backgroundColor: "#f0fdfa", color: "#0f766e", padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>{q.type}</span>
-                <span style={{ fontSize: 11, color: q.is_active ? "#166534" : "#64748b", backgroundColor: q.is_active ? "#dcfce7" : "#f1f5f9", padding: "3px 8px", borderRadius: 6, fontWeight: 600 }}>
-                  {q.is_active ? "Faol" : "Nofaol"}
+                <span style={{ backgroundColor: "rgba(15,118,110,0.2)", color: "#14b8a6", padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>{q.type}</span>
+                <span style={{ fontSize: 11, color: q.is_active ? "#4ade80" : "#64748b", fontWeight: 600 }}>
+                  {q.is_active ? "● Faol" : "○ Nofaol"}
                 </span>
               </div>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#14213d", margin: "0 0 8px" }}>{q.title}</h3>
-              <p style={{ fontSize: 13, color: "#475569", margin: "0 0 16px", lineHeight: 1.5 }}>{q.description}</p>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", margin: "0 0 6px" }}>{q.title}</h3>
+              {q.description && <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 14px", lineHeight: 1.5 }}>{q.description}</p>}
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => setActiveQuiz(q)} style={{ flex: 1, backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 8, padding: "9px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                <button onClick={() => setActive(q)} style={{ flex: 1, backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
                   Boshlash →
                 </button>
                 {isAdmin && (
-                  <button onClick={async () => { await supabase("quizzes", { method: "DELETE", query: `?id=eq.${q.id}` }); loadQuizzes(); }} style={{ backgroundColor: "#fee2e2", color: "#dc2626", border: "none", borderRadius: 8, padding: "9px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                  <button onClick={async () => { await db("quizzes", { method: "DELETE", query: `?id=eq.${q.id}` }); load(); }} style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
                     🗑
                   </button>
                 )}
@@ -260,23 +230,17 @@ function QuizPage({ isAdmin, storedUser, telegramUser }: { isAdmin: boolean; sto
   );
 }
 
-// ─── Quiz Create ──────────────────────────────────────────────────────────────
+// ─── Create Quiz ──────────────────────────────────────────────────────────────
 
-function QuizCreate({ onBack, storedUser }: { onBack: () => void; storedUser: any }) {
+function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("Umumiy");
-  const [questions, setQuestions] = useState([{ question: "", option_a: "", option_b: "", option_c: "", option_d: "", correct_answer: "a" }]);
+  const [questions, setQuestions] = useState([emptyQ()]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  function addQuestion() {
-    setQuestions([...questions, { question: "", option_a: "", option_b: "", option_c: "", option_d: "", correct_answer: "a" }]);
-  }
-
-  function removeQuestion(i: number) {
-    setQuestions(questions.filter((_, idx) => idx !== i));
-  }
+  function emptyQ() { return { question: "", option_a: "", option_b: "", option_c: "", option_d: "", correct_answer: "a" }; }
 
   function updateQ(i: number, field: string, value: string) {
     const updated = [...questions];
@@ -285,207 +249,199 @@ function QuizCreate({ onBack, storedUser }: { onBack: () => void; storedUser: an
   }
 
   async function save() {
-    if (!title.trim()) { setMsg("Sarlavha kiriting!"); return; }
+    if (!title.trim()) { setMsg("❌ Sarlavha kiriting!"); return; }
     if (questions.some(q => !q.question.trim() || !q.option_a.trim() || !q.option_b.trim())) {
-      setMsg("Barcha savollar va kamida 2 ta variant to'ldiring!"); return;
+      setMsg("❌ Barcha savollar va kamida 2 variant to'ldiring!"); return;
     }
     setSaving(true);
-    const quiz = await supabase("quizzes", {
-      method: "POST",
-      body: { title, description, type, admin_id: storedUser?.id, is_active: true },
-      headers: { "Prefer": "return=representation" },
-    });
+    const quiz = await db("quizzes", { method: "POST", body: { title, description, type, admin_id: localUser?.id, is_active: true }, headers: { "Prefer": "return=representation" } });
     const quizId = Array.isArray(quiz) ? quiz[0]?.id : quiz?.id;
-    if (!quizId) { setMsg("Xatolik yuz berdi!"); setSaving(false); return; }
-    for (const q of questions) {
-      await supabase("quiz_questions", { method: "POST", body: { ...q, quiz_id: quizId } });
-    }
-    setMsg("Quiz muvaffaqiyatli yaratildi! ✅");
-    setTimeout(onBack, 1500);
+    if (!quizId) { setMsg("❌ Xatolik!"); setSaving(false); return; }
+    for (const q of questions) await db("quiz_questions", { method: "POST", body: { ...q, quiz_id: quizId } });
+    setMsg("✅ Quiz yaratildi!");
+    setTimeout(onBack, 1200);
   }
 
   return (
-    <div>
-      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#0f766e", fontWeight: 700, fontSize: 14, marginBottom: 20 }}>← Orqaga</button>
-      <h2 style={{ fontSize: 24, fontWeight: 900, color: "#14213d", margin: "0 0 24px" }}>➕ Yangi Quiz Yaratish</h2>
+    <div style={{ padding: "20px 16px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, marginBottom: 16, padding: 0 }}>← Orqaga</button>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9", margin: "0 0 20px" }}>➕ Yangi Quiz</h2>
 
-      {msg && <div style={{ padding: 12, borderRadius: 8, backgroundColor: msg.includes("✅") ? "#dcfce7" : "#fee2e2", color: msg.includes("✅") ? "#166534" : "#dc2626", marginBottom: 16, fontWeight: 600 }}>{msg}</div>}
+      {msg && <div style={{ padding: 12, borderRadius: 10, backgroundColor: msg.includes("✅") ? "rgba(74,222,128,0.15)" : "rgba(239,68,68,0.15)", color: msg.includes("✅") ? "#4ade80" : "#f87171", marginBottom: 16, fontWeight: 600, fontSize: 14 }}>{msg}</div>}
 
-      <div style={{ backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 20, marginBottom: 20 }}>
-        <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700 }}>Quiz ma'lumotlari</h3>
-        <div style={{ display: "grid", gap: 12 }}>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Quiz nomi *" style={inputStyle} />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Tavsif (ixtiyoriy)" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
-          <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-            {["Umumiy", "Kitob", "TOPIK", "IT", "Kiberkimxavfsizlik", "Ingliz tili"].map(t => <option key={t}>{t}</option>)}
+      <div style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: 18, marginBottom: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
+        <p style={{ fontWeight: 700, color: "#94a3b8", fontSize: 12, margin: "0 0 12px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Quiz ma'lumotlari</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Quiz nomi *" style={iStyle} />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Tavsif (ixtiyoriy)" rows={2} style={{ ...iStyle, resize: "vertical" }} />
+          <select value={type} onChange={e => setType(e.target.value)} style={iStyle}>
+            {["Umumiy", "Kitob", "TOPIK", "IT", "Kiberkimxavfsizlik", "Ingliz tili", "Matematika"].map(t => <option key={t}>{t}</option>)}
           </select>
         </div>
       </div>
 
       {questions.map((q, i) => (
-        <div key={i} style={{ backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 20, marginBottom: 16 }}>
+        <div key={i} style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: 18, marginBottom: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0f766e" }}>{i + 1}-savol</h3>
+            <span style={{ fontWeight: 700, color: "#14b8a6", fontSize: 13 }}>{i + 1}-savol</span>
             {questions.length > 1 && (
-              <button onClick={() => removeQuestion(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontWeight: 700 }}>✕ O'chirish</button>
+              <button onClick={() => setQuestions(questions.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "#f87171", fontSize: 13, fontWeight: 700 }}>✕</button>
             )}
           </div>
-          <div style={{ display: "grid", gap: 10 }}>
-            <input value={q.question} onChange={e => updateQ(i, "question", e.target.value)} placeholder="Savol matni *" style={inputStyle} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <input value={q.question} onChange={e => updateQ(i, "question", e.target.value)} placeholder="Savol matni *" style={iStyle} />
             {["a", "b", "c", "d"].map(opt => (
-              <input key={opt} value={(q as any)[`option_${opt}`]} onChange={e => updateQ(i, `option_${opt}`, e.target.value)} placeholder={`${opt.toUpperCase()} variant${opt <= "b" ? " *" : " (ixtiyoriy)"}`} style={inputStyle} />
+              <input key={opt} value={(q as any)[`option_${opt}`]} onChange={e => updateQ(i, `option_${opt}`, e.target.value)} placeholder={`${opt.toUpperCase()} variant${["a","b"].includes(opt) ? " *" : ""}`} style={iStyle} />
             ))}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>To'g'ri javob:</label>
-              <select value={q.correct_answer} onChange={e => updateQ(i, "correct_answer", e.target.value)} style={{ ...inputStyle, flex: "none", width: "auto" }}>
-                <option value="a">A</option>
-                <option value="b">B</option>
-                <option value="c">C</option>
-                <option value="d">D</option>
-              </select>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+              <span style={{ fontSize: 13, color: "#94a3b8", fontWeight: 600 }}>To'g'ri:</span>
+              {["a","b","c","d"].map(opt => (
+                <button key={opt} onClick={() => updateQ(i, "correct_answer", opt)} style={{ width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 800, fontSize: 14, backgroundColor: q.correct_answer === opt ? "#0f766e" : "#0f172a", color: q.correct_answer === opt ? "#fff" : "#64748b" }}>
+                  {opt.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       ))}
 
-      <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <button onClick={addQuestion} style={{ flex: 1, backgroundColor: "#f0fdfa", color: "#0f766e", border: "2px solid #0f766e", borderRadius: 10, padding: 12, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
+        <button onClick={() => setQuestions([...questions, emptyQ()])} style={{ backgroundColor: "transparent", color: "#14b8a6", border: "2px solid #0f766e", borderRadius: 12, padding: 13, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
           ➕ Savol qo'shish
         </button>
-        <button onClick={save} disabled={saving} style={{ flex: 1, backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: 12, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-          {saving ? "Saqlanmoqda..." : "✅ Saqlash"}
+        <button onClick={save} disabled={saving} style={{ backgroundColor: saving ? "#475569" : "#0f766e", color: "#fff", border: "none", borderRadius: 12, padding: 14, fontWeight: 800, fontSize: 15, cursor: saving ? "default" : "pointer" }}>
+          {saving ? "Saqlanmoqda..." : "✅ Quizni Saqlash"}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Quiz Play ────────────────────────────────────────────────────────────────
+// ─── Play Quiz ────────────────────────────────────────────────────────────────
 
-function QuizPlay({ quiz, onBack, storedUser, telegramUser }: { quiz: Quiz; onBack: () => void; storedUser: any; telegramUser: any }) {
+function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () => void; localUser: any; tgUser: any }) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const username = telegramUser?.first_name || storedUser?.username || "Mehmon";
+  const username = tgUser?.first_name || localUser?.username || "Mehmon";
 
   useEffect(() => {
-    supabase("quiz_questions", { query: `?quiz_id=eq.${quiz.id}&order=id.asc` }).then(data => {
+    db("quiz_questions", { query: `?quiz_id=eq.${quiz.id}&order=id.asc` }).then(data => {
       setQuestions(Array.isArray(data) ? data : []);
       setLoading(false);
     });
   }, [quiz.id]);
-
-  function selectAnswer(ans: string) {
-    setAnswers(prev => ({ ...prev, [current]: ans }));
-  }
 
   async function finish() {
     let s = 0;
     questions.forEach((q, i) => { if (answers[i] === q.correct_answer) s++; });
     setScore(s);
     setFinished(true);
-    await supabase("quiz_results", { method: "POST", body: { quiz_id: quiz.id, user_id: storedUser?.id || null, username, score: s, total: questions.length } });
+    await db("quiz_results", { method: "POST", body: { quiz_id: quiz.id, user_id: localUser?.id || null, username, score: s, total: questions.length } });
   }
 
-  if (loading) return <div style={{ textAlign: "center", padding: 60 }}>Yuklanmoqda...</div>;
+  if (loading) return <div style={{ textAlign: "center", padding: 80, color: "#64748b" }}>⏳ Yuklanmoqda...</div>;
 
   if (questions.length === 0) return (
-    <div style={{ textAlign: "center", padding: 60 }}>
-      <p style={{ fontSize: 40 }}>📭</p>
-      <p style={{ fontWeight: 700 }}>Bu quizda hali savollar yo'q</p>
-      <button onClick={onBack} style={{ ...btnStyle, marginTop: 16 }}>← Orqaga</button>
+    <div style={{ padding: "20px 16px", textAlign: "center" }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+      <p style={{ fontWeight: 700, color: "#f1f5f9" }}>Savollar yo'q</p>
+      <button onClick={onBack} style={bStyle}>← Orqaga</button>
     </div>
   );
 
   if (finished) {
     const pct = Math.round((score / questions.length) * 100);
+    const emoji = pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📖";
+    const msg = pct >= 80 ? "Ajoyib natija!" : pct >= 50 ? "Yaxshi harakat!" : "Ko'proq o'qing!";
     return (
-      <div style={{ textAlign: "center", padding: "40px 0" }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>{pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📖"}</div>
-        <h2 style={{ fontSize: 28, fontWeight: 900, color: "#14213d", margin: "0 0 8px" }}>Quiz tugadi!</h2>
-        <p style={{ fontSize: 18, color: "#475569", margin: "0 0 24px" }}>{username}, sizning natijangiz:</p>
-        <div style={{ display: "inline-block", backgroundColor: "#f0fdfa", borderRadius: 16, padding: "24px 40px", border: "2px solid #0f766e", marginBottom: 24 }}>
-          <p style={{ fontSize: 48, fontWeight: 900, color: "#0f766e", margin: "0 0 4px" }}>{score}/{questions.length}</p>
-          <p style={{ fontSize: 20, fontWeight: 700, color: "#14213d", margin: 0 }}>{pct}%</p>
+      <div style={{ padding: "20px 16px", textAlign: "center" }}>
+        <div style={{ backgroundColor: "#1e293b", borderRadius: 20, padding: "40px 24px", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 16 }}>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>{emoji}</div>
+          <h2 style={{ fontSize: 24, fontWeight: 900, color: "#f1f5f9", margin: "0 0 6px" }}>Quiz Tugadi!</h2>
+          <p style={{ color: "#94a3b8", margin: "0 0 28px", fontSize: 15 }}>{username}</p>
+          <div style={{ background: "linear-gradient(135deg, #0f766e, #0e7490)", borderRadius: 16, padding: "24px", marginBottom: 20 }}>
+            <div style={{ fontSize: 52, fontWeight: 900, color: "#fff", lineHeight: 1 }}>{score}/{questions.length}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "rgba(255,255,255,0.8)", marginTop: 4 }}>{pct}%</div>
+          </div>
+          <p style={{ color: "#94a3b8", fontSize: 16, margin: 0 }}>{msg}</p>
         </div>
-        <p style={{ fontSize: 16, color: "#475569", margin: "0 0 24px" }}>
-          {pct >= 80 ? "Ajoyib natija! 🌟" : pct >= 50 ? "Yaxshi harakat! Davom eting 💪" : "Ko'proq o'qing va qayta urinib ko'ring 📚"}
-        </p>
-        <button onClick={onBack} style={btnStyle}>← Quizlarga qaytish</button>
+        <button onClick={onBack} style={bStyle}>← Quizlarga qaytish</button>
       </div>
     );
   }
 
   const q = questions[current];
   const opts = [
-    { key: "a", text: q.option_a },
-    { key: "b", text: q.option_b },
-    ...(q.option_c ? [{ key: "c", text: q.option_c }] : []),
-    ...(q.option_d ? [{ key: "d", text: q.option_d }] : []),
+    { k: "a", t: q.option_a },
+    { k: "b", t: q.option_b },
+    ...(q.option_c ? [{ k: "c", t: q.option_c }] : []),
+    ...(q.option_d ? [{ k: "d", t: q.option_d }] : []),
   ];
+  const progress = ((current + 1) / questions.length) * 100;
 
   return (
-    <div>
-      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#0f766e", fontWeight: 700, fontSize: 14, marginBottom: 16 }}>← Orqaga</button>
-      <div style={{ backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 24 }}>
-        {/* Progress */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#0f766e" }}>{quiz.title}</span>
-            <span style={{ fontSize: 13, color: "#64748b" }}>{current + 1}/{questions.length}</span>
-          </div>
-          <div style={{ height: 6, backgroundColor: "#e2e8f0", borderRadius: 3, overflow: "hidden" }}>
-            <div style={{ height: "100%", backgroundColor: "#0f766e", borderRadius: 3, width: `${((current + 1) / questions.length) * 100}%`, transition: "width 0.3s" }} />
-          </div>
-        </div>
+    <div style={{ padding: "20px 16px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, padding: 0 }}>← Chiqish</button>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8" }}>{current + 1} / {questions.length}</span>
+      </div>
 
-        <h3 style={{ fontSize: 18, fontWeight: 700, color: "#14213d", margin: "0 0 20px", lineHeight: 1.5 }}>{current + 1}. {q.question}</h3>
+      {/* Progress bar */}
+      <div style={{ height: 6, backgroundColor: "#1e293b", borderRadius: 3, marginBottom: 20, overflow: "hidden" }}>
+        <div style={{ height: "100%", backgroundColor: "#0f766e", borderRadius: 3, width: `${progress}%`, transition: "width 0.4s ease" }} />
+      </div>
 
-        <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
-          {opts.map(opt => (
-            <button key={opt.key} onClick={() => selectAnswer(opt.key)} style={{ padding: "13px 16px", borderRadius: 10, border: `2px solid ${answers[current] === opt.key ? "#0f766e" : "#e2e8f0"}`, backgroundColor: answers[current] === opt.key ? "#f0fdfa" : "#fff", color: "#14213d", fontWeight: answers[current] === opt.key ? 700 : 500, fontSize: 15, cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}>
-              <span style={{ fontWeight: 700, color: "#0f766e", marginRight: 8 }}>{opt.key.toUpperCase()}.</span> {opt.text}
-            </button>
-          ))}
-        </div>
+      {/* Question */}
+      <div style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: "20px 18px", marginBottom: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: "#14b8a6", margin: "0 0 10px", textTransform: "uppercase" }}>{quiz.title}</p>
+        <h3 style={{ fontSize: 17, fontWeight: 700, color: "#f1f5f9", margin: 0, lineHeight: 1.6 }}>{q.question}</h3>
+      </div>
 
-        <div style={{ display: "flex", gap: 12 }}>
-          {current > 0 && (
-            <button onClick={() => setCurrent(c => c - 1)} style={{ flex: 1, backgroundColor: "#f8fafc", color: "#14213d", border: "1px solid #e2e8f0", borderRadius: 10, padding: 12, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-              ← Oldingi
+      {/* Options */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        {opts.map(opt => {
+          const selected = answers[current] === opt.k;
+          return (
+            <button key={opt.k} onClick={() => setAnswers(prev => ({ ...prev, [current]: opt.k }))} style={{ padding: "15px 16px", borderRadius: 14, border: `2px solid ${selected ? "#0f766e" : "rgba(255,255,255,0.07)"}`, backgroundColor: selected ? "rgba(15,118,110,0.2)" : "#1e293b", color: "#f1f5f9", fontWeight: selected ? 700 : 500, fontSize: 15, cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 12, transition: "all 0.15s" }}>
+              <span style={{ width: 30, height: 30, borderRadius: 8, backgroundColor: selected ? "#0f766e" : "#0f172a", color: selected ? "#fff" : "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{opt.k.toUpperCase()}</span>
+              {opt.t}
             </button>
-          )}
-          {current < questions.length - 1 ? (
-            <button onClick={() => setCurrent(c => c + 1)} disabled={!answers[current]} style={{ flex: 2, backgroundColor: answers[current] ? "#0f766e" : "#e2e8f0", color: answers[current] ? "#fff" : "#94a3b8", border: "none", borderRadius: 10, padding: 12, fontWeight: 700, fontSize: 14, cursor: answers[current] ? "pointer" : "default" }}>
-              Keyingi →
-            </button>
-          ) : (
-            <button onClick={finish} disabled={!answers[current]} style={{ flex: 2, backgroundColor: answers[current] ? "#0f766e" : "#e2e8f0", color: answers[current] ? "#fff" : "#94a3b8", border: "none", borderRadius: 10, padding: 12, fontWeight: 700, fontSize: 14, cursor: answers[current] ? "pointer" : "default" }}>
-              ✅ Yakunlash
-            </button>
-          )}
-        </div>
+          );
+        })}
+      </div>
+
+      {/* Navigation */}
+      <div style={{ display: "flex", gap: 10 }}>
+        {current > 0 && (
+          <button onClick={() => setCurrent(c => c - 1)} style={{ flex: 1, backgroundColor: "#1e293b", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>← Oldingi</button>
+        )}
+        {current < questions.length - 1 ? (
+          <button onClick={() => setCurrent(c => c + 1)} disabled={!answers[current]} style={{ flex: 2, backgroundColor: answers[current] ? "#0f766e" : "#1e293b", color: answers[current] ? "#fff" : "#475569", border: "none", borderRadius: 12, padding: 14, fontWeight: 700, fontSize: 15, cursor: answers[current] ? "pointer" : "default", transition: "all 0.2s" }}>Keyingi →</button>
+        ) : (
+          <button onClick={finish} disabled={!answers[current]} style={{ flex: 2, backgroundColor: answers[current] ? "#0f766e" : "#1e293b", color: answers[current] ? "#fff" : "#475569", border: "none", borderRadius: 12, padding: 14, fontWeight: 800, fontSize: 15, cursor: answers[current] ? "pointer" : "default", transition: "all 0.2s" }}>✅ Yakunlash</button>
+        )}
       </div>
     </div>
   );
 }
 
-// ─── Natijalar Page ───────────────────────────────────────────────────────────
+// ─── Leaderboard ──────────────────────────────────────────────────────────────
 
-function NatijalarPage() {
+function LeaderboardTab() {
   const [results, setResults] = useState<Result[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [filter, setFilter] = useState<number | "all">("all");
   const [loading, setLoading] = useState(true);
-  const [selectedQuiz, setSelectedQuiz] = useState<number | "all">("all");
 
   useEffect(() => {
     Promise.all([
-      supabase("quiz_results", { query: "?order=score.desc&limit=50" }),
-      supabase("quizzes", { query: "?order=created_at.desc" }),
+      db("quiz_results", { query: "?order=score.desc&limit=50" }),
+      db("quizzes", { query: "?order=created_at.desc" }),
     ]).then(([r, q]) => {
       setResults(Array.isArray(r) ? r : []);
       setQuizzes(Array.isArray(q) ? q : []);
@@ -493,39 +449,41 @@ function NatijalarPage() {
     });
   }, []);
 
-  const filtered = selectedQuiz === "all" ? results : results.filter(r => r.quiz_id === selectedQuiz);
+  const filtered = filter === "all" ? results : results.filter(r => r.quiz_id === filter);
+  const medals = ["🥇", "🥈", "🥉"];
 
   return (
-    <div>
-      <h2 style={{ fontSize: 26, fontWeight: 900, color: "#14213d", margin: "0 0 20px" }}>🏆 Natijalar va Reyting</h2>
-      <select value={selectedQuiz} onChange={e => setSelectedQuiz(e.target.value === "all" ? "all" : Number(e.target.value))} style={{ ...inputStyle, marginBottom: 20, maxWidth: 320 }}>
+    <div style={{ padding: "20px 16px" }}>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9", margin: "0 0 16px" }}>🏆 Reyting</h2>
+
+      <select value={filter === "all" ? "all" : filter} onChange={e => setFilter(e.target.value === "all" ? "all" : Number(e.target.value))} style={{ ...iStyle, marginBottom: 20 }}>
         <option value="all">Barcha quizlar</option>
         {quizzes.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
       </select>
 
       {loading ? (
-        <p style={{ textAlign: "center", color: "#64748b", padding: 40 }}>Yuklanmoqda...</p>
+        <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>⏳ Yuklanmoqda...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 60, backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-          <p style={{ fontSize: 40, margin: "0 0 12px" }}>📊</p>
-          <p style={{ fontWeight: 700, color: "#14213d" }}>Hali natijalar yo'q</p>
+        <div style={{ textAlign: "center", padding: 60, backgroundColor: "#1e293b", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📊</div>
+          <p style={{ fontWeight: 700, color: "#f1f5f9" }}>Hali natijalar yo'q</p>
         </div>
       ) : (
-        <div style={{ backgroundColor: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+        <div style={{ backgroundColor: "#1e293b", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
           {filtered.map((r, i) => {
             const pct = Math.round((r.score / r.total) * 100);
             const quiz = quizzes.find(q => q.id === r.quiz_id);
             return (
-              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 20px", borderBottom: i < filtered.length - 1 ? "1px solid #f1f5f9" : "none" }}>
-                <span style={{ fontSize: 20, fontWeight: 900, color: i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7c32" : "#64748b", minWidth: 28 }}>
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 18px", borderBottom: i < filtered.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none", backgroundColor: i === 0 ? "rgba(245,158,11,0.08)" : "transparent" }}>
+                <span style={{ fontSize: i < 3 ? 24 : 16, fontWeight: 700, color: "#64748b", minWidth: 32, textAlign: "center" }}>
+                  {i < 3 ? medals[i] : `${i + 1}.`}
                 </span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 700, color: "#14213d", margin: "0 0 2px", fontSize: 15 }}>{r.username}</p>
-                  <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{quiz?.title || "Quiz"}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 700, color: "#f1f5f9", margin: "0 0 2px", fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.username}</p>
+                  <p style={{ fontSize: 12, color: "#64748b", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{quiz?.title || "Quiz"}</p>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <p style={{ fontWeight: 800, color: "#0f766e", margin: "0 0 2px", fontSize: 16 }}>{r.score}/{r.total}</p>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p style={{ fontWeight: 800, color: "#14b8a6", margin: "0 0 1px", fontSize: 16 }}>{r.score}/{r.total}</p>
                   <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{pct}%</p>
                 </div>
               </div>
@@ -539,24 +497,26 @@ function NatijalarPage() {
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
-const inputStyle: React.CSSProperties = {
+const iStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 14px",
-  borderRadius: 8,
-  border: "1px solid #e2e8f0",
-  fontSize: 14,
+  padding: "12px 14px",
+  borderRadius: 10,
+  border: "1px solid rgba(255,255,255,0.08)",
+  fontSize: 15,
   outline: "none",
-  backgroundColor: "#f8fafc",
+  backgroundColor: "#0f172a",
+  color: "#f1f5f9",
   boxSizing: "border-box",
 };
 
-const btnStyle: React.CSSProperties = {
+const bStyle: React.CSSProperties = {
   backgroundColor: "#0f766e",
   color: "#fff",
   border: "none",
-  borderRadius: 10,
-  padding: "12px 28px",
+  borderRadius: 12,
+  padding: "14px 28px",
   fontWeight: 700,
   fontSize: 15,
   cursor: "pointer",
+  width: "100%",
 };
