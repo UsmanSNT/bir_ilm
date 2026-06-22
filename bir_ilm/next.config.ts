@@ -1,1 +1,12 @@
-import type { NextConfig } from "next";`nconst nextConfig: NextConfig = {};`nexport default nextConfig;
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/pages/:path*",
+        destination: "/:path*",
+      },
+    ];
+  },
+};
+export default nextConfig;
