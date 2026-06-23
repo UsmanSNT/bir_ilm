@@ -25,7 +25,9 @@ async function sendTelegram(chatId: number | string, text: string) {
 function formatPost(text: string): string {
   return text
     .replace(/(Tanlangan:\s*)("[^"]+")/g, '$1<b>$2</b>')
-    .replace(/(Muallif:\s*)([^\n]+)/g, '$1<b>$2</b>');
+    .replace(/(Muallif:\s*)([^\n]+)/g, '$1<b>$2</b>')
+    .replace(/(Manzil:\s*)(Bir [Ii]lm)/g, '$1<a href="https://t.me/birilm1">$2</a>')
+    .replace(/\[bu yerda\]\(([^)]+)\)/g, '<a href="$1">bu yerda</a>');
 }
 
 async function saveWeeklyBook(text: string) {
