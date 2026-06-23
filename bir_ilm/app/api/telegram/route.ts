@@ -211,26 +211,55 @@ export async function POST(req: NextRequest) {
       const preview = postText.length > 300 ? postText.slice(0, 300) + "..." : postText;
 
       await sendTelegram(chatId,
-        `📋 *Post ko'rinishi:*\n\n${preview}${FOOTER}\n\n⏰ Qachon yuborish kerak?`,
-        {
-          inline_keyboard: [
-            [
-              { text: "🚀 Hozir", callback_data: "now" },
-              { text: "⏰ 30 daqiqa", callback_data: "30" },
-            ],
-            [
-              { text: "⏰ 1 soat", callback_data: "60" },
-              { text: "⏰ 2 soat", callback_data: "120" },
-            ],
-            [
-              { text: "❌ Bekor", callback_data: "cancel" },
-            ],
-          ],
-        }
+        `📋 *Post ko'rinishi:*\n\n${preview}${FOOTER}\n\n⏰ Yuborish vaqtini yozing:\nFormat: DD.MM.YYYY HH:MM\nMasalan: 28.06.2026 18:00\n\nYoki hozir yuborish uchun: hozir\nBekor qilish uchun: bekor`
       );
+      return NextResponse.json({ ok: true });    }
+
+
+    // Pending post uchun vaqt kiritilgan
+    if (pendingConfirm[chatId]) {
+      const postText = pendingConfirm[chatId];
+
+      if (text.toLowerCase() === 'bekor') {
+        delete pendingConfirm[chatId];
+        await sendTelegram(chatId, '❌ Post bekor qilindi.');
+        return NextResponse.json({ ok: true });
+      }
+
+      if (text.toLowerCase() === 'hozir') {
+        await sendTelegram(CHANNEL_ID, postText + FOOTER);
+        await saveWeeklyBook(postText);
+        delete pendingConfirm[chatId];
+        await sendTelegram(chatId, '✅ Post kanalga yuborildi!');
+        return NextResponse.json({ ok: true });
+      }
+
+      // DD.MM.YYYY HH:MM formatini parse qilish
+      const dm = text.match(/^(d{2}).(d{2}).(d{4})s+(d{2}):(d{2})$/);
+      if (dm) {
+        const [, dd, mm, yyyy, hh, min] = dm;
+        const sendAt = new Date(yyyy+'-'+mm+'-'+dd+'T'+hh+':'+min+':00+05:00');
+        if (isNaN(sendAt.getTime()) || sendAt < new Date()) {
+          await sendTelegram(chatId, "❌ Noto'g'ri vaqt. Qayta kiriting:");
+          return NextResponse.json({ ok: true });
+        }
+        await fetch(SUPABASE_URL+'/rest/v1/scheduled_posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ text: postText + FOOTER, send_at: sendAt.toISOString(), chat_id: chatId, status: 'pending' }),
+        });
+        delete pendingConfirm[chatId];
+        await sendTelegram(chatId, '✅ Post rejalashtirildi!
+📅 '+dd+'.'+mm+'.'+yyyy+' '+hh+':'+min+" (O'zbekiston vaqti)
+
+Yuborish vaqti kelganda /send_pending yozing.");
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendTelegram(chatId, "❌ Format noto'g'ri. Masalan: 28.06.2026 18:00
+Yoki: hozir yoki bekor");
       return NextResponse.json({ ok: true });
     }
-
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);
