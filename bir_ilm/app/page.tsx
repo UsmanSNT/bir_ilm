@@ -68,7 +68,7 @@ export default function App() {
       <div style={{ padding: "16px 20px 12px", background: "linear-gradient(135deg, #0f766e 0%, #0e7490 100%)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 14, color: "#fff" }}>BI</div>
+            <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 14, color: "#fff" }}><img src="/assets/images/logo.jpg" style={{width:36,height:36,borderRadius:10,objectFit:"cover"}} /></div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 16, color: "#fff", lineHeight: 1 }}>BIR ILM</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>Bilimlar Markazi</div>
@@ -77,9 +77,9 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isAdmin && <span style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6 }}>ADMIN</span>}
             {localUser ? (
-              <div style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600 }}>üë§ {name}</div>
+              <div style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600 }}>?ë§ {name}</div>
             ) : (
-              <a href="/login" style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600, textDecoration: "none" }}>Kirish ‚Üí</a>
+              <a href="/login" style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600, textDecoration: "none" }}>Kirish ??/a>
             )}
           </div>
         </div>
@@ -93,9 +93,9 @@ export default function App() {
 
       <div style={{ position: "sticky", bottom: 0, backgroundColor: "#1e293b", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", padding: "8px 0 max(8px, env(safe-area-inset-bottom))" }}>
         {([
-          { id: "home", icon: "üè†", label: "Bosh" },
-          { id: "quiz", icon: "üéØ", label: "Quiz" },
-          { id: "leaderboard", icon: "üèÜ", label: "Reyting" },
+          { id: "home", icon: "?è†", label: "Bosh" },
+          { id: "quiz", icon: "?éØ", label: "Quiz" },
+          { id: "leaderboard", icon: "?èÜ", label: "Reyting" },
         ] as { id: Tab; icon: string; label: string }[]).map(item => (
           <button key={item.id} onClick={() => setTab(item.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", padding: "6px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
             <span style={{ fontSize: 22 }}>{item.icon}</span>
@@ -112,20 +112,20 @@ function HomeTab({ setTab, isAdmin }: { setTab: (t: Tab) => void; isAdmin: boole
   return (
     <div style={{ padding: "20px 16px" }}>
       <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", borderRadius: 20, padding: "28px 24px", marginBottom: 20, border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>üß†</div>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>?ß†</div>
         <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 8px", color: "#f1f5f9" }}>BIR ILM QUIZ</h1>
         <p style={{ fontSize: 15, color: "#94a3b8", margin: "0 0 24px", lineHeight: 1.6 }}>Bilimingizni sinab ko'ring va reytingda ko'taring</p>
         <button onClick={() => setTab("quiz")} style={{ backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontWeight: 800, fontSize: 16, cursor: "pointer", width: "100%" }}>
-          üéØ Quizni Boshlash
+          ?éØ Quizni Boshlash
         </button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
         {[
-          { icon: "üéØ", label: "Quizlar", action: () => setTab("quiz") },
-          { icon: "üèÜ", label: "Reyting", action: () => setTab("leaderboard") },
-          { icon: "üìö", label: "Kitoblar", action: () => window.location.href = "/index.html" },
-          { icon: "üí¨", label: "Telegram", action: () => window.open("https://t.me/birilm1") },
+          { icon: "?éØ", label: "Quizlar", action: () => setTab("quiz") },
+          { icon: "?èÜ", label: "Reyting", action: () => setTab("leaderboard") },
+          { icon: "?ìö", label: "Kitoblar", action: () => window.location.href = "/index.html" },
+          { icon: "?í¨", label: "Telegram", action: () => window.open("https://t.me/birilm1") },
         ].map(s => (
           <div key={s.label} onClick={s.action} style={{ backgroundColor: "#1e293b", borderRadius: 14, padding: "18px 16px", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" }}>
             <div style={{ fontSize: 28, marginBottom: 6 }}>{s.icon}</div>
@@ -159,21 +159,21 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
     <div style={{ padding: "20px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 2px", color: "#f1f5f9" }}>üéØ Quizlar</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 2px", color: "#f1f5f9" }}>?éØ Quizlar</h2>
           <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>{quizzes.length} ta quiz mavjud</p>
         </div>
         {isAdmin && (
           <button onClick={() => setCreating(true)} style={{ backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "10px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
-            ‚ûï Yangi
+            ??Yangi
           </button>
         )}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>‚è≥ Yuklanmoqda...</div>
+        <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>??Yuklanmoqda...</div>
       ) : quizzes.length === 0 ? (
         <div style={{ textAlign: "center", padding: 60, backgroundColor: "#1e293b", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>üéØ</div>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>?éØ</div>
           <p style={{ fontWeight: 700, color: "#f1f5f9", margin: "0 0 8px" }}>Hali quiz yo'q</p>
         </div>
       ) : (
@@ -182,25 +182,25 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
             <div key={q.id} style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: "18px 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                 <span style={{ backgroundColor: "rgba(15,118,110,0.2)", color: "#14b8a6", padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>{q.type}</span>
-                <span style={{ fontSize: 11, color: q.is_active ? "#4ade80" : "#64748b", fontWeight: 600 }}>{q.is_active ? "‚óè Faol" : "‚óã Nofaol"}</span>
+                <span style={{ fontSize: 11, color: q.is_active ? "#4ade80" : "#64748b", fontWeight: 600 }}>{q.is_active ? "??Faol" : "??Nofaol"}</span>
               </div>
               <h3 style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", margin: "0 0 6px" }}>{q.title}</h3>
               {q.description && <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 10px", lineHeight: 1.5 }}>{q.description}</p>}
               <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                 <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
-                  ‚è± {q.time_per_question || 30}s / savol
+                  ??{q.time_per_question || 30}s / savol
                 </span>
                 <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
-                  üìù Max {q.max_questions || 10} ta savol
+                  ?ìù Max {q.max_questions || 10} ta savol
                 </span>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={() => setActive(q)} style={{ flex: 1, backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                  Boshlash ‚Üí
+                  Boshlash ??
                 </button>
                 {isAdmin && (
                   <button onClick={async () => { await db("quizzes", { method: "DELETE", query: `?id=eq.${q.id}` }); load(); }} style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                    üóë
+                    ?óë
                   </button>
                 )}
               </div>
@@ -231,9 +231,9 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
   }
 
   async function save() {
-    if (!title.trim()) { setMsg("‚ùå Sarlavha kiriting!"); return; }
+    if (!title.trim()) { setMsg("??Sarlavha kiriting!"); return; }
     if (questions.some(q => !q.question.trim() || !q.option_a.trim() || !q.option_b.trim())) {
-      setMsg("‚ùå Barcha savollar va kamida 2 variant to'ldiring!"); return;
+      setMsg("??Barcha savollar va kamida 2 variant to'ldiring!"); return;
     }
     setSaving(true);
     const quiz = await db("quizzes", {
@@ -242,18 +242,18 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
       headers: { "Prefer": "return=representation" }
     });
     const quizId = Array.isArray(quiz) ? quiz[0]?.id : quiz?.id;
-    if (!quizId) { setMsg("‚ùå Xatolik!"); setSaving(false); return; }
+    if (!quizId) { setMsg("??Xatolik!"); setSaving(false); return; }
     for (const q of questions) await db("quiz_questions", { method: "POST", body: { ...q, quiz_id: quizId } });
-    setMsg("‚úÖ Quiz yaratildi!");
+    setMsg("??Quiz yaratildi!");
     setTimeout(onBack, 1200);
   }
 
   return (
     <div style={{ padding: "20px 16px" }}>
-      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, marginBottom: 16, padding: 0 }}>‚Üê Orqaga</button>
-      <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9", margin: "0 0 20px" }}>‚ûï Yangi Quiz</h2>
+      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, marginBottom: 16, padding: 0 }}>??Orqaga</button>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9", margin: "0 0 20px" }}>??Yangi Quiz</h2>
 
-      {msg && <div style={{ padding: 12, borderRadius: 10, backgroundColor: msg.includes("‚úÖ") ? "rgba(74,222,128,0.15)" : "rgba(239,68,68,0.15)", color: msg.includes("‚úÖ") ? "#4ade80" : "#f87171", marginBottom: 16, fontWeight: 600, fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ padding: 12, borderRadius: 10, backgroundColor: msg.includes("??) ? "rgba(74,222,128,0.15)" : "rgba(239,68,68,0.15)", color: msg.includes("??) ? "#4ade80" : "#f87171", marginBottom: 16, fontWeight: 600, fontSize: 14 }}>{msg}</div>}
 
       <div style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: 18, marginBottom: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
         <p style={{ fontWeight: 700, color: "#94a3b8", fontSize: 12, margin: "0 0 12px", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Quiz ma'lumotlari</p>
@@ -267,13 +267,13 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
           {/* Vaqt va max savollar */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div>
-              <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>‚è± Har savol uchun vaqt (soniya)</label>
+              <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>??Har savol uchun vaqt (soniya)</label>
               <select value={timePerQ} onChange={e => setTimePerQ(Number(e.target.value))} style={iStyle}>
                 {[10, 15, 20, 30, 45, 60, 90, 120].map(t => <option key={t} value={t}>{t} soniya</option>)}
               </select>
             </div>
             <div>
-              <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>üìù Max savollar soni</label>
+              <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>?ìù Max savollar soni</label>
               <select value={maxQ} onChange={e => setMaxQ(Number(e.target.value))} style={iStyle}>
                 {[5, 8, 10, 12, 15, 20, 25, 30].map(n => <option key={n} value={n}>{n} ta</option>)}
               </select>
@@ -287,7 +287,7 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontWeight: 700, color: "#14b8a6", fontSize: 13 }}>{i + 1}-savol</span>
             {questions.length > 1 && (
-              <button onClick={() => setQuestions(questions.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "#f87171", fontSize: 13, fontWeight: 700 }}>‚úï</button>
+              <button onClick={() => setQuestions(questions.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "#f87171", fontSize: 13, fontWeight: 700 }}>??/button>
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
@@ -309,10 +309,10 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
 
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginTop: 4 }}>
         <button onClick={() => setQuestions([...questions, emptyQ()])} style={{ backgroundColor: "transparent", color: "#14b8a6", border: "2px solid #0f766e", borderRadius: 12, padding: 13, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-          ‚ûï Savol qo'shish
+          ??Savol qo'shish
         </button>
         <button onClick={save} disabled={saving} style={{ backgroundColor: saving ? "#475569" : "#0f766e", color: "#fff", border: "none", borderRadius: 12, padding: 14, fontWeight: 800, fontSize: 15, cursor: saving ? "default" : "pointer" }}>
-          {saving ? "Saqlanmoqda..." : "‚úÖ Quizni Saqlash"}
+          {saving ? "Saqlanmoqda..." : "??Quizni Saqlash"}
         </button>
       </div>
     </div>
@@ -387,20 +387,20 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
     }
   }
 
-  if (loading) return <div style={{ textAlign: "center", padding: 80, color: "#64748b" }}>‚è≥ Yuklanmoqda...</div>;
+  if (loading) return <div style={{ textAlign: "center", padding: 80, color: "#64748b" }}>??Yuklanmoqda...</div>;
 
   if (questions.length === 0) return (
     <div style={{ padding: "20px 16px", textAlign: "center" }}>
-      <p style={{ fontSize: 40 }}>üì≠</p>
+      <p style={{ fontSize: 40 }}>?ì≠</p>
       <p style={{ fontWeight: 700, color: "#f1f5f9" }}>Savollar yo'q</p>
-      <button onClick={onBack} style={bStyle}>‚Üê Orqaga</button>
+      <button onClick={onBack} style={bStyle}>??Orqaga</button>
     </div>
   );
 
   if (finished) {
     const pct = Math.round((score / questions.length) * 100);
-    const emoji = pct >= 80 ? "üèÜ" : pct >= 50 ? "üëç" : "üìñ";
-    const msg = pct >= 80 ? "Ajoyib natija! üåü" : pct >= 50 ? "Yaxshi harakat! üí™" : "Ko'proq o'qing! üìö";
+    const emoji = pct >= 80 ? "?èÜ" : pct >= 50 ? "?ëç" : "?ìñ";
+    const msg = pct >= 80 ? "Ajoyib natija! ?åü" : pct >= 50 ? "Yaxshi harakat! ?í™" : "Ko'proq o'qing! ?ìö";
     return (
       <div style={{ padding: "20px 16px", textAlign: "center" }}>
         <div style={{ backgroundColor: "#1e293b", borderRadius: 20, padding: "40px 24px", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 16 }}>
@@ -413,7 +413,7 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
           </div>
           <p style={{ color: "#94a3b8", fontSize: 16, margin: 0 }}>{msg}</p>
         </div>
-        <button onClick={onBack} style={bStyle}>‚Üê Quizlarga qaytish</button>
+        <button onClick={onBack} style={bStyle}>??Quizlarga qaytish</button>
       </div>
     );
   }
@@ -432,7 +432,7 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
   return (
     <div style={{ padding: "20px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, padding: 0 }}>‚Üê Chiqish</button>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, padding: 0 }}>??Chiqish</button>
         <span style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8" }}>{current + 1} / {questions.length}</span>
         {/* Timer doira */}
         <div style={{ position: "relative", width: 44, height: 44 }}>
@@ -467,7 +467,7 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
       </div>
 
       <button onClick={nextQuestion} disabled={!answers[current]} style={{ width: "100%", backgroundColor: answers[current] ? "#0f766e" : "#1e293b", color: answers[current] ? "#fff" : "#475569", border: "none", borderRadius: 12, padding: 14, fontWeight: 800, fontSize: 15, cursor: answers[current] ? "pointer" : "default" }}>
-        {current < questions.length - 1 ? "Keyingi ‚Üí" : "‚úÖ Yakunlash"}
+        {current < questions.length - 1 ? "Keyingi ?? : "??Yakunlash"}
       </button>
     </div>
   );
@@ -491,21 +491,21 @@ function LeaderboardTab() {
   }, []);
 
   const filtered = filter === "all" ? results : results.filter(r => r.quiz_id === filter);
-  const medals = ["ü•á", "ü•à", "ü•â"];
+  const medals = ["?•á", "?•à", "?•â"];
 
   return (
     <div style={{ padding: "20px 16px" }}>
-      <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9", margin: "0 0 16px" }}>üèÜ Reyting</h2>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: "#f1f5f9", margin: "0 0 16px" }}>?èÜ Reyting</h2>
       <select value={filter === "all" ? "all" : filter} onChange={e => setFilter(e.target.value === "all" ? "all" : Number(e.target.value))} style={{ ...iStyle, marginBottom: 20 }}>
         <option value="all">Barcha quizlar</option>
         {quizzes.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
       </select>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>‚è≥</div>
+        <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>??/div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: 60, backgroundColor: "#1e293b", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
-          <p style={{ fontSize: 40 }}>üìä</p>
+          <p style={{ fontSize: 40 }}>?ìä</p>
           <p style={{ fontWeight: 700, color: "#f1f5f9" }}>Hali natijalar yo'q</p>
         </div>
       ) : (
@@ -558,3 +558,4 @@ const bStyle: React.CSSProperties = {
   cursor: "pointer",
   width: "100%",
 };
+
