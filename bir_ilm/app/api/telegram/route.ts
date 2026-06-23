@@ -253,8 +253,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      await sendTelegram(chatId, "❌ Format noto'g'ri. Masalan: 28.06.2026 18:00
-Yoki: hozir yoki bekor");
+      await sendTelegram(chatId, "Format noto'g'ri. Masalan: 28.06.2026 18:00. Yoki: hozir yoki bekor");
       return NextResponse.json({ ok: true });
     }
     return NextResponse.json({ ok: true });
