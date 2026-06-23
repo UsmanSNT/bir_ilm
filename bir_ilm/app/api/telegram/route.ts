@@ -5,7 +5,7 @@ const CHANNEL_ID = "@birilm1";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
-const FOOTER = `\n\nTelegram: https://t.me/birilm1 | Instagram: https://instagram.com/birilm_ | Facebook: https://www.facebook.com/birilmpage | YouTube: https://youtube.com/@birilm5928`;
+const FOOTER = `\n\n<a href="https://t.me/birilm1">Telegram</a> | <a href="https://instagram.com/birilm_">Instagram</a> | <a href="https://www.facebook.com/birilmpage">Facebook</a> | <a href="https://youtube.com/@birilm5928">YouTube</a>`;
 
 // Pending confirmations: chatId -> post text
 const pendingConfirm: Record<number, string> = {};
@@ -17,7 +17,7 @@ async function sendTelegram(chatId: number | string, text: string, reply_markup?
     body: JSON.stringify({
       chat_id: chatId,
       text,
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
       disable_web_page_preview: false,
       ...(reply_markup ? { reply_markup } : {}),
     }),
@@ -48,6 +48,14 @@ async function saveWeeklyBook(text: string) {
       raw_text: text,
     }),
   });
+}
+
+function formatPost(text: string): string {
+  // Tanlangan va Muallif qatorlarini bold qilish
+  return text
+    .replace(/(Tanlangan:\s*)("[^"]+")/g, '$1<b>$2</b>')
+    .replace(/(Muallif:\s*)([^
+]+)/g, '$1<b>$2</b>');
 }
 
 async function isAdmin(telegramId: number): Promise<boolean> {
@@ -92,7 +100,7 @@ export async function POST(req: NextRequest) {
 
       if (data === "now") {
         // Hozir yuborish
-        await sendTelegram(CHANNEL_ID, postText + FOOTER);
+        await sendTelegram(CHANNEL_ID, formatPost(postText) + FOOTER);
         await saveWeeklyBook(postText);
         delete pendingConfirm[chatId];
         await sendTelegram(chatId, "✅ Post kanalga yuborildi!");
@@ -225,7 +233,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (text.toLowerCase() === 'hozir') {
-        await sendTelegram(CHANNEL_ID, postText + FOOTER);
+        await sendTelegram(CHANNEL_ID, formatPost(postText) + FOOTER);
         await saveWeeklyBook(postText);
         delete pendingConfirm[chatId];
         await sendTelegram(chatId, '✅ Post kanalga yuborildi!');
