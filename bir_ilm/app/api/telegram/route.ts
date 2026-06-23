@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const BOT_TOKEN = "8494041333:AAFdo8mMh6ISUeSyrpsvQDIARPUW8XnYWqU";
-const CHANNEL_ID = "@birilm1";
+const CHANNEL_ID = "@Abdujalilov_Avrangzeb";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
@@ -25,7 +25,7 @@ async function sendTelegram(chatId: number | string, text: string, reply_markup?
 }
 
 async function saveWeeklyBook(text: string) {
-  const numMatch = text.match(/№\s*(\d+)/);
+  const numMatch = text.match(/??s*(\d+)/);
   const titleMatch = text.match(/Tanlangan:\s*"([^"]+)"/);
   const authorMatch = text.match(/Muallif:\s*([^\n]+)/);
   const dateMatch = text.match(/Sana:\s*([^\n]+)/);
@@ -87,13 +87,13 @@ export async function POST(req: NextRequest) {
 
       const postText = pendingConfirm[chatId];
       if (!postText) {
-        await sendTelegram(chatId, "❌ Post topilmadi. Qayta /post yozing.");
+        await sendTelegram(chatId, "??Post topilmadi. Qayta /post yozing.");
         return NextResponse.json({ ok: true });
       }
 
       if (data === "cancel") {
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, "❌ Post bekor qilindi.");
+        await sendTelegram(chatId, "??Post bekor qilindi.");
         return NextResponse.json({ ok: true });
       }
 
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         await sendTelegram(CHANNEL_ID, formatPost(postText) + FOOTER);
         await saveWeeklyBook(postText);
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, "✅ Post kanalga yuborildi!");
+        await sendTelegram(chatId, "??Post kanalga yuborildi!");
         return NextResponse.json({ ok: true });
       }
 
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
         });
 
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, `⏰ Post ${minutes} daqiqadan keyin (~${timeStr}) kanalga yuboriladi!\n\nEslatma: Vaqtli yuborish uchun /send_pending buyrug'ini o'sha vaqtda yuboring.`);
+        await sendTelegram(chatId, `??Post ${minutes} daqiqadan keyin (~${timeStr}) kanalga yuboriladi!\n\nEslatma: Vaqtli yuborish uchun /send_pending buyrug'ini o'sha vaqtda yuboring.`);
         return NextResponse.json({ ok: true });
       }
 
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
 
     // /start
     if (text === "/start") {
-      await sendTelegram(chatId, `Salom! BIR ILM boti 📚\n\nBuyruqlar:\n/post — Kanalga post yuborish\n/kitoblar — Kitoblar ro'yxati\n/myid — Telegram ID\n/send_pending — Kutayotgan postlarni yuborish`);
+      await sendTelegram(chatId, `Salom! BIR ILM boti ?��\n\nBuyruqlar:\n/post ??Kanalga post yuborish\n/kitoblar ??Kitoblar ro'yxati\n/myid ??Telegram ID\n/send_pending ??Kutayotgan postlarni yuborish`);
       return NextResponse.json({ ok: true });
     }
 
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
       if (!books || books.length === 0) {
         await sendTelegram(chatId, "Hali kitoblar yo'q.");
       } else {
-        const list = books.map((b: any) => `📚 *${b.book_number}-kitob*: ${b.title}\n👤 ${b.author || "—"}\n📅 ${b.discussion_date || "—"}`).join("\n\n");
+        const list = books.map((b: any) => `?�� *${b.book_number}-kitob*: ${b.title}\n?�� ${b.author || "??}\n?�� ${b.discussion_date || "??}`).join("\n\n");
         await sendTelegram(chatId, `*So'nggi kitoblar:*\n\n${list}`);
       }
       return NextResponse.json({ ok: true });
@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // /send_pending — pending postlarni yuborish
+    // /send_pending ??pending postlarni yuborish
     if (text === "/send_pending") {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/scheduled_posts?status=eq.pending&send_at=lte.${new Date().toISOString()}&select=id,text,chat_id`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
@@ -198,9 +198,9 @@ export async function POST(req: NextRequest) {
           },
           body: JSON.stringify({ status: "sent" }),
         });
-        await sendTelegram(post.chat_id, "✅ Rejalashtirilgan post yuborildi!");
+        await sendTelegram(post.chat_id, "??Rejalashtirilgan post yuborildi!");
       }
-      await sendTelegram(chatId, `✅ ${posts.length} ta post yuborildi!`);
+      await sendTelegram(chatId, `??${posts.length} ta post yuborildi!`);
       return NextResponse.json({ ok: true });
     }
 
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
       pendingConfirm[chatId] = postText;
 
       await sendTelegram(chatId,
-        `📋 Post kozrinishi:\n\n${postText}\n\nTelegram: https://t.me/birilm1 | Instagram: https://instagram.com/birilm_ | Facebook: https://www.facebook.com/birilmpage | YouTube: https://youtube.com/@birilm5928\n\nYuborish vaqtini yozing (DD.MM.YYYY HH:MM):\nMasalan: 28.06.2026 18:00\nYoki: hozir | bekor`
+        `?�� Post kozrinishi:\n\n${postText}\n\nTelegram: https://t.me/birilm1 | Instagram: https://instagram.com/birilm_ | Facebook: https://www.facebook.com/birilmpage | YouTube: https://youtube.com/@birilm5928\n\nYuborish vaqtini yozing (DD.MM.YYYY HH:MM):\nMasalan: 28.06.2026 18:00\nYoki: hozir | bekor`
       );
       return NextResponse.json({ ok: true });    }
 
@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
 
       if (text.toLowerCase() === 'bekor') {
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, '❌ Post bekor qilindi.');
+        await sendTelegram(chatId, '??Post bekor qilindi.');
         return NextResponse.json({ ok: true });
       }
 
@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
         await sendTelegram(CHANNEL_ID, formatPost(postText) + FOOTER);
         await saveWeeklyBook(postText);
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, '✅ Post kanalga yuborildi!');
+        await sendTelegram(chatId, '??Post kanalga yuborildi!');
         return NextResponse.json({ ok: true });
       }
 
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
         const [, dd, mm, yyyy, hh, min] = dm;
         const sendAt = new Date(yyyy+'-'+mm+'-'+dd+'T'+hh+':'+min+':00+05:00');
         if (isNaN(sendAt.getTime()) || sendAt < new Date()) {
-          await sendTelegram(chatId, "❌ Noto'g'ri vaqt. Qayta kiriting:");
+          await sendTelegram(chatId, "??Noto'g'ri vaqt. Qayta kiriting:");
           return NextResponse.json({ ok: true });
         }
         await fetch(SUPABASE_URL+'/rest/v1/scheduled_posts', {
@@ -254,7 +254,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({ text: postText + FOOTER, send_at: sendAt.toISOString(), chat_id: chatId, status: 'pending' }),
         });
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, '✅ Post rejalashtirildi! ' + dd+'.'+mm+'.'+yyyy+' '+hh+':'+min+" (O'zbekiston) - /send_pending yozing.");
+        await sendTelegram(chatId, '??Post rejalashtirildi! ' + dd+'.'+mm+'.'+yyyy+' '+hh+':'+min+" (O'zbekiston) - /send_pending yozing.");
         return NextResponse.json({ ok: true });
       }
 
