@@ -7,11 +7,20 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const FOOTER = `\n\n[Telegram](https://t.me/birilm1) | [Instagram](https://instagram.com/birilm_?i) | [Facebook](https://www.facebook.com/birilmpage) | [YouTube](https://youtube.com/@birilm5928?si=NgPMJKosE2pM3fx4)`;
 
-async function sendTelegram(chatId: number | string, text: string) {
+// Pending confirmations: chatId -> post text
+const pendingConfirm: Record<number, string> = {};
+
+async function sendTelegram(chatId: number | string, text: string, reply_markup?: object) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "Markdown", disable_web_page_preview: false }),
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      disable_web_page_preview: true,
+      ...(reply_markup ? { reply_markup } : {}),
+    }),
   });
 }
 
@@ -41,28 +50,106 @@ async function saveWeeklyBook(text: string) {
   });
 }
 
+async function isAdmin(telegramId: number): Promise<boolean> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/users?select=role&telegram_id=eq.${telegramId}`, {
+    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+  });
+  const data = await res.json();
+  return data?.[0]?.role === "admin" || data?.[0]?.role === "super_admin";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Callback query (tugma bosilganda)
+    if (body.callback_query) {
+      const cb = body.callback_query;
+      const chatId = cb.message.chat.id;
+      const data = cb.data;
+      const userId = cb.from.id;
+
+      // Callback ack
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: cb.id }),
+      });
+
+      if (!await isAdmin(userId)) return NextResponse.json({ ok: true });
+
+      const postText = pendingConfirm[chatId];
+      if (!postText) {
+        await sendTelegram(chatId, "❌ Post topilmadi. Qayta /post yozing.");
+        return NextResponse.json({ ok: true });
+      }
+
+      if (data === "cancel") {
+        delete pendingConfirm[chatId];
+        await sendTelegram(chatId, "❌ Post bekor qilindi.");
+        return NextResponse.json({ ok: true });
+      }
+
+      if (data === "now") {
+        // Hozir yuborish
+        await sendTelegram(CHANNEL_ID, postText + FOOTER);
+        await saveWeeklyBook(postText);
+        delete pendingConfirm[chatId];
+        await sendTelegram(chatId, "✅ Post kanalga yuborildi!");
+        return NextResponse.json({ ok: true });
+      }
+
+      // Vaqt tanlangan (daqiqalar)
+      const minutes = parseInt(data);
+      if (!isNaN(minutes)) {
+        const sendAt = new Date(Date.now() + minutes * 60 * 1000);
+        const timeStr = sendAt.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
+
+        // Supabase da scheduled_posts ga saqlash
+        await fetch(`${SUPABASE_URL}/rest/v1/scheduled_posts`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            text: postText + FOOTER,
+            send_at: sendAt.toISOString(),
+            chat_id: chatId,
+            status: "pending",
+          }),
+        });
+
+        delete pendingConfirm[chatId];
+        await sendTelegram(chatId, `⏰ Post ${minutes} daqiqadan keyin (~${timeStr}) kanalga yuboriladi!\n\nEslatma: Vaqtli yuborish uchun /send_pending buyrug'ini o'sha vaqtda yuboring.`);
+        return NextResponse.json({ ok: true });
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
     const message = body.message;
     if (!message) return NextResponse.json({ ok: true });
 
     const chatId = message.chat.id;
     const text = message.text || "";
+    const userId = message.from?.id;
 
-    // /start - hamma uchun
+    // /start
     if (text === "/start") {
-      await sendTelegram(chatId, `Salom! BIR ILM boti 📚\n\nBuyruqlar:\n/post - Kanalga post yuborish\n/schedule - Vaqt belgilab post yuborish\n/kitoblar - Kitoblar ro'yxati\n\n⚙️ Admin ID ni aniqlash uchun /myid yozing`);
+      await sendTelegram(chatId, `Salom! BIR ILM boti 📚\n\nBuyruqlar:\n/post — Kanalga post yuborish\n/kitoblar — Kitoblar ro'yxati\n/myid — Telegram ID\n/send_pending — Kutayotgan postlarni yuborish`);
       return NextResponse.json({ ok: true });
     }
 
-    // /myid - Telegram ID ni ko'rsatish
+    // /myid
     if (text === "/myid") {
-      await sendTelegram(chatId, `Sizning Telegram ID: \`${message.from?.id}\`\n\nBu IDni admin ro'yxatiga qo'shish uchun ishlatiladi.`);
+      await sendTelegram(chatId, `Sizning Telegram ID: \`${userId}\``);
       return NextResponse.json({ ok: true });
     }
 
-    // /kitoblar - hamma uchun
+    // /kitoblar
     if (text === "/kitoblar") {
       const booksRes = await fetch(`${SUPABASE_URL}/rest/v1/weekly_books?select=book_number,title,author,discussion_date&order=book_number.desc&limit=20`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
@@ -77,45 +164,71 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Admin tekshirish - Supabase dan telegram_id bo'yicha
-    const adminRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=role&telegram_id=eq.${message.from?.id}`, {
-      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
-    });
-    const admins = await adminRes.json();
-    const isAdmin = admins?.[0]?.role === "admin" || admins?.[0]?.role === "super_admin";
+    if (!await isAdmin(userId)) {
+      await sendTelegram(chatId, `Siz admin emassiz.\nTelegram ID: \`${userId}\``);
+      return NextResponse.json({ ok: true });
+    }
 
-    if (!isAdmin) {
-      await sendTelegram(chatId, `Siz admin emassiz.\n\nAdmin bo'lish uchun Telegram ID ingizni: \`${message.from?.id}\` super adminга yuboring.`);
+    // /send_pending — pending postlarni yuborish
+    if (text === "/send_pending") {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/scheduled_posts?status=eq.pending&send_at=lte.${new Date().toISOString()}&select=id,text,chat_id`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+      });
+      const posts = await res.json();
+      if (!posts || posts.length === 0) {
+        await sendTelegram(chatId, "Yuborish vaqti kelgan post yo'q.");
+        return NextResponse.json({ ok: true });
+      }
+      for (const post of posts) {
+        await sendTelegram(CHANNEL_ID, post.text);
+        await saveWeeklyBook(post.text);
+        await fetch(`${SUPABASE_URL}/rest/v1/scheduled_posts?id=eq.${post.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+          },
+          body: JSON.stringify({ status: "sent" }),
+        });
+        await sendTelegram(post.chat_id, "✅ Rejalashtirilgan post yuborildi!");
+      }
+      await sendTelegram(chatId, `✅ ${posts.length} ta post yuborildi!`);
       return NextResponse.json({ ok: true });
     }
 
     // /post
-    if (text.startsWith("/post ") || text.startsWith("/post\n")) {
-      const postText = text.replace(/^\/post[\s\n]/, "").trim();
-      const fullText = postText + FOOTER;
-      await sendTelegram(CHANNEL_ID, fullText);
-      await saveWeeklyBook(postText);
-      await sendTelegram(chatId, "✅ Post kanalga yuborildi!");
-      return NextResponse.json({ ok: true });
-    }
-
-    // /schedule
-    if (text.startsWith("/schedule")) {
-      const lines = text.split("\n");
-      const minutes = parseInt(lines[1]);
-      const postText = lines.slice(2).join("\n").trim();
-      if (isNaN(minutes) || !postText) {
-        await sendTelegram(chatId, "Format:\n/schedule\n30\nPost matni bu yerga\n\n(30 - daqiqalar soni)");
+    if (text.startsWith("/post")) {
+      const postText = text.replace(/^\/post[\s\n]?/, "").trim();
+      if (!postText) {
+        await sendTelegram(chatId, "Post matnini yozing:\n\n/post\nMatn bu yerga...");
         return NextResponse.json({ ok: true });
       }
-      const sendTime = new Date(Date.now() + minutes * 60 * 1000).toLocaleTimeString("uz-UZ");
-      await sendTelegram(chatId, `⏰ Post ${minutes} daqiqadan keyin (soat ${sendTime} atrofida) kanalga yuboriladi!\n\nMatn:\n${postText}`);
-      return NextResponse.json({ ok: true });
-    }
 
-    // Kanal postini saqlash
-    if (text.includes("#hafta_kitobi")) {
-      await saveWeeklyBook(text);
+      // Saqlash va tasdiqlash so'rash
+      pendingConfirm[chatId] = postText;
+
+      const preview = postText.length > 300 ? postText.slice(0, 300) + "..." : postText;
+
+      await sendTelegram(chatId,
+        `📋 *Post ko'rinishi:*\n\n${preview}${FOOTER}\n\n⏰ Qachon yuborish kerak?`,
+        {
+          inline_keyboard: [
+            [
+              { text: "🚀 Hozir", callback_data: "now" },
+              { text: "⏰ 30 daqiqa", callback_data: "30" },
+            ],
+            [
+              { text: "⏰ 1 soat", callback_data: "60" },
+              { text: "⏰ 2 soat", callback_data: "120" },
+            ],
+            [
+              { text: "❌ Bekor", callback_data: "cancel" },
+            ],
+          ],
+        }
+      );
+      return NextResponse.json({ ok: true });
     }
 
     return NextResponse.json({ ok: true });
