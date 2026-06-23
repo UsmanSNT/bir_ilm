@@ -5,7 +5,7 @@ const CHANNEL_ID = "@birilm1";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
-const FOOTER = `\n\n[Telegram](https://t.me/birilm1) | [Instagram](https://instagram.com/birilm_) | [Facebook](https://www.facebook.com/birilmpage) | [YouTube](https://youtube.com/@birilm5928)`;
+const FOOTER = `\n\nTelegram: https://t.me/birilm1 | Instagram: https://instagram.com/birilm_ | Facebook: https://www.facebook.com/birilmpage | YouTube: https://youtube.com/@birilm5928`;
 
 // Pending confirmations: chatId -> post text
 const pendingConfirm: Record<number, string> = {};
@@ -208,10 +208,8 @@ export async function POST(req: NextRequest) {
       // Saqlash va tasdiqlash so'rash
       pendingConfirm[chatId] = postText;
 
-      const preview = postText.length > 300 ? postText.slice(0, 300) + "..." : postText;
-
       await sendTelegram(chatId,
-        `📋 *Post ko'rinishi:*\n\n${preview}${FOOTER}\n\n⏰ Yuborish vaqtini yozing:\nFormat: DD.MM.YYYY HH:MM\nMasalan: 28.06.2026 18:00\n\nYoki hozir yuborish uchun: hozir\nBekor qilish uchun: bekor`
+        `📋 Post kozrinishi:\n\n${postText}\n\nTelegram: https://t.me/birilm1 | Instagram: https://instagram.com/birilm_ | Facebook: https://www.facebook.com/birilmpage | YouTube: https://youtube.com/@birilm5928\n\nYuborish vaqtini yozing (DD.MM.YYYY HH:MM):\nMasalan: 28.06.2026 18:00\nYoki: hozir | bekor`
       );
       return NextResponse.json({ ok: true });    }
 
