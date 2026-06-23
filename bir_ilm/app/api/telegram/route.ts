@@ -249,10 +249,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({ text: postText + FOOTER, send_at: sendAt.toISOString(), chat_id: chatId, status: 'pending' }),
         });
         delete pendingConfirm[chatId];
-        await sendTelegram(chatId, '✅ Post rejalashtirildi!
-📅 '+dd+'.'+mm+'.'+yyyy+' '+hh+':'+min+" (O'zbekiston vaqti)
-
-Yuborish vaqti kelganda /send_pending yozing.");
+        await sendTelegram(chatId, '✅ Post rejalashtirildi! ' + dd+'.'+mm+'.'+yyyy+' '+hh+':'+min+" (O'zbekiston) - /send_pending yozing.");
         return NextResponse.json({ ok: true });
       }
 
