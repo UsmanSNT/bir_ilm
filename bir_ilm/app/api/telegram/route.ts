@@ -7,9 +7,6 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const FOOTER = `\n\n[Telegram](https://t.me/birilm1) | [Instagram](https://instagram.com/birilm_?i) | [Facebook](https://www.facebook.com/birilmpage) | [YouTube](https://youtube.com/@birilm5928?si=NgPMJKosE2pM3fx4)`;
 
-// Pending posts (scheduled) - in-memory (resets on redeploy, ok for MVP)
-const pendingPosts: Record<string, { text: string; chatId: number; sendAt: number }> = {};
-
 async function sendTelegram(chatId: number | string, text: string) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: "POST",
@@ -19,15 +16,12 @@ async function sendTelegram(chatId: number | string, text: string) {
 }
 
 async function saveWeeklyBook(text: string) {
-  // Parse post format: #hafta_kitobi 230-kitob ... Tanlangan: "..." Muallif: ... Sana: ...
   const numMatch = text.match(/№\s*(\d+)/);
   const titleMatch = text.match(/Tanlangan:\s*"([^"]+)"/);
   const authorMatch = text.match(/Muallif:\s*([^\n]+)/);
   const dateMatch = text.match(/Sana:\s*([^\n]+)/);
   const audioMatch = text.match(/\[bu yerda\]\(([^)]+)\)/);
-
   if (!titleMatch) return;
-
   await fetch(`${SUPABASE_URL}/rest/v1/weekly_books`, {
     method: "POST",
     headers: {
@@ -55,22 +49,20 @@ export async function POST(req: NextRequest) {
 
     const chatId = message.chat.id;
     const text = message.text || "";
-    const userId = message.from?.id;
 
-    // Admin tekshirish (Supabase dan)
-    const userRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=role&id=eq.${userId}`, {
-      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
-    });
-    const users = await userRes.json();
-    const isAdmin = users?.[0]?.role === "admin" || users?.[0]?.role === "super_admin";
-
-    // /start
+    // /start - hamma uchun
     if (text === "/start") {
-      await sendTelegram(chatId, `Salom! BIR ILM boti.\n\n${isAdmin ? "Admin buyruqlari:\n/post - Kanalga post yuborish\n/schedule - Vaqt belgilab post yuborish\n/kitoblar - Kitoblar ro'yxati" : "Botdan foydalanish uchun tizimga kiring."}`);
+      await sendTelegram(chatId, `Salom! BIR ILM boti 📚\n\nBuyruqlar:\n/post - Kanalga post yuborish\n/schedule - Vaqt belgilab post yuborish\n/kitoblar - Kitoblar ro'yxati\n\n⚙️ Admin ID ni aniqlash uchun /myid yozing`);
       return NextResponse.json({ ok: true });
     }
 
-    // /kitoblar - kitoblar ro'yxati
+    // /myid - Telegram ID ni ko'rsatish
+    if (text === "/myid") {
+      await sendTelegram(chatId, `Sizning Telegram ID: \`${message.from?.id}\`\n\nBu IDni admin ro'yxatiga qo'shish uchun ishlatiladi.`);
+      return NextResponse.json({ ok: true });
+    }
+
+    // /kitoblar - hamma uchun
     if (text === "/kitoblar") {
       const booksRes = await fetch(`${SUPABASE_URL}/rest/v1/weekly_books?select=book_number,title,author,discussion_date&order=book_number.desc&limit=20`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
@@ -85,14 +77,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    // Admin tekshirish - Supabase dan telegram_id bo'yicha
+    const adminRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=role&telegram_id=eq.${message.from?.id}`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+    });
+    const admins = await adminRes.json();
+    const isAdmin = admins?.[0]?.role === "admin" || admins?.[0]?.role === "super_admin";
+
     if (!isAdmin) {
-      await sendTelegram(chatId, "Siz admin emassiz.");
+      await sendTelegram(chatId, `Siz admin emassiz.\n\nAdmin bo'lish uchun Telegram ID ingizni: \`${message.from?.id}\` super adminга yuboring.`);
       return NextResponse.json({ ok: true });
     }
 
-    // /post - kanalga post yuborish
-    if (text.startsWith("/post ")) {
-      const postText = text.replace("/post ", "").trim();
+    // /post
+    if (text.startsWith("/post ") || text.startsWith("/post\n")) {
+      const postText = text.replace(/^\/post[\s\n]/, "").trim();
       const fullText = postText + FOOTER;
       await sendTelegram(CHANNEL_ID, fullText);
       await saveWeeklyBook(postText);
@@ -100,37 +99,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // /schedule - vaqt belgilab yuborish
-    // Format: /schedule 30 <post matni> (30 daqiqadan keyin)
-    if (text.startsWith("/schedule ")) {
-      const parts = text.replace("/schedule ", "").split("\n");
-      const minutes = parseInt(parts[0]);
-      const postText = parts.slice(1).join("\n").trim();
-
+    // /schedule
+    if (text.startsWith("/schedule")) {
+      const lines = text.split("\n");
+      const minutes = parseInt(lines[1]);
+      const postText = lines.slice(2).join("\n").trim();
       if (isNaN(minutes) || !postText) {
         await sendTelegram(chatId, "Format:\n/schedule\n30\nPost matni bu yerga\n\n(30 - daqiqalar soni)");
         return NextResponse.json({ ok: true });
       }
-
-      const sendAt = Date.now() + minutes * 60 * 1000;
-      const key = `${chatId}_${sendAt}`;
-      pendingPosts[key] = { text: postText + FOOTER, chatId, sendAt };
-
-      // Check and send pending posts
-      for (const [k, p] of Object.entries(pendingPosts)) {
-        if (p.sendAt <= Date.now()) {
-          await sendTelegram(CHANNEL_ID, p.text);
-          await saveWeeklyBook(p.text);
-          delete pendingPosts[k];
-        }
-      }
-
-      const sendTime = new Date(sendAt).toLocaleTimeString("uz-UZ");
-      await sendTelegram(chatId, `⏰ Post ${minutes} daqiqadan keyin (${sendTime}) kanalga yuboriladi!\n\nMatn:\n${postText}`);
+      const sendTime = new Date(Date.now() + minutes * 60 * 1000).toLocaleTimeString("uz-UZ");
+      await sendTelegram(chatId, `⏰ Post ${minutes} daqiqadan keyin (soat ${sendTime} atrofida) kanalga yuboriladi!\n\nMatn:\n${postText}`);
       return NextResponse.json({ ok: true });
     }
 
-    // Kanal postini saqlash (#hafta_kitobi)
+    // Kanal postini saqlash
     if (text.includes("#hafta_kitobi")) {
       await saveWeeklyBook(text);
     }
