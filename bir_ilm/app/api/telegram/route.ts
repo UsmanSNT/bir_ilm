@@ -5,7 +5,7 @@ const CHANNEL_ID = "@birilm1";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
-const FOOTER = `\n\n[Telegram](https://t.me/birilm1) | [Instagram](https://instagram.com/birilm_?i) | [Facebook](https://www.facebook.com/birilmpage) | [YouTube](https://youtube.com/@birilm5928?si=NgPMJKosE2pM3fx4)`;
+const FOOTER = `\n\n[Telegram](https://t.me/birilm1) | [Instagram](https://instagram.com/birilm_) | [Facebook](https://www.facebook.com/birilmpage) | [YouTube](https://youtube.com/@birilm5928)`;
 
 // Pending confirmations: chatId -> post text
 const pendingConfirm: Record<number, string> = {};
@@ -18,7 +18,7 @@ async function sendTelegram(chatId: number | string, text: string, reply_markup?
       chat_id: chatId,
       text,
       parse_mode: "Markdown",
-      disable_web_page_preview: true,
+      disable_web_page_preview: false,
       ...(reply_markup ? { reply_markup } : {}),
     }),
   });
