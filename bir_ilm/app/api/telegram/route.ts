@@ -54,8 +54,7 @@ function formatPost(text: string): string {
   // Tanlangan va Muallif qatorlarini bold qilish
   return text
     .replace(/(Tanlangan:\s*)("[^"]+")/g, '$1<b>$2</b>')
-    .replace(/(Muallif:\s*)([^
-]+)/g, '$1<b>$2</b>');
+    .replace(/(Muallif:\s*)([^\n]+)/g, '$1<b>$2</b>');
 }
 
 async function isAdmin(telegramId: number): Promise<boolean> {
