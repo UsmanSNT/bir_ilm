@@ -275,7 +275,21 @@
     </div>
 
     <!-- ADMIN STATS (super_admin va admin uchun) -->
+    <!-- Admin uchun: faqat taqrizlar soni -->
     <div id="admin-stats-section" class="hidden">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Platforma statistikasi</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="stat-card border-yellow-500/20 cursor-pointer hover:border-yellow-500/50" onclick="toggleSection('books-section')">
+                <div class="stat-icon bg-yellow-500/15 text-yellow-400"><i class="fas fa-book-open"></i></div>
+                <p class="text-2xl font-bold text-white" id="plat-books">0</p>
+                <p class="text-xs text-gray-500 mt-1">Taqrizlar</p>
+                <p class="text-xs text-yellow-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Ko'rish</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Super Admin uchun: barcha statistika -->
+    <div id="super-stats-section" class="hidden">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Platforma statistikasi</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="stat-card border-blue-500/20 cursor-pointer hover:border-blue-500/50" onclick="toggleSection('users-section')">
@@ -294,7 +308,7 @@
             </div>
             <div class="stat-card border-yellow-500/20 cursor-pointer hover:border-yellow-500/50" onclick="toggleSection('books-section')">
                 <div class="stat-icon bg-yellow-500/15 text-yellow-400"><i class="fas fa-book-open"></i></div>
-                <p class="text-2xl font-bold text-white" id="plat-books">0</p>
+                <p class="text-2xl font-bold text-white" id="plat-books-super">0</p>
                 <p class="text-xs text-gray-500 mt-1">Taqrizlar</p>
                 <p class="text-xs text-yellow-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Ko'rish</p>
             </div>
@@ -566,8 +580,15 @@
     // ── ROLE-BASED UI ─────────────────────────────────────
     async function setupRoleUI() {
         const role = currentUser.role;
-        if (role === 'admin' || role === 'super_admin') {
+        if (role === 'admin') {
             document.getElementById('admin-stats-section').classList.remove('hidden');
+            document.getElementById('write-icon-btn').classList.remove('hidden');
+            document.getElementById('header-write-btn').classList.remove('hidden');
+            loadAdminStats();
+            setupWriteForm();
+        }
+        if (role === 'super_admin') {
+            document.getElementById('super-stats-section').classList.remove('hidden');
             document.getElementById('write-icon-btn').classList.remove('hidden');
             document.getElementById('header-write-btn').classList.remove('hidden');
             loadAdminStats();
@@ -588,6 +609,8 @@
             document.getElementById('plat-users').textContent = u.length;
             document.getElementById('plat-admins').textContent = u.filter(x => x.role === 'admin' || x.role === 'super_admin').length;
             document.getElementById('plat-books').textContent = b.length;
+            const superBooks = document.getElementById('plat-books-super');
+            if (superBooks) superBooks.textContent = b.length;
         } catch(e) { console.error('Stats xato:', e); }
         // Passwords separately (may not exist)
         try {
