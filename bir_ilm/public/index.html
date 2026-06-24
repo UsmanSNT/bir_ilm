@@ -262,22 +262,17 @@
                             <i class="fas fa-sign-in-alt mr-1"></i>Kirish
                         </a>
                     </span>
-                    <!-- Auth: user dropdown -->
-                    <div id="user-menu" class="hidden relative ml-2" id="user-dropdown-wrap">
-                        <button onclick="handleUserBtnClick(event)" id="user-dropdown-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition">
-                            <div id="user-avatar-desktop" class="w-7 h-7 rounded-full bg-green-600/40 flex items-center justify-center text-xs font-bold text-green-300">U</div>
+                    <!-- Auth: user (dashboard link + logout) -->
+                    <div id="user-menu" class="hidden flex items-center gap-2 ml-2">
+                        <a id="admin-panel-link" href="pages/dashboard.html" id="user-dropdown-btn"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition">
+                            <div id="user-avatar-desktop" class="w-6 h-6 rounded-full bg-green-600/40 flex items-center justify-center text-xs font-bold text-green-300">U</div>
                             <span id="user-name-display" class="text-white text-sm font-medium whitespace-nowrap"></span>
-                            <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                        </a>
+                        <button id="logout-btn"
+                            class="w-8 h-8 bg-red-600/20 hover:bg-red-600/40 rounded-xl text-red-400 transition flex items-center justify-center" title="Chiqish">
+                            <i class="fas fa-sign-out-alt text-xs"></i>
                         </button>
-                        <div id="user-dropdown" class="hidden absolute top-full right-0 mt-1 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 py-1">
-                            <a id="admin-panel-link" href="pages/dashboard.html" class="hidden px-4 py-2 text-sm text-green-400 hover:text-green-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
-                                <i class="fas fa-tachometer-alt text-green-400"></i>Dashboard
-                            </a>
-                            <div class="border-t border-gray-700 my-1"></div>
-                            <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
-                                <i class="fas fa-sign-out-alt"></i>Chiqish
-                            </button>
-                        </div>
                     </div>
                 </nav>
 
@@ -347,15 +342,18 @@
                     </a>
                 </div>
                 <div id="mobile-user" class="hidden">
-                    <div class="flex items-center gap-3 px-5 py-3 mb-2">
-                        <div class="w-8 h-8 rounded-full bg-green-600/30 flex items-center justify-center text-green-400 text-sm font-bold">
-                            <i class="fas fa-user"></i>
+                    <!-- User → Dashboard link -->
+                    <a href="pages/dashboard.html" onclick="closeSidebar()" class="sidebar-nav-link" id="mobile-dashboard-link">
+                        <span class="icon-wrap" id="mobile-user-avatar" style="background:rgba(16,185,129,0.2);color:#34d399;font-weight:700;font-size:14px;">U</span>
+                        <div>
+                            <span id="mobile-user-name" class="text-white text-sm font-medium block"></span>
+                            <span class="text-xs text-gray-500">Dashboard</span>
                         </div>
-                        <span id="mobile-user-name" class="text-gray-300 text-sm font-medium"></span>
-                    </div>
-                    <a id="mobile-admin-panel-link" href="pages/dashboard.html" class="hidden sidebar-nav-link" onclick="closeSidebar()">
-                        <span class="icon-wrap" style="background:rgba(16,185,129,0.15);color:#34d399;"><i class="fas fa-tachometer-alt"></i></span>
-                        Dashboard
+                    </a>
+                    <!-- Admin: Taqriz yozish -->
+                    <a id="mobile-admin-panel-link" href="pages/user.html" class="hidden sidebar-nav-link" onclick="closeSidebar()">
+                        <span class="icon-wrap" style="background:rgba(34,197,94,0.15);color:#4ade80;"><i class="fas fa-pen"></i></span>
+                        Taqriz yozish
                     </a>
                     <button id="mobile-logout-btn" class="sidebar-nav-link w-full text-left" style="color:#f87171;">
                         <span class="icon-wrap" style="background:rgba(239,68,68,0.15);color:#f87171;"><i class="fas fa-sign-out-alt"></i></span>
@@ -659,24 +657,14 @@
             if (el) el.classList.add('hidden');
         }
         document.addEventListener('click', (e) => {
-            ['reviews-dropdown','user-dropdown'].forEach(id => {
+            ['reviews-dropdown'].forEach(id => {
                 const dropdown = document.getElementById(id);
                 const wrap = dropdown && dropdown.closest('.relative');
                 if (dropdown && wrap && !wrap.contains(e.target)) dropdown.classList.add('hidden');
             });
         });
 
-        function handleUserBtnClick(e) {
-            e.stopPropagation();
-            // Super admin -> to'g'ridan admin panel
-            const nameEl = document.getElementById('user-name-display');
-            const avatarEl = document.getElementById('user-avatar-desktop');
-            if (avatarEl && avatarEl.querySelector('.fa-crown')) {
-                window.location.href = 'pages/dashboard.html';
-                return;
-            }
-            toggleDropdown('user-dropdown');
-        }
+
 
         function updateUserMenu() {
             const token = getToken();
@@ -711,11 +699,7 @@
                                 avatarEl.innerHTML = '<i class="fas fa-crown text-yellow-400 text-xs"></i>';
                                 avatarEl.className = 'w-7 h-7 rounded-full bg-yellow-500/20 ring-1 ring-yellow-500 flex items-center justify-center';
                                 userNameDisplay.className = 'text-yellow-400 text-sm font-semibold whitespace-nowrap';
-                                // Super admin bosilganda to'g'ridan super-admin paneliga o'tish
-                                const btn = document.getElementById('user-dropdown-btn');
-                                if (btn) {
-                                    btn.onclick = (e) => { e.stopPropagation(); window.location.href = 'pages/super-admin.html'; };
-                                }
+
                             } else {
                                 avatarEl.textContent = (user.username || 'U').charAt(0).toUpperCase();
                                 avatarEl.className = 'w-7 h-7 rounded-full bg-green-600/40 flex items-center justify-center text-xs font-bold text-green-300';
