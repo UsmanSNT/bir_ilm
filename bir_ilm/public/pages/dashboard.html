@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bir Ilm — Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="../assets/images/logo.jpg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0b111a; color: #e5e7eb; min-height: 100vh; }
+
+        /* Banner */
+        .banner {
+            background: linear-gradient(135deg, #0d1f35 0%, #0f2a1e 50%, #1a1a2e 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 400px; height: 200px;
+            background: radial-gradient(ellipse, rgba(16,185,129,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .banner-super::before {
+            background: radial-gradient(ellipse, rgba(234,179,8,0.15) 0%, transparent 70%);
+        }
+        .banner-admin::before {
+            background: radial-gradient(ellipse, rgba(99,102,241,0.15) 0%, transparent 70%);
+        }
+
+        /* Avatar */
+        .avatar {
+            width: 72px; height: 72px;
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; margin-bottom: 12px;
+        }
+
+        /* Section cards */
+        .section-card {
+            background: rgba(26,35,50,0.7);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .section-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* Form inputs */
+        .form-input {
+            background: rgba(11,17,26,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #fff; width: 100%;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        .form-input:focus { border-color: #10b981; }
+
+        /* User row */
+        .user-row {
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+        }
+        .user-row:hover { background: rgba(255,255,255,0.06); }
+
+        /* Badge */
+        .badge {
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; white-space: nowrap;
+        }
+        .badge-super { background: linear-gradient(135deg,#f59e0b,#d97706); color:#000; }
+        .badge-admin { background: linear-gradient(135deg,#10b981,#059669); color:#fff; }
+        .badge-user  { background: rgba(100,100,100,0.4); color:#9ca3af; }
+
+        /* Tab */
+        .tab-btn {
+            padding: 10px 20px; border-radius: 10px;
+            font-weight: 500; font-size: 14px;
+            border: none; cursor: pointer;
+            background: transparent; color: #9ca3af;
+            transition: all 0.2s;
+        }
+        .tab-btn.active { background: #10b981; color: #fff; }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.07); color: #fff; }
+
+        /* Pulse admin */
+        @keyframes pulse-admin {
+            0%,100% { box-shadow: 0 0 12px rgba(16,185,129,0.2); }
+            50%      { box-shadow: 0 0 22px rgba(16,185,129,0.5); }
+        }
+        .pulse-green { animation: pulse-admin 2.5s infinite; }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+            padding: 12px 20px; border-radius: 12px;
+            font-size: 14px; font-weight: 500;
+            transform: translateY(20px); opacity: 0;
+            transition: all 0.3s; pointer-events: none;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+
+        /* Book card */
+        .book-card-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .book-card-item:hover { transform: translateY(-3px); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/[0.06]">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <a href="../index.html" class="flex items-center gap-2">
+            <img src="../assets/images/logo.jpg" alt="logo" class="w-8 h-8 rounded-lg object-cover">
+            <span class="font-bold text-white text-base">Bir Ilm</span>
+        </a>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-400" id="header-username"></span>
+            <a href="../index.html" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-300 transition">
+                <i class="fas fa-home mr-1"></i>Bosh sahifa
+            </a>
+            <button onclick="doLogout()" class="px-3 py-1.5 bg-red-600/80 hover:bg-red-600 rounded-lg text-sm text-white transition">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- BANNER -->
+    <div class="banner rounded-2xl p-6 md:p-8" id="banner-wrap">
+        <div class="relative z-10 flex items-center gap-5">
+            <div class="avatar" id="user-avatar"></div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                    <h1 class="text-2xl font-bold text-white" id="banner-username">—</h1>
+                    <span class="badge" id="banner-badge"></span>
+                </div>
+                <p class="text-sm text-gray-400" id="banner-email"></p>
+                <p class="text-xs text-gray-600 mt-1" id="banner-joined"></p>
+            </div>
+            <!-- Quick actions -->
+            <div class="hidden md:flex flex-col gap-2" id="banner-actions"></div>
+        </div>
+    </div>
+
+    <!-- PERSONAL STATS -->
+    <div>
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Mening faolligim</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="personal-stats">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue-500/15 text-blue-400"><i class="fas fa-thumbs-up"></i></div>
+                <p class="text-2xl font-bold" id="stat-likes">—</p>
+                <p class="text-xs text-gray-500 mt-1">Like berganlar</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-purple-500/15 text-purple-400"><i class="fas fa-comments"></i></div>
+                <p class="text-2xl font-bold" id="stat-comments">—</p>
+                <p class="text-xs text-gray-500 mt-1">Izohlarim</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-yellow-500/15 text-yellow-400"><i class="fas fa-star"></i></div>
+                <p class="text-2xl font-bold" id="stat-ratings">—</p>
+                <p class="text-xs text-gray-500 mt-1">Baholarim</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-green-500/15 text-green-400"><i class="fas fa-gamepad"></i></div>
+                <p class="text-2xl font-bold" id="stat-quizzes">—</p>
+                <p class="text-xs text-gray-500 mt-1">Quiz natijalari</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN STATS (super_admin va admin uchun) -->
+    <div id="admin-stats-section" class="hidden">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Platforma statistikasi</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="stat-card border-blue-500/20">
+                <div class="stat-icon bg-blue-500/15 text-blue-400"><i class="fas fa-users"></i></div>
+                <p class="text-2xl font-bold text-white" id="plat-users">0</p>
+                <p class="text-xs text-gray-500 mt-1">Foydalanuvchilar</p>
+            </div>
+            <div class="stat-card border-green-500/20">
+                <div class="stat-icon pulse-green" style="background:rgba(16,185,129,0.15);color:#34d399;">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <p class="text-2xl font-bold text-green-400" id="plat-admins">0</p>
+                <p class="text-xs text-gray-500 mt-1">Adminlar</p>
+            </div>
+            <div class="stat-card border-yellow-500/20">
+                <div class="stat-icon bg-yellow-500/15 text-yellow-400"><i class="fas fa-book-open"></i></div>
+                <p class="text-2xl font-bold text-white" id="plat-books">0</p>
+                <p class="text-xs text-gray-500 mt-1">Taqrizlar</p>
+            </div>
+            <div class="stat-card border-purple-500/20">
+                <div class="stat-icon bg-purple-500/15 text-purple-400"><i class="fas fa-key"></i></div>
+                <p class="text-2xl font-bold text-white" id="plat-passwords">0</p>
+                <p class="text-xs text-gray-500 mt-1">Parollar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN: Taqriz yozish -->
+    <div id="write-section" class="hidden section-card">
+        <div class="section-header">
+            <h2 class="font-semibold text-green-400 flex items-center gap-2">
+                <i class="fas fa-pen"></i> Yangi Taqriz
+            </h2>
+            <button onclick="toggleWriteForm()" class="text-gray-500 hover:text-white transition text-sm">
+                <i class="fas fa-chevron-up" id="write-icon"></i>
+            </button>
+        </div>
+        <div id="write-form-body" class="p-6">
+            <form id="review-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Kitob nomi *</label>
+                        <input type="text" id="book-title" class="form-input" placeholder="Kitob nomini kiriting" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Muallif *</label>
+                        <input type="text" id="book-author" class="form-input" placeholder="Muallif nomini kiriting" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Taqriz *</label>
+                    <textarea id="review-text" rows="5" class="form-input resize-none" placeholder="Kitob haqida taqrizingizni yozing..." required></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Baholash</label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="book-rating" min="1" max="5" value="5" class="flex-1 accent-green-500">
+                        <span id="rating-stars" class="text-yellow-400 text-lg">★★★★★</span>
+                        <span id="rating-val" class="text-sm text-gray-400 w-4">5</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Hashtaglar</label>
+                    <input type="text" id="book-hashtags" class="form-input" placeholder="#kitob, #adabiyot">
+                    <div id="hashtags-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Rasm</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="file" id="book-image-file" accept="image/*" class="hidden">
+                        <button type="button" onclick="document.getElementById('book-image-file').click()"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition">
+                            <i class="fas fa-upload mr-2"></i>Fayl tanlash
+                        </button>
+                        <span id="selected-file-name" class="text-sm text-gray-500 self-center"></span>
+                    </div>
+                    <input type="text" id="book-image-url" class="form-input" placeholder="Yoki rasm URL manzilini kiriting">
+                    <div id="image-preview" class="mt-2 hidden">
+                        <img id="preview-img" src="" alt="Preview" class="h-32 rounded-lg object-cover">
+                        <button type="button" onclick="clearImageForm()"
+                            class="mt-1 px-3 py-1 bg-red-600/70 hover:bg-red-600 rounded text-white text-xs transition">
+                            <i class="fas fa-times mr-1"></i>O'chirish
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" id="submit-btn"
+                        class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl font-semibold text-white transition">
+                        <i class="fas fa-paper-plane mr-2"></i>Yuborish
+                    </button>
+                    <button type="button" onclick="cancelEdit()"
+                        id="cancel-btn" class="hidden px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-white transition">
+                        Bekor qilish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAQRIZLAR (admin ko'rishi uchun) -->
+    <div id="books-section" class="hidden section-card">
+        <div class="section-header">
+            <h2 class="font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-list text-green-400"></i> Barcha taqrizlar
+            </h2>
+            <span id="books-count" class="text-xs text-gray-500"></span>
+        </div>
+        <div id="books-list" class="p-4 space-y-3"></div>
+    </div>
+
+    <!-- SUPER ADMIN: Foydalanuvchilar -->
+    <div id="users-section" class="hidden section-card">
+        <div class="section-header">
+            <h2 class="font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-users text-blue-400"></i> Foydalanuvchilar
+            </h2>
+            <input type="text" id="user-search" placeholder="Qidirish..."
+                class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-green-500 w-40">
+        </div>
+        <div id="users-list" class="p-4 space-y-2"></div>
+    </div>
+
+    <!-- SUPER ADMIN: Admin berish -->
+    <div id="grant-section" class="hidden section-card">
+        <div class="section-header">
+            <h2 class="font-semibold text-yellow-400 flex items-center gap-2">
+                <i class="fas fa-user-shield"></i> Adminlik boshqaruvi
+            </h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-sm text-yellow-400">
+                <i class="fas fa-info-circle mr-2"></i>Email orqali foydalanuvchiga adminlik berishingiz mumkin
+            </div>
+            <div class="flex gap-2">
+                <input type="email" id="admin-email-input" placeholder="email@example.com" class="form-input flex-1">
+                <button onclick="grantAdmin()"
+                    class="px-5 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-white font-medium transition whitespace-nowrap">
+                    <i class="fas fa-plus mr-1"></i>Admin qilish
+                </button>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-3">Hozirgi adminlar</p>
+                <div id="admins-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUPER ADMIN: Parollar -->
+    <div id="passwords-section" class="hidden section-card">
+        <div class="section-header">
+            <h2 class="font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-key text-purple-400"></i> Saqlangan parollar
+            </h2>
+        </div>
+        <div class="p-4 mb-2">
+            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-sm text-red-400">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Bu ma'lumotlar maxfiy!
+            </div>
+        </div>
+        <div id="passwords-list" class="px-4 pb-4 space-y-2"></div>
+    </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script>
+    let currentUser = null;
+    let allUsers = [];
+    let editingBookId = null;
+
+    // ── AUTH ──────────────────────────────────────────────
+    async function init() {
+        const token = getToken();
+        if (!token) { window.location.href = 'login.html'; return; }
+        try {
+            const result = await authAPI.getMe();
+            if (!result.success) { window.location.href = 'login.html'; return; }
+            currentUser = result.user;
+            setupBanner();
+            loadPersonalStats();
+            setupRoleUI();
+        } catch(e) { window.location.href = 'login.html'; }
+    }
+
+    // ── BANNER ────────────────────────────────────────────
+    function setupBanner() {
+        const u = currentUser;
+        const role = u.role;
+        const letter = (u.username || u.email).charAt(0).toUpperCase();
+
+        document.getElementById('header-username').textContent = u.username;
+        document.getElementById('banner-username').textContent = u.username;
+        document.getElementById('banner-email').textContent = u.email;
+        document.getElementById('banner-joined').textContent = 'A\'zo: ' + new Date(u.created_at).toLocaleDateString('uz-UZ');
+
+        // Avatar
+        const av = document.getElementById('user-avatar');
+        if (role === 'super_admin') {
+            av.innerHTML = '<i class="fas fa-crown text-yellow-400" style="font-size:28px;"></i>';
+            av.style.cssText = 'background:rgba(234,179,8,0.15);border:2px solid rgba(234,179,8,0.4);width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;';
+        } else if (role === 'admin') {
+            av.innerHTML = '<i class="fas fa-user-shield text-indigo-300" style="font-size:26px;"></i>';
+            av.style.cssText = 'background:rgba(99,102,241,0.2);border:2px solid rgba(99,102,241,0.3);width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;';
+        } else {
+            av.textContent = letter;
+            av.style.cssText = 'background:linear-gradient(135deg,rgba(16,185,129,0.25),rgba(5,150,105,0.1));border:2px solid rgba(16,185,129,0.25);width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#34d399;';
+        }
+
+        // Badge
+        const badge = document.getElementById('banner-badge');
+        if (role === 'super_admin') { badge.className = 'badge badge-super'; badge.textContent = 'Super Admin'; }
+        else if (role === 'admin')  { badge.className = 'badge badge-admin'; badge.textContent = 'Admin'; }
+        else                        { badge.className = 'badge badge-user';  badge.textContent = 'Foydalanuvchi'; }
+
+        // Banner bg class
+        const wrap = document.getElementById('banner-wrap');
+        if (role === 'super_admin') wrap.classList.add('banner-super');
+        else if (role === 'admin')  wrap.classList.add('banner-admin');
+
+        // Quick action buttons
+        const actions = document.getElementById('banner-actions');
+        if (role === 'admin' || role === 'super_admin') {
+            actions.innerHTML = `
+                <a href="user.html" class="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium transition">
+                    <i class="fas fa-book-open mr-1"></i>Taqrizlar
+                </a>`;
+        }
+    }
+
+    // ── PERSONAL STATS ────────────────────────────────────
+    async function loadPersonalStats() {
+        const uid = currentUser.id;
+        try {
+            const [comments, ratings, quizResults] = await Promise.all([
+                supabaseRequest('comments', { query: `?user_id=eq.${uid}&select=id`, headers: { 'Prefer': 'return=representation' } }),
+                supabaseRequest('user_ratings', { query: `?user_id=eq.${uid}&select=id`, headers: { 'Prefer': 'return=representation' } }),
+                supabaseRequest('quiz_results', { query: `?user_id=eq.${uid}&select=id`, headers: { 'Prefer': 'return=representation' } }).catch(() => [])
+            ]);
+            document.getElementById('stat-comments').textContent = Array.isArray(comments) ? comments.length : 0;
+            document.getElementById('stat-ratings').textContent = Array.isArray(ratings) ? ratings.length : 0;
+            document.getElementById('stat-quizzes').textContent = Array.isArray(quizResults) ? quizResults.length : 0;
+        } catch(e) {}
+
+        // Likes via RPC
+        try {
+            const books = await supabaseRequest('books_with_stats', { query: '?select=id,likes_count' });
+            document.getElementById('stat-likes').textContent = '—';
+        } catch(e) {}
+        document.getElementById('stat-likes').textContent = '—';
+    }
+
+    // ── ROLE-BASED UI ─────────────────────────────────────
+    async function setupRoleUI() {
+        const role = currentUser.role;
+        if (role === 'admin' || role === 'super_admin') {
+            document.getElementById('write-section').classList.remove('hidden');
+            document.getElementById('books-section').classList.remove('hidden');
+            document.getElementById('admin-stats-section').classList.remove('hidden');
+            loadAdminStats();
+            loadBooks();
+            setupWriteForm();
+        }
+        if (role === 'super_admin') {
+            document.getElementById('users-section').classList.remove('hidden');
+            document.getElementById('grant-section').classList.remove('hidden');
+            document.getElementById('passwords-section').classList.remove('hidden');
+            loadUsers();
+            loadPasswords();
+        }
+    }
+
+    // ── ADMIN STATS ───────────────────────────────────────
+    async function loadAdminStats() {
+        try {
+            const [users, books, passwords] = await Promise.all([
+                supabaseRequest('users', { query: '?select=id,role', headers: { 'Prefer': 'return=representation' } }),
+                supabaseRequest('books', { query: '?select=id', headers: { 'Prefer': 'return=representation' } }),
+                supabaseRequest('debug_password_log', { query: '?select=id', headers: { 'Prefer': 'return=representation' } }).catch(() => [])
+            ]);
+            const u = Array.isArray(users) ? users : [];
+            document.getElementById('plat-users').textContent = u.length;
+            document.getElementById('plat-admins').textContent = u.filter(x => x.role === 'admin' || x.role === 'super_admin').length;
+            document.getElementById('plat-books').textContent = Array.isArray(books) ? books.length : 0;
+            document.getElementById('plat-passwords').textContent = Array.isArray(passwords) ? passwords.length : 0;
+        } catch(e) {}
+    }
+
+    // ── BOOKS (admin) ─────────────────────────────────────
+    async function loadBooks() {
+        const list = document.getElementById('books-list');
+        list.innerHTML = '<p class="text-gray-500 text-sm text-center py-6"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+        try {
+            const books = await booksAPI.getAll();
+            document.getElementById('books-count').textContent = books.length + ' ta';
+            if (!books.length) { list.innerHTML = '<p class="text-gray-500 text-sm text-center py-6">Taqrizlar yo\'q</p>'; return; }
+            list.innerHTML = books.map(book => {
+                const stars = '★'.repeat(book.rating || 5) + '☆'.repeat(5 - (book.rating || 5));
+                const imgHtml = book.image_url ? `<img src="${escapeHtml(book.image_url)}" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
+                return `
+                <div class="book-card-item p-4 flex items-start gap-3">
+                    ${imgHtml}
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-white truncate">${escapeHtml(book.title)}</h4>
+                        <p class="text-xs text-gray-400">${escapeHtml(book.author)}</p>
+                        <p class="text-yellow-400 text-xs mt-1">${stars}</p>
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button onclick="editBook(${book.id})" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-lg text-xs transition">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteBook(${book.id})" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg text-xs transition">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) { list.innerHTML = `<p class="text-red-400 text-sm text-center py-4">${e.message}</p>`; }
+    }
+
+    async function editBook(bookId) {
+        try {
+            const books = await booksAPI.getAll();
+            const book = books.find(b => b.id === bookId);
+            if (!book) return;
+            editingBookId = bookId;
+            document.getElementById('book-title').value = book.title;
+            document.getElementById('book-author').value = book.author;
+            document.getElementById('review-text').value = book.review;
+            document.getElementById('book-rating').value = book.rating;
+            document.getElementById('rating-stars').textContent = '★'.repeat(book.rating) + '☆'.repeat(5 - book.rating);
+            document.getElementById('rating-val').textContent = book.rating;
+            document.getElementById('book-hashtags').value = (book.hashtags || []).map(t => '#' + t).join(', ');
+            document.getElementById('book-image-url').value = book.image_url || '';
+            document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save mr-2"></i>Saqlash';
+            document.getElementById('cancel-btn').classList.remove('hidden');
+            if (document.getElementById('write-form-body').classList.contains('hidden')) toggleWriteForm();
+            document.getElementById('write-section').scrollIntoView({ behavior: 'smooth' });
+        } catch(e) { showToast(e.message, 'error'); }
+    }
+
+    function cancelEdit() {
+        editingBookId = null;
+        document.getElementById('review-form').reset();
+        document.getElementById('rating-stars').textContent = '★★★★★';
+        document.getElementById('rating-val').textContent = '5';
+        document.getElementById('hashtags-preview').innerHTML = '';
+        document.getElementById('image-preview').classList.add('hidden');
+        document.getElementById('submit-btn').innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Yuborish';
+        document.getElementById('cancel-btn').classList.add('hidden');
+    }
+
+    async function deleteBook(bookId) {
+        if (!confirm('Bu taqrizni o\'chirishni xohlaysizmi?')) return;
+        try {
+            await booksAPI.delete(bookId);
+            showToast('Taqriz o\'chirildi', 'success');
+            loadBooks();
+            loadAdminStats();
+        } catch(e) { showToast(e.message, 'error'); }
+    }
+
+    // ── WRITE FORM ────────────────────────────────────────
+    function setupWriteForm() {
+        document.getElementById('book-rating').addEventListener('input', (e) => {
+            const v = parseInt(e.target.value);
+            document.getElementById('rating-val').textContent = v;
+            document.getElementById('rating-stars').textContent = '★'.repeat(v) + '☆'.repeat(5 - v);
+        });
+        document.getElementById('book-hashtags').addEventListener('input', () => {
+            const val = document.getElementById('book-hashtags').value;
+            const tags = val.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+            document.getElementById('hashtags-preview').innerHTML = tags.map(t =>
+                `<span class="inline-block bg-green-500/15 text-green-400 px-3 py-1 rounded-full text-xs border border-green-500/20">#${t}</span>`
+            ).join('');
+        });
+        document.getElementById('book-image-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('selected-file-name').textContent = file.name;
+                document.getElementById('book-image-url').value = '';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        document.getElementById('book-image-url').addEventListener('input', (e) => {
+            if (e.target.value.trim()) {
+                document.getElementById('preview-img').src = e.target.value.trim();
+                document.getElementById('image-preview').classList.remove('hidden');
+            } else { document.getElementById('image-preview').classList.add('hidden'); }
+        });
+        document.getElementById('review-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const review = document.getElementById('review-text').value.trim();
+            const rating = parseInt(document.getElementById('book-rating').value);
+            const imageFile = document.getElementById('book-image-file').files[0];
+            const imageUrl = document.getElementById('book-image-url').value.trim();
+            const hashtagsRaw = document.getElementById('book-hashtags').value.trim();
+            const hashtags = hashtagsRaw ? hashtagsRaw.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : [];
+            const btn = document.getElementById('submit-btn');
+            if (!title || !author || !review) { showToast('Barcha maydonlarni to\'ldiring!', 'error'); return; }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saqlanmoqda...';
+            try {
+                let finalUrl = imageUrl;
+                if (imageFile) {
+                    const up = await booksAPI.uploadImage(imageFile);
+                    if (up.success) finalUrl = up.image_url;
+                }
+                let result;
+                if (editingBookId) {
+                    result = await booksAPI.update(editingBookId, title, author, review, rating, finalUrl || '', hashtags);
+                } else {
+                    result = await booksAPI.create(title, author, review, rating, finalUrl, hashtags);
+                }
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    cancelEdit();
+                    loadBooks();
+                    loadAdminStats();
+                }
+            } catch(err) { showToast(err.message || 'Xatolik yuz berdi', 'error'); }
+            finally { btn.disabled = false; btn.innerHTML = editingBookId ? '<i class="fas fa-save mr-2"></i>Saqlash' : '<i class="fas fa-paper-plane mr-2"></i>Yuborish'; }
+        });
+    }
+
+    function toggleWriteForm() {
+        const body = document.getElementById('write-form-body');
+        const icon = document.getElementById('write-icon');
+        body.classList.toggle('hidden');
+        icon.className = body.classList.contains('hidden') ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+    }
+
+    function clearImageForm() {
+        document.getElementById('book-image-file').value = '';
+        document.getElementById('book-image-url').value = '';
+        document.getElementById('selected-file-name').textContent = '';
+        document.getElementById('image-preview').classList.add('hidden');
+    }
+
+    // ── USERS (super_admin) ───────────────────────────────
+    async function loadUsers() {
+        const list = document.getElementById('users-list');
+        list.innerHTML = '<p class="text-gray-500 text-sm text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+        try {
+            const users = await supabaseRequest('users', { query: '?order=created_at.desc', headers: { 'Prefer': 'return=representation' } });
+            allUsers = Array.isArray(users) ? users : [];
+            allUsers.sort((a,b) => {
+                if (a.role==='super_admin') return -1; if (b.role==='super_admin') return 1;
+                if (a.role==='admin' && b.role==='user') return -1; if (b.role==='admin' && a.role==='user') return 1;
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            renderUsers(allUsers);
+            renderAdmins(allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin'));
+            loadAdminStats();
+        } catch(e) { list.innerHTML = `<p class="text-red-400 text-sm text-center py-4">${e.message}</p>`; }
+    }
+
+    function renderUsers(users) {
+        const list = document.getElementById('users-list');
+        if (!users.length) { list.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Foydalanuvchilar topilmadi</p>'; return; }
+        list.innerHTML = users.map(user => {
+            const isSuperAdmin = user.role === 'super_admin';
+            const isMe = currentUser && (currentUser.email === user.email);
+            const letter = (user.username || user.email).charAt(0).toUpperCase();
+            return `
+            <div class="user-row flex items-center gap-3 flex-wrap ${isSuperAdmin ? 'border-yellow-500/30' : ''}">
+                <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-sm ${isSuperAdmin ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-700 text-white'}">
+                    ${isSuperAdmin ? '<i class="fas fa-crown text-xs"></i>' : letter}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium truncate ${isSuperAdmin ? 'text-yellow-400' : 'text-white'}">${escapeHtml(user.username || user.email)}</p>
+                    <p class="text-xs text-gray-500 truncate">${escapeHtml(user.email)}</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
+                    ${isMe ? '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">Siz</span>' : ''}
+                    ${!isMe && !isSuperAdmin ? `
+                        <select onchange="handleRoleChange('${escapeHtml(user.email)}','${escapeHtml(user.role)}',this.value)"
+                            class="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-green-500 cursor-pointer">
+                            <option value="user" ${user.role==='user'?'selected':''}>User</option>
+                            <option value="admin" ${user.role==='admin'?'selected':''}>Admin</option>
+                        </select>
+                        <button onclick="handleDeleteUser('${escapeHtml(user.email)}','${escapeHtml(user.username||user.email)}')"
+                            class="px-2 py-1 bg-red-500/15 hover:bg-red-500/30 text-red-400 rounded-lg text-xs transition">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderAdmins(admins) {
+        const list = document.getElementById('admins-list');
+        if (!list) return;
+        list.innerHTML = admins.map(a => {
+            const isSuper = a.role === 'super_admin';
+            return `
+            <div class="user-row flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center ${isSuper ? 'bg-yellow-500/20' : 'bg-green-500/15'}">
+                        <i class="fas ${isSuper ? 'fa-crown text-yellow-400' : 'fa-user-shield text-green-400'} text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-sm ${isSuper ? 'text-yellow-400' : 'text-white'}">${escapeHtml(a.username || a.email)}</p>
+                        <p class="text-xs text-gray-500">${escapeHtml(a.email)}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge ${getBadgeClass(a.role)}">${getRoleName(a.role)}</span>
+                    ${!isSuper ? `<button onclick="revokeAdmin('${escapeHtml(a.email)}')" class="px-2 py-1 bg-red-500/15 hover:bg-red-500/30 text-red-400 rounded-lg text-xs transition"><i class="fas fa-times"></i></button>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function handleRoleChange(email, currentRole, newRole) {
+        if (currentRole === newRole) return;
+        if (!confirm(`${email} rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) { loadUsers(); return; }
+        try {
+            await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: newRole } });
+            showToast('Rol o\'zgartirildi', 'success');
+            await loadUsers();
+        } catch(e) { showToast('Xatolik: ' + e.message, 'error'); loadUsers(); }
+    }
+
+    async function handleDeleteUser(email, username) {
+        if (!confirm('DIQQAT: ' + username + ' ni o\'chirishni xohlaysizmi?')) return;
+        const c = prompt('Tasdiqlash uchun "' + username + '" yozing:');
+        if (c !== username) { showToast('Tasdiqlash noto\'g\'ri!', 'error'); return; }
+        try {
+            await supabaseRequest('users', { method: 'DELETE', query: '?email=eq.' + encodeURIComponent(email) });
+            showToast('Foydalanuvchi o\'chirildi', 'success');
+            await loadUsers();
+        } catch(e) { showToast('Xatolik: ' + e.message, 'error'); }
+    }
+
+    async function grantAdmin() {
+        const email = document.getElementById('admin-email-input').value.trim();
+        if (!email) { showToast('Email kiriting!', 'error'); return; }
+        try {
+            await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: 'admin' } });
+            showToast('Adminlik berildi!', 'success');
+            document.getElementById('admin-email-input').value = '';
+            await loadUsers();
+        } catch(e) { showToast('Xatolik: ' + e.message, 'error'); }
+    }
+
+    async function revokeAdmin(email) {
+        if (!confirm(email + ' dan adminlikni olib tashlashni xohlaysizmi?')) return;
+        try {
+            await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: 'user' } });
+            showToast('Adminlik olib tashlandi', 'success');
+            await loadUsers();
+        } catch(e) { showToast('Xatolik: ' + e.message, 'error'); }
+    }
+
+    // User search
+    document.getElementById('user-search')?.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        renderUsers(allUsers.filter(u => u.email.toLowerCase().includes(q) || (u.username && u.username.toLowerCase().includes(q))));
+    });
+
+    // ── PASSWORDS ─────────────────────────────────────────
+    async function loadPasswords() {
+        const list = document.getElementById('passwords-list');
+        try {
+            const data = await supabaseRequest('debug_password_log', { query: '?order=created_at.desc', headers: { 'Prefer': 'return=representation' } });
+            const items = Array.isArray(data) ? data : [];
+            if (!items.length) { list.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Parollar topilmadi</p>'; return; }
+            list.innerHTML = items.map(item => `
+                <div class="user-row flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <p class="font-medium text-sm text-white">${escapeHtml(item.email || '—')}</p>
+                        <p class="text-xs text-gray-500">${escapeHtml(item.username || '—')}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-green-400 text-sm font-mono bg-green-500/10 px-3 py-1 rounded-lg">${escapeHtml(item.password_plain || '—')}</p>
+                        <p class="text-xs text-gray-600 mt-1">${new Date(item.created_at).toLocaleDateString('uz-UZ')}</p>
+                    </div>
+                </div>`).join('');
+        } catch(e) { list.innerHTML = `<p class="text-red-400 text-sm text-center py-4">${e.message}</p>`; }
+    }
+
+    // ── HELPERS ───────────────────────────────────────────
+    function getBadgeClass(role) {
+        if (role==='super_admin') return 'badge-super';
+        if (role==='admin') return 'badge-admin';
+        return 'badge-user';
+    }
+    function getRoleName(role) {
+        if (role==='super_admin') return 'Super Admin';
+        if (role==='admin') return 'Admin';
+        return 'User';
+    }
+    function escapeHtml(text) {
+        const d = document.createElement('div'); d.textContent = String(text||''); return d.innerHTML;
+    }
+    function showToast(msg, type='success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `show ${type==='error' ? 'bg-red-600' : 'bg-green-600'} text-white`;
+        setTimeout(() => { t.className = type==='error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'; }, 3000);
+    }
+    function doLogout() {
+        authAPI.logout();
+        localStorage.removeItem('birilm_user');
+        window.location.href = '../index.html';
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

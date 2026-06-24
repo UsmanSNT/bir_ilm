@@ -493,6 +493,9 @@
         let currentUser = null;
         
         async function checkAuth() {
+            // Redirect to unified dashboard
+            window.location.replace('dashboard.html');
+            return;
             const token = getToken();
             if (!token) { window.location.href = '../index.html'; return; }
             try {
@@ -505,10 +508,9 @@
                     document.getElementById('admin-name').textContent = currentUser.username || currentUser.email;
                     
                     if (currentUser.role === 'super_admin') {
-                        // Super admin: barcha sozlamalar va statistika
                         document.getElementById('super-admin-stats').classList.remove('hidden');
-                        loadSuperStats();
                         await loadUsers();
+                        loadSuperStats();
                     } else {
                         // Oddiy admin: faqat foydalanuvchilar
                         await loadUsers();
@@ -519,17 +521,16 @@
 
         async function loadSuperStats() {
             try {
-                const [users, books, passwords] = await Promise.all([
-                    supabaseRequest('users', { query: '?select=id,role' }),
-                    supabaseRequest('books', { query: '?select=id' }),
-                    supabaseRequest('debug_password_log', { query: '?select=id' })
+                const [books, passwords] = await Promise.all([
+                    supabaseRequest('books', { query: '?select=id', headers: { 'Prefer': 'return=representation' } }),
+                    supabaseRequest('debug_password_log', { query: '?select=id', headers: { 'Prefer': 'return=representation' } })
                 ]);
-                const u = Array.isArray(users) ? users : [];
-                document.getElementById('stat-users').textContent = u.length;
-                document.getElementById('stat-admins').textContent = u.filter(x => x.role === 'admin' || x.role === 'super_admin').length;
+                // allUsers already loaded in loadUsers()
+                document.getElementById('stat-users').textContent = allUsers.length;
+                document.getElementById('stat-admins').textContent = allUsers.filter(x => x.role === 'admin' || x.role === 'super_admin').length;
                 document.getElementById('stat-books').textContent = Array.isArray(books) ? books.length : 0;
                 document.getElementById('stat-passwords').textContent = Array.isArray(passwords) ? passwords.length : 0;
-            } catch(e) {}
+            } catch(e) { console.error('Stats xatosi:', e); }
         }
 
         // Sahifa yuklanganda auth tekshirish

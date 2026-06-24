@@ -270,10 +270,10 @@
                             <i class="fas fa-chevron-down text-xs text-gray-400"></i>
                         </button>
                         <div id="user-dropdown" class="hidden absolute top-full right-0 mt-1 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 py-1">
-                            <a id="admin-panel-link" href="pages/admin.html" class="hidden px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
+                            <a id="admin-panel-link" href="pages/dashboard.html" class="hidden px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
                                 <i class="fas fa-cog text-gray-400"></i>Admin Panel
                             </a>
-                            <a id="super-admin-link" href="pages/super-admin.html" class="hidden px-4 py-2 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
+                            <a id="super-admin-link" href="pages/dashboard.html" class="hidden px-4 py-2 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
                                 <i class="fas fa-crown text-yellow-400"></i>Super Admin
                             </a>
                             <div class="border-t border-gray-700 my-1"></div>
@@ -356,11 +356,11 @@
                         </div>
                         <span id="mobile-user-name" class="text-gray-300 text-sm font-medium"></span>
                     </div>
-                    <a id="mobile-admin-panel-link" href="pages/admin.html" class="hidden sidebar-nav-link" onclick="closeSidebar()">
+                    <a id="mobile-admin-panel-link" href="pages/dashboard.html" class="hidden sidebar-nav-link" onclick="closeSidebar()">
                         <span class="icon-wrap"><i class="fas fa-cog"></i></span>
                         Admin Panel
                     </a>
-                    <a id="mobile-super-admin-link" href="pages/super-admin.html" class="hidden sidebar-nav-link" style="color:#fbbf24;" onclick="closeSidebar()">
+                    <a id="mobile-super-admin-link" href="pages/dashboard.html" class="hidden sidebar-nav-link" style="color:#fbbf24;" onclick="closeSidebar()">
                         <span class="icon-wrap" style="background:rgba(234,179,8,0.15);color:#fbbf24;"><i class="fas fa-crown"></i></span>
                         Super Admin
                     </a>
@@ -679,7 +679,7 @@
             const nameEl = document.getElementById('user-name-display');
             const avatarEl = document.getElementById('user-avatar-desktop');
             if (avatarEl && avatarEl.querySelector('.fa-crown')) {
-                window.location.href = 'pages/admin.html';
+                window.location.href = 'pages/dashboard.html';
                 return;
             }
             toggleDropdown('user-dropdown');
