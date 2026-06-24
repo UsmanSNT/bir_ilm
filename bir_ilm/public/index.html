@@ -237,32 +237,51 @@
                 </a>
 
                 <!-- Katta ekran navigatsiyasi -->
-                <nav class="hidden md:flex items-center space-x-1">
-                    <a href="#home" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">Bosh Sahifa</a>
-                    <a href="/" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">
-                        <i class="fas fa-gamepad mr-1"></i>Quiz
-                    </a>
-                    <a href="pages/pomodor.html" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">Pomodor</a>
-                    <a href="#reviews" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">Kitoblar Taqrizi</a>
-                    <a id="all-reviews-link" href="pages/user.html" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">Barcha Taqrizlar</a>
-                    <a href="#contact" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">Aloqa</a>
-                    <span id="auth-buttons" class="flex items-center space-x-1">
-                        <a href="pages/login.html" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">
+                <nav class="hidden md:flex items-center gap-1">
+                    <a href="#home" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition whitespace-nowrap">Bosh Sahifa</a>
+                    <a href="/" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition whitespace-nowrap"><i class="fas fa-gamepad mr-1"></i>Quiz</a>
+                    <a href="pages/pomodor.html" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition whitespace-nowrap">Pomodor</a>
+                    <!-- Taqrizlar dropdown -->
+                    <div class="relative" id="reviews-dropdown-wrap">
+                        <button onclick="toggleDropdown('reviews-dropdown')" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition whitespace-nowrap flex items-center gap-1">
+                            Taqrizlar <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div id="reviews-dropdown" class="hidden absolute top-full left-0 mt-1 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 py-1">
+                            <a href="#reviews" onclick="closeDropdown('reviews-dropdown')" class="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg mx-1">
+                                <i class="fas fa-book-open mr-2 text-green-400"></i>Kitoblar Taqrizi
+                            </a>
+                            <a id="all-reviews-link" href="pages/user.html" onclick="closeDropdown('reviews-dropdown')" class="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg mx-1">
+                                <i class="fas fa-list mr-2 text-blue-400"></i>Barcha Taqrizlar
+                            </a>
+                        </div>
+                    </div>
+                    <a href="#contact" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition whitespace-nowrap">Aloqa</a>
+                    <!-- Auth: login -->
+                    <span id="auth-buttons" class="flex items-center ml-2">
+                        <a href="pages/login.html" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap">
                             <i class="fas fa-sign-in-alt mr-1"></i>Kirish
                         </a>
                     </span>
-                    <span id="user-menu" class="hidden flex items-center space-x-1">
-                        <span id="user-name-display" class="text-gray-300 text-xs whitespace-nowrap"></span>
-                        <a id="admin-panel-link" href="pages/admin.html" class="hidden text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">
-                            <i class="fas fa-cog mr-1"></i>Admin Panel
-                        </a>
-                        <a id="super-admin-link" href="pages/super-admin.html" class="hidden text-yellow-400 hover:text-yellow-300 px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">
-                            <i class="fas fa-crown mr-1"></i>Super Admin
-                        </a>
-                        <button id="logout-btn" class="text-gray-300 hover:text-white px-2 py-2 rounded-md text-xs font-medium transition duration-150 whitespace-nowrap">
-                            <i class="fas fa-sign-out-alt mr-1"></i>Chiqish
+                    <!-- Auth: user dropdown -->
+                    <div id="user-menu" class="hidden relative ml-2" id="user-dropdown-wrap">
+                        <button onclick="toggleDropdown('user-dropdown')" id="user-dropdown-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition">
+                            <div id="user-avatar-desktop" class="w-7 h-7 rounded-full bg-green-600/40 flex items-center justify-center text-xs font-bold text-green-300">U</div>
+                            <span id="user-name-display" class="text-white text-sm font-medium whitespace-nowrap"></span>
+                            <i class="fas fa-chevron-down text-xs text-gray-400"></i>
                         </button>
-                    </span>
+                        <div id="user-dropdown" class="hidden absolute top-full right-0 mt-1 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 py-1">
+                            <a id="admin-panel-link" href="pages/admin.html" class="hidden px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
+                                <i class="fas fa-cog text-gray-400"></i>Admin Panel
+                            </a>
+                            <a id="super-admin-link" href="pages/super-admin.html" class="hidden px-4 py-2 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
+                                <i class="fas fa-crown text-yellow-400"></i>Super Admin
+                            </a>
+                            <div class="border-t border-gray-700 my-1"></div>
+                            <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
+                                <i class="fas fa-sign-out-alt"></i>Chiqish
+                            </button>
+                        </div>
+                    </div>
                 </nav>
 
                 <!-- Burger menyu tugmasi (Kichik ekran uchun) -->
@@ -638,6 +657,22 @@
         }
 
         // User menu ko'rsatish/yashirish
+        // Dropdown helpers
+        function toggleDropdown(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+        function closeDropdown(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        }
+        document.addEventListener('click', (e) => {
+            ['reviews-dropdown','user-dropdown'].forEach(id => {
+                const dropdown = document.getElementById(id);
+                const wrap = dropdown && dropdown.closest('.relative');
+                if (dropdown && wrap && !wrap.contains(e.target)) dropdown.classList.add('hidden');
+            });
+        });
+
         function updateUserMenu() {
             const token = getToken();
             const authButtons = document.getElementById('auth-buttons');
@@ -654,46 +689,61 @@
             if (token) {
                 authAPI.getMe().then(result => {
                     if (result.success) {
+                        const user = result.user;
+                        const isSuperAdmin = user.role === 'super_admin';
+
                         authButtons.classList.add('hidden');
                         userMenu.classList.remove('hidden');
                         mobileAuth.classList.add('hidden');
                         mobileUser.classList.remove('hidden');
-                        userNameDisplay.textContent = result.user.username;
-                        mobileUserName.textContent = result.user.username;
-                        
-                        // Admin bo'lsa, admin panel linkini ko'rsatish
-                        if (result.user.role === 'admin' || result.user.role === 'super_admin') {
-                            adminPanelLink.classList.remove('hidden');
-                            mobileAdminPanelLink.classList.remove('hidden');
-                        } else {
-                            adminPanelLink.classList.add('hidden');
-                            mobileAdminPanelLink.classList.add('hidden');
+                        userNameDisplay.textContent = user.username;
+                        mobileUserName.textContent = user.username;
+
+                        // Desktop avatar + super admin style
+                        const avatarEl = document.getElementById('user-avatar-desktop');
+                        if (avatarEl) {
+                            if (isSuperAdmin) {
+                                avatarEl.innerHTML = '<i class="fas fa-crown text-yellow-400 text-xs"></i>';
+                                avatarEl.className = 'w-7 h-7 rounded-full bg-yellow-500/20 ring-1 ring-yellow-500 flex items-center justify-center';
+                                userNameDisplay.className = 'text-yellow-400 text-sm font-semibold whitespace-nowrap';
+                                // Super admin bosilganda to'g'ridan super-admin paneliga o'tish
+                                const btn = document.getElementById('user-dropdown-btn');
+                                if (btn) {
+                                    btn.onclick = (e) => { e.stopPropagation(); window.location.href = 'pages/super-admin.html'; };
+                                }
+                            } else {
+                                avatarEl.textContent = (user.username || 'U').charAt(0).toUpperCase();
+                                avatarEl.className = 'w-7 h-7 rounded-full bg-green-600/40 flex items-center justify-center text-xs font-bold text-green-300';
+                            }
                         }
-                        
-                        // Super Admin bo'lsa, super admin linkini ko'rsatish
+
+                        if (user.role === 'admin' || isSuperAdmin) {
+                            if (adminPanelLink) adminPanelLink.classList.remove('hidden');
+                            if (mobileAdminPanelLink) mobileAdminPanelLink.classList.remove('hidden');
+                        } else {
+                            if (adminPanelLink) adminPanelLink.classList.add('hidden');
+                            if (mobileAdminPanelLink) mobileAdminPanelLink.classList.add('hidden');
+                        }
+
                         const superAdminLink = document.getElementById('super-admin-link');
                         const mobileSuperAdminLink = document.getElementById('mobile-super-admin-link');
-                        if (result.user.role === 'super_admin') {
+                        if (isSuperAdmin) {
                             if (superAdminLink) superAdminLink.classList.remove('hidden');
                             if (mobileSuperAdminLink) mobileSuperAdminLink.classList.remove('hidden');
                         } else {
                             if (superAdminLink) superAdminLink.classList.add('hidden');
                             if (mobileSuperAdminLink) mobileSuperAdminLink.classList.add('hidden');
                         }
-                        
-                        // Barcha Taqrizlar linkini ko'rsatish
+
                         if (allReviewsLink) allReviewsLink.classList.remove('hidden');
                         if (mobileAllReviewsLink) mobileAllReviewsLink.classList.remove('hidden');
                     }
-                }).catch(() => {
-                    removeToken();
-                });
+                }).catch(() => { removeToken(); });
             } else {
                 authButtons.classList.remove('hidden');
                 userMenu.classList.add('hidden');
                 mobileAuth.classList.remove('hidden');
                 mobileUser.classList.add('hidden');
-                // Ro'yxatdan o'tmagan foydalanuvchilar uchun ham "Barcha Taqrizlar" ko'rinishi kerak
                 if (allReviewsLink) allReviewsLink.classList.remove('hidden');
                 if (mobileAllReviewsLink) mobileAllReviewsLink.classList.remove('hidden');
             }

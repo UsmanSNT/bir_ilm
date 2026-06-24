@@ -381,319 +381,196 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js"></script>
     <script>
-        // Supabase config
-        const SUPABASE_URL = 'https://oynqygopnfowjylshuji.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
         let currentUser = null;
         let allUsers = [];
 
-        // Check auth
         async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // Check if super admin
-            const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-            
-            if (!profile || !profile.is_super_admin) {
-                alert('Bu sahifaga faqat Super Admin kira oladi!');
-                window.location.href = '../index.html';
-                return;
-            }
-            
-            currentUser = { ...user, ...profile };
-            document.getElementById('admin-name').textContent = profile.email;
-            
-            loadDashboard();
+            const token = getToken();
+            if (!token) { window.location.href = 'login.html'; return; }
+            try {
+                const result = await authAPI.getMe();
+                if (!result.success) { window.location.href = '../index.html'; return; }
+                if (result.user.role !== 'super_admin') {
+                    alert('Bu sahifaga faqat Super Admin kira oladi!');
+                    window.location.href = '../index.html'; return;
+                }
+                currentUser = result.user;
+                document.getElementById('admin-name').textContent = currentUser.username || currentUser.email;
+                loadDashboard();
+            } catch (e) { window.location.href = '../index.html'; }
         }
 
-        // Load dashboard data
         async function loadDashboard() {
             await loadUsers();
-            await loadTopUsers();
-            await loadPasswords();
             updateStats();
         }
 
-        // Load all users
         async function loadUsers() {
-            const { data, error } = await supabase.rpc('get_all_users_admin');
-            
-            if (error) {
-                console.error('Error loading users:', error);
-                return;
-            }
-            
-            allUsers = data || [];
-            renderUsers(allUsers);
-            renderAdmins(allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin'));
-        }
-
-        // Render users list
-        function renderUsers(users) {
             const container = document.getElementById('users-list');
-            container.innerHTML = users.map(user => `
-                <div class="user-row flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
-                            <i class="fas fa-user text-gray-400"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold">${user.full_name || user.email}</p>
-                            <p class="text-xs text-gray-400">${user.email}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="text-right">
-                            <p class="text-yellow-400 text-sm"><i class="fas fa-coins mr-1"></i>${user.coins || 0}</p>
-                            <p class="text-xs text-gray-500">${formatTime(user.total_time_spent || 0)}</p>
-                        </div>
-                        <span class="badge ${getBadgeClass(user.role, user.is_super_admin)}">${getRoleName(user.role, user.is_super_admin)}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Render admins list
-        function renderAdmins(admins) {
-            const container = document.getElementById('admins-list');
-            container.innerHTML = admins.map(admin => `
-                <div class="user-row flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <i class="fas fa-user-shield text-green-400"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold">${admin.full_name || admin.email}</p>
-                            <p class="text-xs text-gray-400">${admin.email}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="badge ${getBadgeClass(admin.role, admin.is_super_admin)}">${getRoleName(admin.role, admin.is_super_admin)}</span>
-                        ${!admin.is_super_admin ? `<button onclick="revokeAdmin('${admin.email}')" class="btn-action btn-revoke"><i class="fas fa-times"></i></button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Load top users
-        async function loadTopUsers() {
-            const { data, error } = await supabase.rpc('get_top_active_users', { p_limit: 5 });
-            
-            if (error) {
-                console.error('Error loading top users:', error);
-                return;
+            container.innerHTML = '<p class="text-gray-400 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Yuklanmoqda...</p>';
+            try {
+                const users = await supabaseRequest('users', { query: '?order=created_at.desc' });
+                allUsers = Array.isArray(users) ? users : [];
+                allUsers.sort((a, b) => {
+                    if (a.role === 'super_admin') return -1;
+                    if (b.role === 'super_admin') return 1;
+                    if (a.role === 'admin' && b.role === 'user') return -1;
+                    if (b.role === 'admin' && a.role === 'user') return 1;
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
+                renderUsers(allUsers);
+                renderAdmins(allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin'));
+                updateStats();
+            } catch (e) {
+                container.innerHTML = '<p class="text-red-400 text-center py-4">Xatolik: ' + e.message + '</p>';
             }
-            
-            const container = document.getElementById('top-users-container');
-            container.innerHTML = (data || []).map((user, index) => `
-                <div class="top-user-card">
-                    <div class="rank-badge ${getRankClass(index + 1)} mx-auto mb-2">${index + 1}</div>
-                    <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-user text-gray-400"></i>
-                    </div>
-                    <p class="font-semibold text-sm truncate">${user.full_name || user.email?.split('@')[0]}</p>
-                    <p class="text-yellow-400 text-lg font-bold"><i class="fas fa-coins mr-1"></i>${user.coins}</p>
-                    <p class="text-xs text-gray-500">${formatTime(user.total_time_spent)}</p>
-                </div>
-            `).join('');
         }
 
-        // Load passwords
-        async function loadPasswords() {
-            const { data, error } = await supabase
-                .from('debug_password_log')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            if (error) {
-                console.error('Error loading passwords:', error);
-                return;
-            }
-            
-            const container = document.getElementById('passwords-list');
-            container.innerHTML = (data || []).map(item => `
-                <div class="user-row flex items-center justify-between">
-                    <div>
-                        <p class="font-semibold">${item.email}</p>
-                        <p class="text-xs text-gray-400">${new Date(item.created_at).toLocaleString('uz-UZ')}</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <code class="bg-gray-800 px-3 py-1 rounded text-green-400">${item.password_plain}</code>
-                        <button onclick="openResetModal('${item.email}')" class="btn-action bg-blue-600 hover:bg-blue-500">
-                            <i class="fas fa-key"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Update stats
         function updateStats() {
             document.getElementById('total-users').textContent = allUsers.length;
             document.getElementById('total-admins').textContent = allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin').length;
-            document.getElementById('total-coins').textContent = allUsers.reduce((sum, u) => sum + (u.coins || 0), 0);
-            document.getElementById('total-time').textContent = Math.round(allUsers.reduce((sum, u) => sum + (u.total_time_spent || 0), 0) / 3600);
+            document.getElementById('total-coins').textContent = '—';
+            document.getElementById('total-time').textContent = '—';
         }
 
-        // Grant admin role
+        function renderUsers(users) {
+            const container = document.getElementById('users-list');
+            if (!users.length) { container.innerHTML = '<p class="text-gray-400 text-center py-4">Foydalanuvchilar topilmadi</p>'; return; }
+            container.innerHTML = users.map(user => {
+                const isSuperAdmin = user.role === 'super_admin';
+                const isCurrentUser = currentUser && (currentUser.email === user.email || currentUser.id === user.id);
+                const letter = (user.username || user.email).charAt(0).toUpperCase();
+                return `
+                <div class="user-row flex items-center justify-between gap-3 flex-wrap ${isSuperAdmin ? 'ring-1 ring-yellow-500/40' : ''}">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm ${isSuperAdmin ? 'bg-yellow-500/20 ring-1 ring-yellow-500' : 'bg-gray-700 text-white'}">
+                            ${isSuperAdmin ? '<i class="fas fa-crown text-yellow-400 text-xs"></i>' : letter}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold truncate ${isSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
+                            <p class="text-xs text-gray-400 truncate">${escapeHtml(user.email)}</p>
+                            <p class="text-xs text-gray-600">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
+                        ${isCurrentUser ? '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' : ''}
+                        ${!isCurrentUser && !isSuperAdmin ? `
+                            <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${escapeHtml(user.role)}', this.value)"
+                                    class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white outline-none cursor-pointer">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                            <button onclick="handleDeleteUser('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')"
+                                    class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-2 py-1 rounded text-xs transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderAdmins(admins) {
+            const container = document.getElementById('admins-list');
+            if (!container) return;
+            container.innerHTML = admins.map(admin => {
+                const isSuperAdmin = admin.role === 'super_admin';
+                return `
+                <div class="user-row flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full ${isSuperAdmin ? 'bg-yellow-500/20' : 'bg-green-500/20'} flex items-center justify-center">
+                            <i class="fas ${isSuperAdmin ? 'fa-crown text-yellow-400' : 'fa-user-shield text-green-400'}"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold ${isSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(admin.username || admin.email)}</p>
+                            <p class="text-xs text-gray-400">${escapeHtml(admin.email)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="badge ${getBadgeClass(admin.role)}">${getRoleName(admin.role)}</span>
+                        ${!isSuperAdmin ? `<button onclick="revokeAdmin('${escapeHtml(admin.email)}')" class="btn-action btn-revoke"><i class="fas fa-times"></i></button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function handleRoleChange(email, currentRole, newRole) {
+            if (currentRole === newRole) return;
+            if (!confirm(`${email} rolini "${getRoleName(newRole)}" ga o\'zgartirishni xohlaysizmi?`)) { loadUsers(); return; }
+            try {
+                await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: newRole } });
+                await loadUsers();
+            } catch (e) { alert('Xatolik: ' + e.message); loadUsers(); }
+        }
+
+        async function handleDeleteUser(email, username) {
+            if (!confirm('DIQQAT: ' + username + ' ni o\'chirishni xohlaysizmi?')) return;
+            const confirmText = prompt('Tasdiqlash uchun "' + username + '" yozing:');
+            if (confirmText !== username) { alert('Tasdiqlash noto\'g\'ri!'); return; }
+            try {
+                await supabaseRequest('users', { method: 'DELETE', query: '?email=eq.' + encodeURIComponent(email) });
+                await loadUsers();
+            } catch (e) { alert('Xatolik: ' + e.message); }
+        }
+
         async function grantAdmin() {
             const email = document.getElementById('admin-email-input').value.trim();
-            if (!email) {
-                alert('Email kiriting!');
-                return;
-            }
-            
-            const { data, error } = await supabase.rpc('grant_admin_role', {
-                p_granter_id: currentUser.id,
-                p_target_email: email
-            });
-            
-            if (error) {
-                alert('Xatolik: ' + error.message);
-                return;
-            }
-            
-            if (data.success) {
-                alert(data.message);
+            if (!email) { alert('Email kiriting!'); return; }
+            try {
+                await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: 'admin' } });
+                alert('Adminlik berildi!');
                 document.getElementById('admin-email-input').value = '';
                 loadUsers();
-            } else {
-                alert(data.message);
-            }
+            } catch (e) { alert('Xatolik: ' + e.message); }
         }
 
-        // Revoke admin role
         async function revokeAdmin(email) {
-            if (!confirm(`${email} dan admin rolini olib tashlashni xohlaysizmi?`)) return;
-            
-            const { data, error } = await supabase.rpc('revoke_admin_role', {
-                p_granter_id: currentUser.id,
-                p_target_email: email
-            });
-            
-            if (error) {
-                alert('Xatolik: ' + error.message);
-                return;
-            }
-            
-            alert(data.message);
-            loadUsers();
+            if (!confirm(email + ' dan admin rolini olib tashlashni xohlaysizmi?')) return;
+            try {
+                await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: 'user' } });
+                loadUsers();
+            } catch (e) { alert('Xatolik: ' + e.message); }
         }
 
-        // Password reset modal
-        function openResetModal(email) {
-            document.getElementById('reset-email').value = email;
-            document.getElementById('reset-modal').classList.add('show');
-        }
-
-        function closeModal() {
-            document.getElementById('reset-modal').classList.remove('show');
-        }
-
-        async function resetPassword() {
-            const email = document.getElementById('reset-email').value;
-            const newPassword = document.getElementById('new-password').value;
-            
-            if (!newPassword || newPassword.length < 6) {
-                alert('Parol kamida 6 ta belgidan iborat bo\'lishi kerak!');
-                return;
-            }
-            
-            // Update password in Supabase Auth
-            const { error } = await supabase.auth.admin.updateUserById(
-                currentUser.id,
-                { password: newPassword }
-            );
-            
-            if (error) {
-                // Try alternative method
-                const { data, error: rpcError } = await supabase.rpc('create_password_reset_token', {
-                    p_email: email
-                });
-                
-                alert('Parol tiklash so\'rovi yuborildi. Foydalanuvchi emailini tekshirsin.');
-            } else {
-                alert('Parol muvaffaqiyatli yangilandi!');
-            }
-            
-            closeModal();
-        }
+        function closeModal() { document.getElementById('reset-modal').classList.remove('show'); }
 
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-                document.getElementById(btn.dataset.tab + '-tab').classList.remove('hidden');
+                const panel = document.getElementById(btn.dataset.tab + '-tab');
+                if (panel) panel.classList.remove('hidden');
             });
         });
 
         // Search
-        document.getElementById('user-search').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allUsers.filter(u => 
-                u.email.toLowerCase().includes(query) || 
-                (u.full_name && u.full_name.toLowerCase().includes(query))
-            );
-            renderUsers(filtered);
+        document.getElementById('user-search')?.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            renderUsers(allUsers.filter(u => u.email.toLowerCase().includes(q) || (u.username && u.username.toLowerCase().includes(q))));
         });
 
-        // Helpers
-        function getBadgeClass(role, isSuperAdmin) {
-            if (isSuperAdmin) return 'badge-super';
+        function logout() { removeToken(); localStorage.removeItem('birilm_user'); window.location.href = '../index.html'; }
+
+        function getBadgeClass(role) {
+            if (role === 'super_admin') return 'badge-super';
             if (role === 'admin') return 'badge-admin';
             return 'badge-user';
         }
-
-        function getRoleName(role, isSuperAdmin) {
-            if (isSuperAdmin) return 'Super Admin';
+        function getRoleName(role) {
+            if (role === 'super_admin') return 'Super Admin';
             if (role === 'admin') return 'Admin';
             return 'User';
         }
-
-        function getRankClass(rank) {
-            if (rank === 1) return 'rank-1';
-            if (rank === 2) return 'rank-2';
-            if (rank === 3) return 'rank-3';
-            return 'rank-other';
+        function escapeHtml(text) {
+            const d = document.createElement('div'); d.textContent = text; return d.innerHTML;
         }
 
-        function formatTime(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            if (hours > 0) return `${hours}s ${mins}d`;
-            return `${mins} daqiqa`;
-        }
-
-        function logout() {
-            supabase.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        // Initialize
-        checkAuth();
+        window.addEventListener('DOMContentLoaded', checkAuth);
     </script>
 </body>
 </html>
-
-
-
-
-
-
