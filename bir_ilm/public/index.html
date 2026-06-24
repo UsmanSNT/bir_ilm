@@ -264,7 +264,7 @@
                     </span>
                     <!-- Auth: user dropdown -->
                     <div id="user-menu" class="hidden relative ml-2" id="user-dropdown-wrap">
-                        <button onclick="toggleDropdown('user-dropdown')" id="user-dropdown-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition">
+                        <button onclick="handleUserBtnClick(event)" id="user-dropdown-btn" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition">
                             <div id="user-avatar-desktop" class="w-7 h-7 rounded-full bg-green-600/40 flex items-center justify-center text-xs font-bold text-green-300">U</div>
                             <span id="user-name-display" class="text-white text-sm font-medium whitespace-nowrap"></span>
                             <i class="fas fa-chevron-down text-xs text-gray-400"></i>
@@ -672,6 +672,18 @@
                 if (dropdown && wrap && !wrap.contains(e.target)) dropdown.classList.add('hidden');
             });
         });
+
+        function handleUserBtnClick(e) {
+            e.stopPropagation();
+            // Super admin -> to'g'ridan admin panel
+            const nameEl = document.getElementById('user-name-display');
+            const avatarEl = document.getElementById('user-avatar-desktop');
+            if (avatarEl && avatarEl.querySelector('.fa-crown')) {
+                window.location.href = 'pages/admin.html';
+                return;
+            }
+            toggleDropdown('user-dropdown');
+        }
 
         function updateUserMenu() {
             const token = getToken();

@@ -130,10 +130,16 @@
                         BIR ILM
                     </h1>
                 </a>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center gap-3">
                     <span class="text-sm text-gray-300" id="user-name"></span>
-                    <button id="logout-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Chiqish
+                    <button id="admin-write-btn" onclick="toggleWriteSection()" class="hidden px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm font-medium transition">
+                        <i class="fas fa-pen mr-1"></i><span class="hidden sm:inline">Taqriz yoz</span>
+                    </button>
+                    <a id="admin-panel-btn" href="admin.html" class="hidden px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm font-medium transition">
+                        <i class="fas fa-cog mr-1"></i><span class="hidden sm:inline">Panel</span>
+                    </a>
+                    <button id="logout-btn" class="px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition">
+                        <i class="fas fa-sign-out-alt mr-1"></i><span class="hidden sm:inline">Chiqish</span>
                     </button>
                 </div>
             </div>
@@ -164,6 +170,71 @@
                 <button id="search-btn" class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition">
                     <i class="fas fa-search mr-2"></i>Qidirish
                 </button>
+            </div>
+        </div>
+
+        <!-- Admin: Taqriz yozish (faqat admin uchun) -->
+        <div id="admin-write-section" class="hidden mb-8">
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-green-400">
+                        <i class="fas fa-pen mr-2"></i>Yangi Taqriz Yozish
+                    </h2>
+                    <button onclick="toggleWriteForm()" class="text-gray-400 hover:text-white transition">
+                        <i class="fas fa-chevron-up" id="write-form-icon"></i>
+                    </button>
+                </div>
+                <div id="write-form-body">
+                <form id="review-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Kitob nomi *</label>
+                            <input type="text" id="book-title" class="w-full px-4 py-3 rounded-lg bg-gray-800/60 border border-gray-700 text-white placeholder-gray-500 outline-none focus:border-green-500" placeholder="Kitob nomini kiriting" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Muallif *</label>
+                            <input type="text" id="book-author" class="w-full px-4 py-3 rounded-lg bg-gray-800/60 border border-gray-700 text-white placeholder-gray-500 outline-none focus:border-green-500" placeholder="Muallif nomini kiriting" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Taqriz matni *</label>
+                        <textarea id="review-text" rows="5" class="w-full px-4 py-3 rounded-lg bg-gray-800/60 border border-gray-700 text-white placeholder-gray-500 outline-none focus:border-green-500 resize-none" placeholder="Kitob haqida taqrizingizni yozing..." required></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Baholash</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="book-rating" min="1" max="5" value="5" class="flex-1">
+                            <span id="rating-display" class="text-xl text-yellow-400">★★★★★</span>
+                            <span class="text-sm text-gray-400" id="rating-value">5</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Hashtaglar (ixtiyoriy)</label>
+                        <input type="text" id="book-hashtags" class="w-full px-4 py-3 rounded-lg bg-gray-800/60 border border-gray-700 text-white placeholder-gray-500 outline-none focus:border-green-500" placeholder="#kitob, #adabiyot, #roman">
+                        <div id="hashtags-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Kitob surati</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="file" id="book-image-file" accept="image/*" class="hidden">
+                            <button type="button" onclick="document.getElementById('book-image-file').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition">
+                                <i class="fas fa-upload mr-2"></i>Fayl tanlash
+                            </button>
+                            <span id="selected-file-name" class="text-sm text-gray-400 self-center"></span>
+                        </div>
+                        <input type="text" id="book-image-url" class="w-full px-4 py-3 rounded-lg bg-gray-800/60 border border-gray-700 text-white placeholder-gray-500 outline-none focus:border-green-500" placeholder="Yoki rasm URL manzilini kiriting (ixtiyoriy)">
+                        <div id="image-preview" class="mt-2 hidden">
+                            <img id="preview-img" src="" alt="Preview" class="max-w-xs h-32 object-cover rounded-lg">
+                            <button type="button" onclick="clearImageForm()" class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs">
+                                <i class="fas fa-times mr-1"></i>Olib tashlash
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" id="submit-btn" class="w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition">
+                        <i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish
+                    </button>
+                </form>
+                </div>
             </div>
         </div>
 
@@ -202,17 +273,130 @@
                     if (result.success) {
                         currentUser = result.user;
                         document.getElementById('user-name').textContent = currentUser.username;
-                    } else {
-                        removeToken();
-                    }
-                } catch (error) {
-                    removeToken();
-                }
+                        const isAdmin = currentUser.role === 'admin' || currentUser.role === 'super_admin';
+                        if (isAdmin) {
+                            document.getElementById('admin-write-btn').classList.remove('hidden');
+                            document.getElementById('admin-panel-btn').classList.remove('hidden');
+                            document.getElementById('admin-write-section').classList.remove('hidden');
+                        }
+                    } else { removeToken(); }
+                } catch (error) { removeToken(); }
             }
-            // Agar token bo'lmasa ham, sahifa ochiq bo'ladi (barcha uchun)
         }
 
         checkAuth();
+
+        // Write form toggle
+        function toggleWriteSection() {
+            const section = document.getElementById('admin-write-section');
+            section.classList.toggle('hidden');
+            if (!section.classList.contains('hidden')) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function toggleWriteForm() {
+            const body = document.getElementById('write-form-body');
+            const icon = document.getElementById('write-form-icon');
+            body.classList.toggle('hidden');
+            icon.className = body.classList.contains('hidden') ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+        }
+
+        // Rating slider
+        document.getElementById('book-rating')?.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value);
+            document.getElementById('rating-value').textContent = v;
+            document.getElementById('rating-display').textContent = '★'.repeat(v) + '☆'.repeat(5 - v);
+        });
+
+        // Hashtag preview
+        document.getElementById('book-hashtags')?.addEventListener('input', () => {
+            const val = document.getElementById('book-hashtags').value;
+            const tags = val.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+            document.getElementById('hashtags-preview').innerHTML = tags.map(t =>
+                `<span class="inline-block bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/30">#${t}</span>`
+            ).join('');
+        });
+
+        // Image file
+        document.getElementById('book-image-file')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('selected-file-name').textContent = file.name;
+                document.getElementById('book-image-url').value = '';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('book-image-url')?.addEventListener('input', (e) => {
+            if (e.target.value.trim()) {
+                document.getElementById('preview-img').src = e.target.value.trim();
+                document.getElementById('image-preview').classList.remove('hidden');
+            } else {
+                document.getElementById('image-preview').classList.add('hidden');
+            }
+        });
+
+        function clearImageForm() {
+            document.getElementById('book-image-file').value = '';
+            document.getElementById('book-image-url').value = '';
+            document.getElementById('selected-file-name').textContent = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        }
+
+        // Submit form
+        let editingBookId = null;
+        document.getElementById('review-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const review = document.getElementById('review-text').value.trim();
+            const rating = parseInt(document.getElementById('book-rating').value);
+            const imageFile = document.getElementById('book-image-file').files[0];
+            const imageUrl = document.getElementById('book-image-url').value.trim();
+            const hashtagsRaw = document.getElementById('book-hashtags').value.trim();
+            const hashtags = hashtagsRaw ? hashtagsRaw.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : [];
+            const btn = document.getElementById('submit-btn');
+
+            if (!title || !author || !review) { showAlert('Barcha maydonlarni to'ldiring!'); return; }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saqlanmoqda...';
+
+            try {
+                let finalImageUrl = imageUrl;
+                if (imageFile) {
+                    const up = await booksAPI.uploadImage(imageFile);
+                    if (up.success) finalImageUrl = up.image_url;
+                }
+                let result;
+                if (editingBookId) {
+                    result = await booksAPI.update(editingBookId, title, author, review, rating, finalImageUrl || '', hashtags);
+                } else {
+                    result = await booksAPI.create(title, author, review, rating, finalImageUrl, hashtags);
+                }
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    document.getElementById('review-form').reset();
+                    document.getElementById('rating-display').textContent = '★★★★★';
+                    document.getElementById('rating-value').textContent = '5';
+                    document.getElementById('hashtags-preview').innerHTML = '';
+                    document.getElementById('image-preview').classList.add('hidden');
+                    editingBookId = null;
+                    btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish';
+                    loadBooks();
+                }
+            } catch (err) {
+                showAlert(err.message || 'Xatolik yuz berdi');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Taqrizni Yuborish';
+            }
+        });
 
         // Alert funksiyasi
         function showAlert(message, type = 'error') {
