@@ -503,22 +503,26 @@
                 }
             }).catch(() => {});
 
-        // Avatar default (DB avatar may override this async)
+        // Avatar default — letter, DB rasm override qiladi
         const av = document.getElementById('user-avatar');
+        const baseStyle = 'width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;overflow:hidden;';
         if (role === 'super_admin') {
-            av.innerHTML = '<i class="fas fa-crown text-yellow-400" style="font-size:28px;"></i>';
-            av.style.cssText = 'background:rgba(234,179,8,0.15);border:2px solid rgba(234,179,8,0.4);width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;';
+            av.textContent = letter;
+            av.style.cssText = baseStyle + 'background:rgba(234,179,8,0.15);border:2px solid rgba(234,179,8,0.4);color:#fbbf24;';
         } else if (role === 'admin') {
-            av.innerHTML = '<i class="fas fa-user-shield text-indigo-300" style="font-size:26px;"></i>';
-            av.style.cssText = 'background:rgba(99,102,241,0.2);border:2px solid rgba(99,102,241,0.3);width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;';
+            av.textContent = letter;
+            av.style.cssText = baseStyle + 'background:rgba(99,102,241,0.2);border:2px solid rgba(99,102,241,0.3);color:#a5b4fc;';
         } else {
             av.textContent = letter;
-            av.style.cssText = 'background:linear-gradient(135deg,rgba(16,185,129,0.25),rgba(5,150,105,0.1));border:2px solid rgba(16,185,129,0.25);width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#34d399;';
+            av.style.cssText = baseStyle + 'background:linear-gradient(135deg,rgba(16,185,129,0.25),rgba(5,150,105,0.1));border:2px solid rgba(16,185,129,0.25);color:#34d399;';
         }
 
-        // Badge
+        // Badge — toj badge yonida username ning chap tomonida
         const badge = document.getElementById('banner-badge');
-        if (role === 'super_admin') { badge.className = 'badge badge-super'; badge.textContent = 'Super Admin'; }
+        if (role === 'super_admin') {
+            badge.className = 'badge badge-super';
+            badge.innerHTML = '<i class="fas fa-crown mr-1" style="font-size:10px;"></i>Super Admin';
+        }
         else if (role === 'admin')  { badge.className = 'badge badge-admin'; badge.textContent = 'Admin'; }
         else                        { badge.className = 'badge badge-user';  badge.textContent = 'Foydalanuvchi'; }
 
@@ -915,10 +919,24 @@
 
     // ── AVATAR UPLOAD ─────────────────────────────────────
     function setAvatarImg(url) {
-        document.getElementById('user-avatar').innerHTML =
-            `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">`;
+        const imgStyle = 'width:100%;height:100%;object-fit:cover;border-radius:20px;';
+        document.getElementById('user-avatar').innerHTML = `<img src="${url}" style="${imgStyle}">`;
         document.getElementById('edit-avatar-preview').innerHTML =
             `<img src="${url}" class="w-full h-full object-cover rounded-2xl">`;
+        // Also update header avatar if exists
+        const headerAv = document.getElementById('user-avatar-desktop');
+        if (headerAv) headerAv.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        // Sidebar avatar
+        updateSidebarAvatar(url);
+        // Store in localStorage for other pages
+        if (currentUser) localStorage.setItem('birilm_avatar_' + currentUser.id, url);
+    }
+
+    function updateSidebarAvatar(url) {
+        // This is called from other pages too
+        if (url) {
+            localStorage.setItem('birilm_avatar_current', url);
+        }
     }
 
     document.getElementById('avatar-file-input')?.addEventListener('change', async (e) => {
