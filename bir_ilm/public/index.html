@@ -437,7 +437,7 @@
                     </div>
 
             <!-- Kitoblar ro'yxati -->
-            <div id="books-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="books-list" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 px-1">
                 <!-- Kitoblar bu yerda ko'rsatiladi -->
                 </div>
 
@@ -826,15 +826,15 @@
                     const dislikesCount = book.dislikes_count || 0;
                     const commentsCount = book.comments_count || 0;
                     const imageUrl = book.image_url || '';
-                    const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full object-cover rounded-t-xl" style="height:300px;" onerror="this.style.display='none'">` : '';
+                    const imageHtml = imageUrl ? `<div style="background:#111;border-radius:12px 12px 0 0;overflow:hidden;height:220px;display:flex;align-items:center;justify-content:center;"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" style="max-height:220px;max-width:100%;object-fit:contain;" onerror="this.parentElement.style.display='none'"></div>` : '';
                     const shortReview = book.review.length > 150 ? book.review.substring(0, 150) + '...' : book.review;
 
                     return `
                         <div class="book-card overflow-hidden p-0" data-book-id="${book.id}">
                             ${imageHtml}
-                            <div class="p-6">
-                            <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(book.title)}</h3>
-                            <p class="text-gray-400 mb-2">Muallif: <span class="text-white">${escapeHtml(book.author)}</span></p>
+                            <div class="p-3">
+                            <h3 class="text-base font-bold text-white mb-1">${escapeHtml(book.title)}</h3>
+                            <p class="text-gray-400 text-xs mb-1">Muallif: <span class="text-white">${escapeHtml(book.author)}</span></p>
                             <div class="flex items-center space-x-2 mb-2">
                                 <span class="star-rating">${stars}</span>
                                 <span class="text-sm text-gray-400">${displayRating.toFixed(1)}/5</span>
@@ -868,20 +868,25 @@
                                     <i class="fas fa-share-alt"></i>
                                 </button>
                             </div>
-                            <button onclick="toggleReview(${index})" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition mb-2">
-                                <i class="fas fa-chevron-down mr-2" id="icon-${index}"></i>
-                                <span id="text-${index}">Batafsil o'qish</span>
-                            </button>
                             ${token ? `
-                                <div class="flex gap-2 mt-2">
-                                    <button onclick="handleLike('${book.id}')" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm">
+                                <div class="flex gap-1 mt-2">
+                                    <button onclick="handleLike('${book.id}')" class="flex-1 px-2 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-xs">
                                         <i class="fas fa-thumbs-up mr-1"></i>Like
                                     </button>
-                                    <button onclick="handleDislike('${book.id}')" class="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm">
+                                    <button onclick="toggleReview(${index})" class="flex-1 px-2 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-xs">
+                                        <i class="fas fa-chevron-down mr-1" id="icon-${index}"></i>
+                                        <span id="text-${index}">Ko'proq</span>
+                                    </button>
+                                    <button onclick="handleDislike('${book.id}')" class="flex-1 px-2 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-xs">
                                         <i class="fas fa-thumbs-down mr-1"></i>Dislike
                                     </button>
                                 </div>
-                            ` : ''}
+                            ` : `
+                                <button onclick="toggleReview(${index})" class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-xs mt-2">
+                                    <i class="fas fa-chevron-down mr-1" id="icon-${index}"></i>
+                                    <span id="text-${index}">Ko'proq</span>
+                                </button>
+                            `}
                             </div>
                         </div>
                     `;
