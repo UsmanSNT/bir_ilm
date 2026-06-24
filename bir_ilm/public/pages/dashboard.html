@@ -184,13 +184,17 @@
                 <p class="text-xs text-gray-600 mt-1" id="banner-joined"></p>
             </div>
             <!-- Quick actions -->
-            <div class="hidden md:flex flex-col gap-2" id="banner-actions"></div>
+            <div class="hidden md:flex flex-col gap-2" id="banner-actions">
+                <button id="write-icon-btn" onclick="toggleSection('write-section')" class="hidden px-4 py-2 bg-green-600/20 hover:bg-green-600/40 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium transition">
+                    <i class="fas fa-pen mr-2"></i>Taqriz yoz
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- PERSONAL STATS -->
     <div>
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Mening faolligim</h2>
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Faolligim</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="personal-stats">
             <div class="stat-card">
                 <div class="stat-icon bg-blue-500/15 text-blue-400"><i class="fas fa-thumbs-up"></i></div>
@@ -219,32 +223,36 @@
     <div id="admin-stats-section" class="hidden">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Platforma statistikasi</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="stat-card border-blue-500/20">
+            <div class="stat-card border-blue-500/20 cursor-pointer hover:border-blue-500/50" onclick="toggleSection('users-section')">
                 <div class="stat-icon bg-blue-500/15 text-blue-400"><i class="fas fa-users"></i></div>
                 <p class="text-2xl font-bold text-white" id="plat-users">0</p>
                 <p class="text-xs text-gray-500 mt-1">Foydalanuvchilar</p>
+                <p class="text-xs text-blue-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Ko'rish</p>
             </div>
-            <div class="stat-card border-green-500/20">
+            <div class="stat-card border-green-500/20 cursor-pointer hover:border-green-500/50" onclick="toggleSection('grant-section')">
                 <div class="stat-icon pulse-green" style="background:rgba(16,185,129,0.15);color:#34d399;">
                     <i class="fas fa-user-shield"></i>
                 </div>
                 <p class="text-2xl font-bold text-green-400" id="plat-admins">0</p>
                 <p class="text-xs text-gray-500 mt-1">Adminlar</p>
+                <p class="text-xs text-green-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Boshqarish</p>
             </div>
-            <div class="stat-card border-yellow-500/20">
+            <div class="stat-card border-yellow-500/20 cursor-pointer hover:border-yellow-500/50" onclick="toggleSection('books-section')">
                 <div class="stat-icon bg-yellow-500/15 text-yellow-400"><i class="fas fa-book-open"></i></div>
                 <p class="text-2xl font-bold text-white" id="plat-books">0</p>
                 <p class="text-xs text-gray-500 mt-1">Taqrizlar</p>
+                <p class="text-xs text-yellow-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Ko'rish</p>
             </div>
-            <div class="stat-card border-purple-500/20">
+            <div class="stat-card border-purple-500/20 cursor-pointer hover:border-purple-500/50" onclick="toggleSection('passwords-section')">
                 <div class="stat-icon bg-purple-500/15 text-purple-400"><i class="fas fa-key"></i></div>
                 <p class="text-2xl font-bold text-white" id="plat-passwords">0</p>
                 <p class="text-xs text-gray-500 mt-1">Parollar</p>
+                <p class="text-xs text-purple-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Ko'rish</p>
             </div>
         </div>
     </div>
 
-    <!-- ADMIN: Taqriz yozish -->
+    <!-- ADMIN: Taqriz yozish (yashirin, icon orqali ochiladi) -->
     <div id="write-section" class="hidden section-card">
         <div class="section-header">
             <h2 class="font-semibold text-green-400 flex items-center gap-2">
@@ -412,7 +420,13 @@
         document.getElementById('header-username').textContent = u.username;
         document.getElementById('banner-username').textContent = u.username;
         document.getElementById('banner-email').textContent = u.email;
-        document.getElementById('banner-joined').textContent = 'A\'zo: ' + new Date(u.created_at).toLocaleDateString('uz-UZ');
+        // Fetch created_at separately since getMe doesn't include it
+        supabaseRequest('users', { query: `?id=eq.${u.id}&select=created_at`, headers: { 'Prefer': 'return=representation' } })
+            .then(res => {
+                if (res && res[0] && res[0].created_at) {
+                    document.getElementById('banner-joined').textContent = "A'zo: " + new Date(res[0].created_at).toLocaleDateString('uz-UZ');
+                }
+            }).catch(() => {});
 
         // Avatar
         const av = document.getElementById('user-avatar');
@@ -474,17 +488,14 @@
     async function setupRoleUI() {
         const role = currentUser.role;
         if (role === 'admin' || role === 'super_admin') {
-            document.getElementById('write-section').classList.remove('hidden');
-            document.getElementById('books-section').classList.remove('hidden');
             document.getElementById('admin-stats-section').classList.remove('hidden');
+            document.getElementById('write-icon-btn').classList.remove('hidden');
+            document.getElementById('header-write-btn').classList.remove('hidden');
             loadAdminStats();
             loadBooks();
             setupWriteForm();
         }
         if (role === 'super_admin') {
-            document.getElementById('users-section').classList.remove('hidden');
-            document.getElementById('grant-section').classList.remove('hidden');
-            document.getElementById('passwords-section').classList.remove('hidden');
             loadUsers();
             loadPasswords();
         }
@@ -807,6 +818,24 @@
                     </div>
                 </div>`).join('');
         } catch(e) { list.innerHTML = `<p class="text-red-400 text-sm text-center py-4">${e.message}</p>`; }
+    }
+
+    // ── TOGGLE SECTIONS ──────────────────────────────────
+    function toggleSection(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isHidden = el.classList.contains('hidden');
+        // Close all expandable sections first
+        ['write-section','books-section','users-section','grant-section','passwords-section'].forEach(s => {
+            const sec = document.getElementById(s);
+            if (sec && s !== id) sec.classList.add('hidden');
+        });
+        if (isHidden) {
+            el.classList.remove('hidden');
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            el.classList.add('hidden');
+        }
     }
 
     // ── HELPERS ───────────────────────────────────────────

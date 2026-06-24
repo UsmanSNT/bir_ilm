@@ -270,11 +270,8 @@
                             <i class="fas fa-chevron-down text-xs text-gray-400"></i>
                         </button>
                         <div id="user-dropdown" class="hidden absolute top-full right-0 mt-1 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-50 py-1">
-                            <a id="admin-panel-link" href="pages/dashboard.html" class="hidden px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
-                                <i class="fas fa-cog text-gray-400"></i>Admin Panel
-                            </a>
-                            <a id="super-admin-link" href="pages/dashboard.html" class="hidden px-4 py-2 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
-                                <i class="fas fa-crown text-yellow-400"></i>Super Admin
+                            <a id="admin-panel-link" href="pages/dashboard.html" class="hidden px-4 py-2 text-sm text-green-400 hover:text-green-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
+                                <i class="fas fa-tachometer-alt text-green-400"></i>Dashboard
                             </a>
                             <div class="border-t border-gray-700 my-1"></div>
                             <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg mx-1 flex items-center gap-2">
@@ -357,12 +354,8 @@
                         <span id="mobile-user-name" class="text-gray-300 text-sm font-medium"></span>
                     </div>
                     <a id="mobile-admin-panel-link" href="pages/dashboard.html" class="hidden sidebar-nav-link" onclick="closeSidebar()">
-                        <span class="icon-wrap"><i class="fas fa-cog"></i></span>
-                        Admin Panel
-                    </a>
-                    <a id="mobile-super-admin-link" href="pages/dashboard.html" class="hidden sidebar-nav-link" style="color:#fbbf24;" onclick="closeSidebar()">
-                        <span class="icon-wrap" style="background:rgba(234,179,8,0.15);color:#fbbf24;"><i class="fas fa-crown"></i></span>
-                        Super Admin
+                        <span class="icon-wrap" style="background:rgba(16,185,129,0.15);color:#34d399;"><i class="fas fa-tachometer-alt"></i></span>
+                        Dashboard
                     </a>
                     <button id="mobile-logout-btn" class="sidebar-nav-link w-full text-left" style="color:#f87171;">
                         <span class="icon-wrap" style="background:rgba(239,68,68,0.15);color:#f87171;"><i class="fas fa-sign-out-alt"></i></span>
@@ -737,15 +730,7 @@
                             if (mobileAdminPanelLink) mobileAdminPanelLink.classList.add('hidden');
                         }
 
-                        const superAdminLink = document.getElementById('super-admin-link');
-                        const mobileSuperAdminLink = document.getElementById('mobile-super-admin-link');
-                        if (isSuperAdmin) {
-                            if (superAdminLink) superAdminLink.classList.remove('hidden');
-                            if (mobileSuperAdminLink) mobileSuperAdminLink.classList.remove('hidden');
-                        } else {
-                            if (superAdminLink) superAdminLink.classList.add('hidden');
-                            if (mobileSuperAdminLink) mobileSuperAdminLink.classList.add('hidden');
-                        }
+
 
                         if (allReviewsLink) allReviewsLink.classList.remove('hidden');
                         if (mobileAllReviewsLink) mobileAllReviewsLink.classList.remove('hidden');
