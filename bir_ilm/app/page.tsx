@@ -66,15 +66,13 @@ export default function App() {
   return (
     <div style={{ minHeight: "100dvh", backgroundColor: "#0f172a", color: "#f1f5f9", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "16px 20px 12px", background: "linear-gradient(135deg, #0f766e 0%, #0e7490 100%)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 14, color: "#fff" }}><img src="/assets/images/logo.jpg" style={{width:36,height:36,borderRadius:10,objectFit:"cover"}} /></div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 16, color: "#fff", lineHeight: 1 }}>BIR ILM</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>Bilimlar Markazi</div>
-            </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
+          <img src="/assets/images/logo.jpg" style={{width:40,height:40,borderRadius:10,objectFit:"contain",backgroundColor:"#fff",padding:2,flexShrink:0}} />
+          <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "#fff", lineHeight: 1 }}>BIR ILM</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>SINANG, QO'LLANG, ULASHING</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {isAdmin && <span style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6 }}>ADMIN</span>}
             {localUser ? (
               <div style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600 }}>👤 {name}</div>
