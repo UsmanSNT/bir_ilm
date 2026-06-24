@@ -1004,50 +1004,41 @@
                 
                 return `
                 <div class="user-card ${userIsSuperAdmin ? 'border-yellow-500/50 bg-yellow-500/5' : ''}">
-                    <div class="flex items-center justify-between gap-3 flex-wrap">
-                        <!-- Avatar + Info -->
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-full flex-shrink-0 ${userIsSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center font-bold text-white" 
-                                 style="${userIsSuperAdmin ? '' : 'background:' + getAvatarColor(firstLetter)}">
-                                ${userIsSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-semibold truncate ${userIsSuperAdmin ? 'text-yellow-400' : ''}">${escapeHtml(user.username || user.email)}</p>
-                                <p class="text-xs text-gray-400 truncate">${escapeHtml(user.email)}</p>
-                                <p class="text-xs text-gray-600">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
-                            </div>
+                    <!-- Yuqori qator: Avatar + Info -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full flex-shrink-0 ${userIsSuperAdmin ? 'bg-yellow-500/20 ring-2 ring-yellow-500/50' : ''} flex items-center justify-center font-bold text-white text-sm"
+                             style="${userIsSuperAdmin ? '' : 'background:' + getAvatarColor(firstLetter)}">
+                            ${userIsSuperAdmin ? '<i class="fas fa-crown text-yellow-400"></i>' : firstLetter}
                         </div>
-
-                        <!-- Rol + Amallar -->
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
-
-                            ${isCurrentUser ? 
-                                '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' :
-                                canChangeRole ? `
-                                    <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${escapeHtml(user.role)}', this.value)" 
-                                            class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white outline-none focus:border-green-500 cursor-pointer">
-                                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>Foydalanuvchi</option>
-                                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                    </select>
-                                ` : ''
-                            }
-
-                            ${!isCurrentUser && loggedInUserIsSuperAdmin && !userIsSuperAdmin ? `
-                                <div class="flex gap-1">
-                                    ${user.role !== 'user' ? `
-                                        <button onclick="handleRemoveRole('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
-                                                class="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-2 py-1 rounded text-xs transition" title="Rolni o'chirish">
-                                            <i class="fas fa-user-minus"></i>
-                                        </button>
-                                    ` : ''}
-                                    <button onclick="handleDeleteUser('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')" 
-                                            class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-2 py-1 rounded text-xs transition" title="O'chirish">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold ${userIsSuperAdmin ? 'text-yellow-400' : 'text-white'}">${escapeHtml(user.username || user.email)}</p>
+                            <p class="text-xs text-gray-400 truncate">${escapeHtml(user.email)}</p>
+                            <p class="text-xs text-gray-600">${new Date(user.created_at).toLocaleDateString('uz-UZ')}</p>
+                        </div>
+                    </div>
+                    <!-- Quyi qator: Rol + Amallar -->
+                    <div class="flex items-center gap-2 flex-wrap pt-2 border-t border-white/[0.06]">
+                        <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
+                        ${isCurrentUser ? '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Siz</span>' : ''}
+                        ${canChangeRole ? `
+                            <select onchange="handleRoleChange('${escapeHtml(user.email)}', '${escapeHtml(user.role)}', this.value)"
+                                    class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white outline-none focus:border-green-500 cursor-pointer">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>Foydalanuvchi</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        ` : ''}
+                        ${!isCurrentUser && loggedInUserIsSuperAdmin && !userIsSuperAdmin ? `
+                            ${user.role !== 'user' ? `
+                                <button onclick="handleRemoveRole('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')"
+                                        class="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-2 py-1 rounded text-xs transition" title="Rolni o'chirish">
+                                    <i class="fas fa-user-minus"></i>
+                                </button>
                             ` : ''}
-                        </div>
+                            <button onclick="handleDeleteUser('${escapeHtml(user.email)}', '${escapeHtml(user.username || user.email)}')"
+                                    class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-2 py-1 rounded text-xs transition" title="O'chirish">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
                 `;
