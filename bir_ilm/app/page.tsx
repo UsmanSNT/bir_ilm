@@ -67,14 +67,14 @@ export default function App() {
     <div style={{ minHeight: "100dvh", backgroundColor: "#0f172a", color: "#f1f5f9", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "16px 20px 12px", background: "linear-gradient(135deg, #0f766e 0%, #0e7490 100%)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
-          <img src="/assets/images/logo.jpg" style={{width:40,height:40,borderRadius:10,objectFit:"contain",backgroundColor:"rgba(255,255,255,0.15)",padding:2,flexShrink:0}} />
+          <img src="/assets/images/logo.jpg" style={{width:34,height:34,borderRadius:8,objectFit:"contain",backgroundColor:"rgba(255,255,255,0.15)",padding:2,flexShrink:0}} />
           <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", pointerEvents: "none" }}>
-            <div style={{ fontWeight: 800, fontSize: 16, color: "#fff", lineHeight: 1 }}>BIR ILM</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>SINANG, QO'LLANG, ULASHING</div>
+            <div style={{ fontWeight: 800, fontSize: 14, color: "#fff", lineHeight: 1 }}>BIR ILM</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", marginTop: 1 }}>SINANG, QO'LLANG, ULASHING</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {localUser ? (
-              <div style={{ backgroundColor: isAdmin ? "rgba(255,215,0,0.25)" : "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: isAdmin ? "#ffd700" : "#fff", fontWeight: 600, border: isAdmin ? "1px solid rgba(255,215,0,0.4)" : "none" }}>
+              <div style={{ backgroundColor: isAdmin ? "rgba(255,215,0,0.25)" : "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 10px", fontSize: 12, color: isAdmin ? "#ffd700" : "#fff", fontWeight: 600, border: isAdmin ? "1px solid rgba(255,215,0,0.4)" : "none" }}>
                 {isAdmin ? "★ " : "👤 "}{name}
               </div>
             ) : (
