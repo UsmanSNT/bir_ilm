@@ -826,12 +826,13 @@
                     const dislikesCount = book.dislikes_count || 0;
                     const commentsCount = book.comments_count || 0;
                     const imageUrl = book.image_url || '';
-                    const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full h-72 object-cover rounded-lg mb-4" onerror="this.style.display='none'">` : '';
+                    const imageHtml = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(book.title)}" class="w-full object-cover rounded-t-xl" style="height:300px;" onerror="this.style.display='none'">` : '';
                     const shortReview = book.review.length > 150 ? book.review.substring(0, 150) + '...' : book.review;
 
                     return `
-                        <div class="book-card p-6" data-book-id="${book.id}">
+                        <div class="book-card overflow-hidden p-0" data-book-id="${book.id}">
                             ${imageHtml}
+                            <div class="p-6">
                             <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(book.title)}</h3>
                             <p class="text-gray-400 mb-2">Muallif: <span class="text-white">${escapeHtml(book.author)}</span></p>
                             <div class="flex items-center space-x-2 mb-2">
@@ -859,8 +860,8 @@
                                 </div>
                             ` : ''}
                             <div class="flex items-center space-x-4 text-sm text-gray-400 pt-4 border-t border-gray-700 mb-4">
-                                <span><i class="fas fa-thumbs-up mr-1"></i>${likesCount}</span>
-                                <span><i class="fas fa-thumbs-down mr-1"></i>${dislikesCount}</span>
+                                <span id="likes-${book.id}"><i class="fas fa-thumbs-up mr-1"></i>${likesCount}</span>
+                                <span id="dislikes-${book.id}"><i class="fas fa-thumbs-down mr-1"></i>${dislikesCount}</span>
                                 <span><i class="fas fa-comments mr-1"></i>${commentsCount}</span>
                                 <span class="views-count" data-book-id="${book.id}"><i class="fas fa-eye mr-1"></i>${book.views_count || 0}</span>
                                 <button onclick="shareBook('${book.id}', '${escapeHtml(book.title)}', '${escapeHtml(book.author)}')" class="ml-auto text-gray-400 hover:text-purple-400 transition" title="Ulashish">
@@ -881,6 +882,7 @@
                                     </button>
                                 </div>
                             ` : ''}
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -926,7 +928,19 @@
             }
         }
 
-        // Like/Dislike funksiyalari
+        // Like/Dislike - sahifa yangilanmasdan sonni yangilash
+        async function updateReactionCounts(bookId) {
+            try {
+                const books = await booksAPI.getAll();
+                const book = books.find(b => String(b.id) === String(bookId));
+                if (!book) return;
+                const likesEl = document.getElementById('likes-' + bookId);
+                const dislikesEl = document.getElementById('dislikes-' + bookId);
+                if (likesEl) likesEl.innerHTML = '<i class="fas fa-thumbs-up mr-1"></i>' + (book.likes_count || 0);
+                if (dislikesEl) dislikesEl.innerHTML = '<i class="fas fa-thumbs-down mr-1"></i>' + (book.dislikes_count || 0);
+            } catch (e) {}
+        }
+
         async function handleLike(bookId) {
             const token = getToken();
             if (!token) {
@@ -934,10 +948,9 @@
                 window.location.href = 'pages/login.html';
                 return;
             }
-
             try {
                 await booksAPI.like(bookId);
-                await loadBooks();
+                await updateReactionCounts(bookId);
             } catch (error) {
                 alert(error.message || 'Xatolik yuz berdi');
             }
@@ -950,11 +963,10 @@
                 window.location.href = 'pages/login.html';
                 return;
             }
-
             try {
                 await booksAPI.dislike(bookId);
-                await loadBooks();
-                    } catch (error) {
+                await updateReactionCounts(bookId);
+            } catch (error) {
                 alert(error.message || 'Xatolik yuz berdi');
             }
         }
