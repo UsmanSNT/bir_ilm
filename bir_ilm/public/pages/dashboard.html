@@ -791,7 +791,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <span class="badge ${getBadgeClass(user.role)}">${getRoleName(user.role)}</span>
                     ${isMe ? '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">Siz</span>' : ''}
-                    ${!isMe && !isSuperAdmin ? `
+                    ${!isMe && !isSuperAdmin && currentUser.role === 'super_admin' ? `
                         <select onchange="handleRoleChange('${escapeHtml(user.email)}','${escapeHtml(user.role)}',this.value)"
                             class="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white outline-none focus:border-green-500 cursor-pointer">
                             <option value="user" ${user.role==='user'?'selected':''}>User</option>
@@ -833,6 +833,10 @@
 
     async function handleRoleChange(email, currentRole, newRole) {
         if (currentRole === newRole) return;
+        if (currentUser.role !== 'super_admin') {
+            showToast('Faqat Super Admin rol o\'zgartira oladi!', 'error');
+            loadUsers(); return;
+        }
         if (!confirm(`${email} rolini "${getRoleName(newRole)}" ga o'zgartirishni xohlaysizmi?`)) { loadUsers(); return; }
         try {
             await supabaseRequest('users', { method: 'PATCH', query: '?email=eq.' + encodeURIComponent(email), body: { role: newRole } });
