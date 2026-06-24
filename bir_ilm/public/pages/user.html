@@ -363,7 +363,7 @@
             const hashtags = hashtagsRaw ? hashtagsRaw.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : [];
             const btn = document.getElementById('submit-btn');
 
-            if (!title || !author || !review) { showAlert('Barcha maydonlarni to'ldiring!'); return; }
+            if (!title || !author || !review) { showAlert('Barcha maydonlarni to\'ldiring!'); return; }
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saqlanmoqda...';
 
