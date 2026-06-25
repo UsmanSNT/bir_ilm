@@ -195,14 +195,14 @@ Quyidagilardan birini tanlang:`,
     const firstName = message.from?.first_name || "Foydalanuvchi";
 
     if (text === "/start") {
-      // Foydalanuvchini bot_users ga saqlash
-      await fetch(`${SUPABASE_URL}/rest/v1/bot_users`, {
+      // Foydalanuvchini bot_users ga saqlash (upsert)
+      await fetch(`${SUPABASE_URL}/rest/v1/bot_users?on_conflict=telegram_id`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "apikey": SUPABASE_KEY,
           "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Prefer": "resolution=merge-duplicates",
+          "Prefer": "resolution=merge-duplicates,return=minimal",
         },
         body: JSON.stringify({
           telegram_id: userId,
@@ -211,6 +211,10 @@ Quyidagilardan birini tanlang:`,
           last_seen: new Date().toISOString(),
         }),
       });
+
+      // Admin ekanligini tekshirish
+      const adminCheck = await isAdmin(userId);
+
       await sendTelegramWithButtons(chatId,
 `🌳 <b>Bir Ilm</b> ga xush kelibsiz, ${firstName}!
 
@@ -220,6 +224,7 @@ Quyidagilardan birini tanlang:`,
         [
           [{ text: "📚 Kitoblar", data: "kitoblar" }, { text: "ℹ️ Haqida", data: "about" }],
           [{ text: "📖 Yo'riqnoma", data: "guide" }, { text: "🆔 Mening ID", data: "myid_cb" }],
+          ...(adminCheck ? [[{ text: "⚙️ Admin Panel", url: "https://bir-ilm.vercel.app/pages/dashboard.html" }]] : []),
           [{ text: "🌐 Veb saytga o'tish", url: "https://bir-ilm.vercel.app" }],
         ]
       );
