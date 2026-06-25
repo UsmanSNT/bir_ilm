@@ -177,7 +177,24 @@ const authAPI = {
             };
         }
 
-        throw new Error('Foydalanuvchi yaratishda xatolik');
+        // newUser bo'sh bo'lsa ham yaratilgan bo'lishi mumkin — email bilan qayta qidiramiz
+        const createdUser = await supabaseRequest('users', {
+            query: `?email=eq.${encodeURIComponent(email)}&select=id,username,email,role,sum`
+        });
+
+        if (createdUser && createdUser.length > 0) {
+            const user = {
+                id: createdUser[0].id,
+                username: createdUser[0].username,
+                email: createdUser[0].email,
+                role: createdUser[0].role,
+                sum: createdUser[0].sum || 0
+            };
+            const token = btoa(JSON.stringify({ userId: user.id, role: user.role, exp: Date.now() + 86400000 }));
+            setToken(token);
+            setUser(user);
+            return { success: true, message: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz!', user, token };
+        }
     },
 
     login: async (username, password) => {
