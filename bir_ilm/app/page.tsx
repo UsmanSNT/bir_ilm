@@ -89,7 +89,7 @@ export default function App() {
                 {isAdmin ? "★ " : "👤 "}{name}
               </div>
             ) : (
-              <a href="/login" style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600, textDecoration: "none" }}>Kirish →</a>
+              <a href="/pages/login.html" style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 12px", fontSize: 13, color: "#fff", fontWeight: 600, textDecoration: "none" }}>Kirish →</a>
             )}
           </div>
         </div>
