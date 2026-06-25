@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bir Ilm — Yo'riqnoma</title>
+    <link rel="icon" type="image/jpeg" href="../assets/images/logo.jpg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0b111a; color: #e5e7eb; }
+        .card {
+            background: rgba(26,35,50,0.7);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+        }
+        .section-title {
+            font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: #6b7280; margin-bottom: 14px;
+        }
+        .tab-btn {
+            padding: 9px 18px; border-radius: 12px;
+            font-weight: 600; font-size: 14px;
+            border: none; cursor: pointer;
+            background: transparent; color: #6b7280;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .tab-btn.active { background: #10b981; color: #fff; }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.07); color: #fff; }
+        .cmd {
+            display: inline-block;
+            background: rgba(16,185,129,0.15);
+            border: 1px solid rgba(16,185,129,0.3);
+            color: #34d399; padding: 2px 8px;
+            border-radius: 7px; font-family: monospace;
+            font-size: 13px; font-weight: 600;
+        }
+        .feature-item {
+            display: flex; gap: 14px; padding: 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .ficon {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; flex-shrink: 0;
+        }
+        .step { display: flex; gap: 12px; align-items: flex-start; }
+        .step-num {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(16,185,129,0.2);
+            border: 1px solid rgba(16,185,129,0.4);
+            color: #34d399; font-weight: 700; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .hero {
+            background: linear-gradient(135deg, #0d1f35 0%, #0f2a1e 60%, #1a1a2e 100%);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 24px; position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute;
+            top: -80px; left: 50%; transform: translateX(-50%);
+            width: 500px; height: 300px;
+            background: radial-gradient(ellipse, rgba(16,185,129,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+<header class="sticky top-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/[0.06]">
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+        <a href="../index.html" class="flex items-center gap-2">
+            <img src="../assets/images/logo.jpg" alt="logo" class="w-8 h-8 rounded-lg object-cover">
+            <span class="font-bold text-white">Bir Ilm</span>
+        </a>
+        <a href="https://t.me/birilm_bot" target="_blank"
+            class="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-xl text-blue-400 text-sm font-medium transition">
+            <i class="fab fa-telegram"></i> Botga o'tish
+        </a>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+    <!-- HERO -->
+    <div class="hero p-6 md:p-8">
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-green-500/20 border border-green-500/30 flex items-center justify-center text-2xl">🌳</div>
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Bir Ilm</h1>
+                    <p class="text-sm text-gray-400">Bilimlar markazi — O'qish, Quiz, O'sish</p>
+                </div>
+            </div>
+            <p class="text-gray-300 text-sm leading-relaxed">
+                Koreyada yashovchi o'zbek talabalari uchun yaratilgan bilim platformasi. Kitob taqrizlari, bilim quizlari va birga o'sish uchun hamjamiyat.
+            </p>
+            <div class="flex gap-3 mt-5 flex-wrap">
+                <a href="../index.html" class="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium transition">
+                    <i class="fas fa-globe mr-2"></i>Veb sayt
+                </a>
+                <a href="https://t.me/birilm_bot" target="_blank" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-xl text-blue-400 text-sm font-medium transition">
+                    <i class="fab fa-telegram mr-2"></i>Telegram Bot
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="flex gap-2 overflow-x-auto pb-1">
+        <button class="tab-btn active" onclick="showTab('website', this)">🌐 Veb Sayt</button>
+        <button class="tab-btn" onclick="showTab('user-bot', this)">👤 Foydalanuvchi</button>
+        <button class="tab-btn" onclick="showTab('admin-bot', this)">⚙️ Admin</button>
+        <button class="tab-btn" onclick="showTab('about-bot', this)">🤖 Bot haqida</button>
+    </div>
+
+    <!-- TAB: WEBSITE -->
+    <div id="tab-website" class="space-y-4">
+        <p class="section-title">Veb saytda nima bor</p>
+        <div class="space-y-3">
+            <div class="feature-item">
+                <div class="ficon bg-green-500/15 text-green-400">📚</div>
+                <div>
+                    <p class="font-semibold text-white">Kitoblar Taqrizi</p>
+                    <p class="text-sm text-gray-400 mt-0.5">Har hafta yangi kitob taqrizi. Like, dislike, izoh va baho qoldirish. Hashtag bo'yicha qidirish.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="ficon bg-red-500/15 text-red-400">🎯</div>
+                <div>
+                    <p class="font-semibold text-white">Quiz</p>
+                    <p class="text-sm text-gray-400 mt-0.5">Bilimni sinash uchun test. Taymer bilan ishlaydi. Natija va liderlar jadvali ko'rsatiladi.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="ficon bg-yellow-500/15 text-yellow-400">⏱️</div>
+                <div>
+                    <p class="font-semibold text-white">Pomodor</p>
+                    <p class="text-sm text-gray-400 mt-0.5">25 daqiqa o'qish + 5 daqiqa dam olish texnikasi. Diqqatni jamlash uchun.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="ficon bg-blue-500/15 text-blue-400">👤</div>
+                <div>
+                    <p class="font-semibold text-white">Dashboard</p>
+                    <p class="text-sm text-gray-400 mt-0.5">Shaxsiy kabinet. Profil rasmi, username o'zgartirish, faollik statistikasi.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-5">
+            <p class="section-title">Ro'yxatdan o'tish</p>
+            <div class="space-y-3">
+                <div class="step"><div class="step-num">1</div><div><p class="text-sm font-medium text-white">Kirish sahifasiga o'ting</p><p class="text-xs text-gray-500 mt-0.5">Navbar dagi "Kirish" tugmasini bosing</p></div></div>
+                <div class="step"><div class="step-num">2</div><div><p class="text-sm font-medium text-white">Email va parol kiriting</p><p class="text-xs text-gray-500 mt-0.5">Yangi hisob — "Ro'yxatdan o'tish" bo'limidan</p></div></div>
+                <div class="step"><div class="step-num">3</div><div><p class="text-sm font-medium text-white">Dashboard ga kiring</p><p class="text-xs text-gray-500 mt-0.5">Ism va rasm qo'yib profilingizni to'ldiring</p></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: USER BOT -->
+    <div id="tab-user-bot" class="hidden space-y-4">
+        <p class="section-title">Oddiy foydalanuvchi uchun bot</p>
+        <div class="card p-5 space-y-4">
+            <p class="text-sm text-gray-400">Botga <span class="cmd">/start</span> bosib kirganingizda:</p>
+            <div class="space-y-3">
+                <div class="feature-item">
+                    <div class="ficon bg-green-500/15 text-green-400">📖</div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1"><p class="font-semibold text-white text-sm">Kitoblar</p><span class="cmd">/kitoblar</span></div>
+                        <p class="text-xs text-gray-400">Barcha kitob taqrizlarini ko'rish.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="ficon bg-red-500/15 text-red-400">🎯</div>
+                    <div>
+                        <p class="font-semibold text-white text-sm mb-1">Quiz</p>
+                        <p class="text-xs text-gray-400">Quiz boshlanganda avtomatik xabarnoma keladi.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="ficon bg-blue-500/15 text-blue-400">🆔</div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1"><p class="font-semibold text-white text-sm">Mening ID</p><span class="cmd">/myid</span></div>
+                        <p class="text-xs text-gray-400">Telegram ID raqamingizni bilish uchun.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-5">
+            <p class="section-title">Quiz qanday ishlaydi</p>
+            <div class="space-y-3">
+                <div class="step"><div class="step-num">1</div><div><p class="text-sm font-medium text-white">Admin quiz yaratadi</p><p class="text-xs text-gray-500 mt-0.5">Veb sayt orqali savollar kiritiladi</p></div></div>
+                <div class="step"><div class="step-num">2</div><div><p class="text-sm font-medium text-white">Bot xabarnoma yuboradi</p><p class="text-xs text-gray-500 mt-0.5">Barcha foydalanuvchilarga "Quiz boshlandi!" xabari keladi</p></div></div>
+                <div class="step"><div class="step-num">3</div><div><p class="text-sm font-medium text-white">Veb saytga o'tib javob bering</p><p class="text-xs text-gray-500 mt-0.5">Taymer bilan ishlaydi</p></div></div>
+                <div class="step"><div class="step-num">4</div><div><p class="text-sm font-medium text-white">Natijani ko'ring</p><p class="text-xs text-gray-500 mt-0.5">Liderlar jadvali va o'z natijangiz</p></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: ADMIN BOT -->
+    <div id="tab-admin-bot" class="hidden space-y-4">
+        <p class="section-title">Admin uchun bot buyruqlari</p>
+        <div class="card p-5 space-y-3">
+            <div class="feature-item">
+                <div class="ficon bg-green-500/15 text-green-400">📝</div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1"><p class="font-semibold text-white text-sm">Post joylash</p><span class="cmd">/post</span></div>
+                    <p class="text-xs text-gray-400 mb-2">Barcha foydalanuvchilarga xabar yuborish.</p>
+                    <div class="bg-black/30 rounded-lg p-3 text-xs text-gray-400 font-mono">
+                        /post Matn yozing...<br>
+                        <span class="text-green-400">→</span> Vaqt: <code class="text-yellow-400">28.06.2026 18:00</code><br>
+                        <span class="text-green-400">→</span> Yoki: <code class="text-yellow-400">hozir</code> / <code class="text-red-400">bekor</code>
+                    </div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="ficon bg-yellow-500/15 text-yellow-400">⏰</div>
+                <div>
+                    <p class="font-semibold text-white text-sm mb-1">Rejalashtirilgan post</p>
+                    <p class="text-xs text-gray-400">Muayyan vaqtga rejalashtirish (UTC+5).</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="ficon bg-blue-500/15 text-blue-400">📬</div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1"><p class="font-semibold text-white text-sm">Kutayotgan postlar</p><span class="cmd">/send_pending</span></div>
+                    <p class="text-xs text-gray-400">Vaqti kelgan postlarni darhol yuborish.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: ABOUT BOT -->
+    <div id="tab-about-bot" class="hidden space-y-4">
+        <p class="section-title">Bot haqida</p>
+        <div class="card p-5">
+            <div class="flex items-start gap-4 mb-5">
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center text-2xl flex-shrink-0">🤖</div>
+                <div>
+                    <h2 class="font-bold text-white text-lg">Bir Ilm Bot</h2>
+                    <a href="https://t.me/birilm_bot" target="_blank" class="text-blue-400 text-sm">@birilm_bot</a>
+                    <p class="text-xs text-gray-400 mt-1">Bir Ilm platformasining rasmiy Telegram boti</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="feature-item">
+                    <div class="ficon bg-green-500/15 text-green-400">📢</div>
+                    <div><p class="font-semibold text-white text-sm">Xabarnomalar</p><p class="text-xs text-gray-400 mt-0.5">Yangi taqriz va quiz haqida avtomatik xabar</p></div>
+                </div>
+                <div class="feature-item">
+                    <div class="ficon bg-purple-500/15 text-purple-400">🔗</div>
+                    <div><p class="font-semibold text-white text-sm">Veb sayt bilan bog'liq</p><p class="text-xs text-gray-400 mt-0.5">Bot va veb sayt bir xil DB da ishlaydi</p></div>
+                </div>
+                <div class="feature-item">
+                    <div class="ficon bg-yellow-500/15 text-yellow-400">🛡️</div>
+                    <div><p class="font-semibold text-white text-sm">Admin huquqlari</p><p class="text-xs text-gray-400 mt-0.5">Telegram ID orqali admin tekshiriladi</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-5">
+            <p class="section-title">Barcha buyruqlar</p>
+            <div class="space-y-1">
+                <div class="flex items-center justify-between py-2 border-b border-white/[0.05]"><span class="cmd">/start</span><span class="text-sm text-gray-400">Botni ishga tushirish</span></div>
+                <div class="flex items-center justify-between py-2 border-b border-white/[0.05]"><span class="cmd">/kitoblar</span><span class="text-sm text-gray-400">Kitoblar ro'yxati</span></div>
+                <div class="flex items-center justify-between py-2 border-b border-white/[0.05]"><span class="cmd">/myid</span><span class="text-sm text-gray-400">Telegram ID</span></div>
+                <div class="flex items-center justify-between py-2 border-b border-white/[0.05]"><span class="cmd">/post</span><span class="text-sm text-gray-400 flex items-center gap-1"><i class="fas fa-lock text-xs text-yellow-500"></i> Admin</span></div>
+                <div class="flex items-center justify-between py-2"><span class="cmd">/send_pending</span><span class="text-sm text-gray-400 flex items-center gap-1"><i class="fas fa-lock text-xs text-yellow-500"></i> Admin</span></div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="border-t border-white/[0.05] mt-8 py-5">
+    <div class="max-w-3xl mx-auto px-4 flex items-center justify-between">
+        <p class="text-xs text-gray-600">© 2025 Bir Ilm</p>
+        <a href="https://t.me/Avrangzeb_Abdujalilov" target="_blank" class="text-xs text-gray-600 hover:text-gray-400 transition">@Usman dev</a>
+    </div>
+</footer>
+
+<script>
+    function showTab(id, btn) {
+        document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab-' + id).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+</script>
+</body>
+</html>
