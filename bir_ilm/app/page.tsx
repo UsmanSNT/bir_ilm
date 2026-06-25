@@ -279,15 +279,16 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
 // Datetime local -> ISO (UTC+5 ga)
 function localToISO(val: string): string {
   if (!val) return "";
-  const d = new Date(val);
-  // val is local time, convert to UTC by subtracting +5h offset
-  return new Date(d.getTime() - 5 * 60 * 60 * 1000).toISOString();
+  // datetime-local value is in local time, just add timezone offset
+  return new Date(val).toISOString();
 }
 
 function isoToLocal(iso: string): string {
   if (!iso) return "";
   const d = new Date(iso);
-  const local = new Date(d.getTime() + 5 * 60 * 60 * 1000);
+  // Convert to local datetime-local format
+  const offset = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - offset * 60 * 1000);
   return local.toISOString().slice(0, 16);
 }
 

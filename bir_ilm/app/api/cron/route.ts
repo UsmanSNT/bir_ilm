@@ -50,9 +50,9 @@ export async function GET(req: NextRequest) {
     const diffMs = startMs - nowMs;
     const diffMin = diffMs / 60000;
 
-    // Format vaqt (UTC+5)
-    const startLocal = new Date(startMs + 5 * 60 * 60 * 1000);
-    const formatted = `${startLocal.getUTCDate().toString().padStart(2,"0")}.${(startLocal.getUTCMonth()+1).toString().padStart(2,"0")}.${startLocal.getUTCFullYear()} ${startLocal.getUTCHours().toString().padStart(2,"0")}:${startLocal.getUTCMinutes().toString().padStart(2,"0")}`;
+    // Format vaqt — Korea UTC+9 da ko'rsatish
+    const startLocal = new Date(startMs);
+    const formatted = startLocal.toLocaleString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 
     // 1 soat oldin (55-65 daqiqa oralig'ida bir marta)
     if (diffMin >= 55 && diffMin < 65) {
