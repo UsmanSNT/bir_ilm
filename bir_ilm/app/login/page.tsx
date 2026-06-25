@@ -126,9 +126,9 @@ export default function LoginPage() {
         
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ width: 64, height: 64, borderRadius: 18, background: "linear-gradient(135deg, #0f766e, #0e7490)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 24, color: "#fff", margin: "0 auto 16px" }}>BI</div>
+          <img src="/assets/images/logo.jpg" alt="BIR ILM" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover" }} />
           <h1 style={{ fontSize: 24, fontWeight: 900, color: "#f1f5f9", margin: "0 0 6px" }}>BIR ILM</h1>
-          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Bilimlar Markazi</p>
+          <p style={{ fontSize: 13, color: "#f5faff", margin: 0 }}>SINANG, QO'LLANG, ULASHING</p>
         </div>
 
         {/* Tabs */}

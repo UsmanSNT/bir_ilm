@@ -4,8 +4,6 @@ import { useEffect, useState, useRef } from "react";
 
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
-const BOT_TOKEN = "8494041333:AAFdo8mMh6ISUeSyrpsvQDIARPUW8XnYWqU";
-const CHANNEL_ID = "@Abdujalilov_Avrangzeb";
 
 async function db(table: string, options: { method?: string; query?: string; body?: object; headers?: object } = {}) {
   const { method = "GET", query = "", body, headers = {} } = options;
@@ -23,16 +21,6 @@ async function db(table: string, options: { method?: string; query?: string; bod
   const text = await res.text();
   if (!text) return { success: true };
   try { return JSON.parse(text); } catch { return { success: true }; }
-}
-
-async function sendBotMessage(text: string) {
-  try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: CHANNEL_ID, text, parse_mode: "HTML" }),
-    });
-  } catch {}
 }
 
 type Tab = "home" | "quiz" | "leaderboard";
@@ -317,13 +305,6 @@ function EditQuiz({ quiz, onBack }: { quiz: Quiz; onBack: () => void }) {
     body.start_time = startTime ? localToISO(startTime) : null;
     await db("quizzes", { method: "PATCH", query: `?id=eq.${quiz.id}`, body });
 
-    // Bot xabarnoma
-    if (startTime && isActive) {
-      const d = new Date(startTime);
-      const formatted = `${d.getDate().toString().padStart(2,"0")}.${(d.getMonth()+1).toString().padStart(2,"0")}.${d.getFullYear()} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
-      await sendBotMessage(`🎯 <b>Quiz rejalashtrildi!</b>\n\n📌 <b>${quiz.title}</b>\n⏰ Boshlanish vaqti: <b>${formatted}</b> (O'zbekiston)\n\n<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va tayyorlaning!`);
-    }
-
     setMsg("✅ Saqlandi!");
     setTimeout(onBack, 1000);
     setSaving(false);
@@ -442,15 +423,6 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
     const quizId = Array.isArray(quiz) ? quiz[0]?.id : quiz?.id;
     if (!quizId) { setMsg("❌ Xatolik!"); setSaving(false); return; }
     for (const q of questions) await db("quiz_questions", { method: "POST", body: { ...q, quiz_id: quizId } });
-
-    // Bot xabarnoma
-    if (startTime) {
-      const d = new Date(startTime);
-      const formatted = `${d.getDate().toString().padStart(2,"0")}.${(d.getMonth()+1).toString().padStart(2,"0")}.${d.getFullYear()} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
-      await sendBotMessage(`🎯 <b>Yangi quiz rejalashtirildi!</b>\n\n📌 <b>${title}</b>\n⏰ Boshlanish: <b>${formatted}</b> (O'zbekiston)\n\n<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va tayyorlaning!`);
-    } else {
-      await sendBotMessage(`🎯 <b>Yangi quiz boshlandi!</b>\n\n📌 <b>${title}</b>${description ? `\n📝 ${description}` : ""}\n\n<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va ishtirok eting!`);
-    }
 
     setMsg("✅ Quiz yaratildi!");
     setTimeout(onBack, 1200);
