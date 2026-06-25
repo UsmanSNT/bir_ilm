@@ -579,16 +579,16 @@
     async function setupRoleUI() {
         const role = currentUser.role;
         if (role === 'admin') {
-            document.getElementById('admin-stats-section').classList.remove('hidden');
-            document.getElementById('write-icon-btn').classList.remove('hidden');
-            document.getElementById('header-write-btn').classList.remove('hidden');
+            document.getElementById('admin-stats-section')?.classList.remove('hidden');
+            document.getElementById('write-icon-btn')?.classList.remove('hidden');
+            document.getElementById('header-write-btn')?.classList.remove('hidden');
             loadAdminStats();
             setupWriteForm();
         }
         if (role === 'super_admin') {
-            document.getElementById('super-stats-section').classList.remove('hidden');
-            document.getElementById('write-icon-btn').classList.remove('hidden');
-            document.getElementById('header-write-btn').classList.remove('hidden');
+            document.getElementById('super-stats-section')?.classList.remove('hidden');
+            document.getElementById('write-icon-btn')?.classList.remove('hidden');
+            document.getElementById('header-write-btn')?.classList.remove('hidden');
             loadAdminStats();
             setupWriteForm();
         }
