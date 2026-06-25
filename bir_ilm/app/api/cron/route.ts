@@ -29,15 +29,6 @@ async function supabase(table: string, query = "", body?: object, method = "GET"
 }
 
 export async function GET(req: NextRequest) {
-  // Vercel cron secret check
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    // Allow if no secret set (development)
-    if (process.env.CRON_SECRET) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
-
   const now = new Date();
   const nowMs = now.getTime();
 
