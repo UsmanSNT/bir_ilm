@@ -195,6 +195,22 @@ Quyidagilardan birini tanlang:`,
     const firstName = message.from?.first_name || "Foydalanuvchi";
 
     if (text === "/start") {
+      // Foydalanuvchini bot_users ga saqlash
+      await fetch(`${SUPABASE_URL}/rest/v1/bot_users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Prefer": "resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          telegram_id: userId,
+          username: message.from?.username || null,
+          first_name: message.from?.first_name || null,
+          last_seen: new Date().toISOString(),
+        }),
+      });
       await sendTelegramWithButtons(chatId,
 `🌳 <b>Bir Ilm</b> ga xush kelibsiz, ${firstName}!
 

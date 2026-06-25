@@ -291,7 +291,7 @@
     <!-- Super Admin uchun: barcha statistika -->
     <div id="super-stats-section" class="hidden">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Platforma statistikasi</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div class="stat-card border-blue-500/20 cursor-pointer hover:border-blue-500/50" onclick="toggleSection('users-section')">
                 <div class="stat-icon bg-blue-500/15 text-blue-400"><i class="fas fa-users"></i></div>
                 <p class="text-2xl font-bold text-white" id="plat-users">0</p>
@@ -317,6 +317,11 @@
                 <p class="text-2xl font-bold text-white" id="plat-passwords">0</p>
                 <p class="text-xs text-gray-500 mt-1">Parollar</p>
                 <p class="text-xs text-purple-400 mt-2"><i class="fas fa-chevron-right text-xs"></i> Ko'rish</p>
+            </div>
+            <div class="stat-card border-blue-400/20">
+                <div class="stat-icon bg-blue-400/15 text-blue-400"><i class="fab fa-telegram"></i></div>
+                <p class="text-2xl font-bold text-white" id="plat-bot-users">0</p>
+                <p class="text-xs text-gray-500 mt-1">Bot foydalanuvchilar</p>
             </div>
         </div>
     </div>
@@ -610,6 +615,12 @@
             const passwords = await supabaseRequest('debug_password_log', { query: '?order=created_at.desc' });
             document.getElementById('plat-passwords').textContent = Array.isArray(passwords) ? passwords.length : 0;
         } catch(e) { document.getElementById('plat-passwords').textContent = '—'; }
+        // Bot users
+        try {
+            const botUsers = await supabaseRequest('bot_users', { query: '?select=telegram_id' });
+            const el = document.getElementById('plat-bot-users');
+            if (el) el.textContent = Array.isArray(botUsers) ? botUsers.length : 0;
+        } catch(e) { const el = document.getElementById('plat-bot-users'); if (el) el.textContent = '—'; }
     }
 
     // ── BOOKS (admin) ─────────────────────────────────────
