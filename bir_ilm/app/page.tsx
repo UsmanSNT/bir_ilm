@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
+const BOT_TOKEN = "8494041333:AAFdo8mMh6ISUeSyrpsvQDIARPUW8XnYWqU";
+const CHANNEL_ID = "@Abdujalilov_Avrangzeb";
 
 async function db(table: string, options: { method?: string; query?: string; body?: object; headers?: object } = {}) {
   const { method = "GET", query = "", body, headers = {} } = options;
@@ -23,8 +25,18 @@ async function db(table: string, options: { method?: string; query?: string; bod
   try { return JSON.parse(text); } catch { return { success: true }; }
 }
 
+async function sendBotMessage(text: string) {
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: CHANNEL_ID, text, parse_mode: "HTML" }),
+    });
+  } catch {}
+}
+
 type Tab = "home" | "quiz" | "leaderboard";
-type Quiz = { id: number; title: string; description: string; type: string; is_active: boolean; created_at: string; time_per_question: number; max_questions: number };
+type Quiz = { id: number; title: string; description: string; type: string; is_active: boolean; created_at: string; time_per_question: number; max_questions: number; start_time: string | null };
 type Question = { id: number; quiz_id: number; question: string; option_a: string; option_b: string; option_c: string; option_d: string; correct_answer: string };
 type Result = { id: number; quiz_id: number; username: string; score: number; total: number; created_at: string };
 
@@ -44,6 +56,17 @@ function shuffle<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// Countdown formatter
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return "0s";
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}s ${m % 60}d ${s % 60}son`;
+  if (m > 0) return `${m}d ${s % 60}son`;
+  return `${s}son`;
 }
 
 export default function App() {
@@ -141,8 +164,16 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Quiz | null>(null);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Quiz | null>(null);
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => { load(); }, []);
+
+  // Countdown ticker — har soniyada yangilanadi
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -153,6 +184,16 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
 
   if (active) return <PlayQuiz quiz={active} onBack={() => { setActive(null); load(); }} localUser={localUser} tgUser={tgUser} />;
   if (creating && isAdmin) return <CreateQuiz onBack={() => { setCreating(false); load(); }} localUser={localUser} />;
+  if (editing && isAdmin) return <EditQuiz quiz={editing} onBack={() => { setEditing(null); load(); }} />;
+
+  function getQuizState(q: Quiz): "countdown" | "open" | "inactive" {
+    if (!q.is_active) return "inactive";
+    if (q.start_time) {
+      const startMs = new Date(q.start_time).getTime();
+      if (startMs > now) return "countdown";
+    }
+    return "open";
+  }
 
   return (
     <div style={{ padding: "20px 16px" }}>
@@ -177,36 +218,194 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {quizzes.map(q => (
-            <div key={q.id} style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: "18px 16px", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                <span style={{ backgroundColor: "rgba(15,118,110,0.2)", color: "#14b8a6", padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>{q.type}</span>
-                <span style={{ fontSize: 11, color: q.is_active ? "#4ade80" : "#64748b", fontWeight: 600 }}>{q.is_active ? "● Faol" : "○ Nofaol"}</span>
-              </div>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", margin: "0 0 6px" }}>{q.title}</h3>
-              {q.description && <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 10px", lineHeight: 1.5 }}>{q.description}</p>}
-              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-                <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
-                  ⏱ {q.time_per_question || 30}s / savol
-                </span>
-                <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
-                  📝 Max {q.max_questions || 10} ta savol
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => setActive(q)} style={{ flex: 1, backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                  Boshlash →
-                </button>
-                {isAdmin && (
-                  <button onClick={async () => { await db("quizzes", { method: "DELETE", query: `?id=eq.${q.id}` }); load(); }} style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                    🗑
-                  </button>
+          {quizzes.map(q => {
+            const state = getQuizState(q);
+            const msLeft = q.start_time ? new Date(q.start_time).getTime() - now : 0;
+
+            return (
+              <div key={q.id} style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: "18px 16px", border: `1px solid ${state === "countdown" ? "rgba(245,158,11,0.3)" : state === "open" ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)"}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                  <span style={{ backgroundColor: "rgba(15,118,110,0.2)", color: "#14b8a6", padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>{q.type}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: state === "open" ? "#4ade80" : state === "countdown" ? "#f59e0b" : "#64748b" }}>
+                    {state === "open" ? "● Faol" : state === "countdown" ? "⏰ Kutilmoqda" : "○ Nofaol"}
+                  </span>
+                </div>
+
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", margin: "0 0 6px" }}>{q.title}</h3>
+                {q.description && <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 10px", lineHeight: 1.5 }}>{q.description}</p>}
+
+                {/* Countdown banner */}
+                {state === "countdown" && (
+                  <div style={{ backgroundColor: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 20 }}>⏰</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 12, color: "#f59e0b", fontWeight: 700 }}>Boshlanishiga qoldi:</p>
+                      <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: "#fbbf24", letterSpacing: "0.02em" }}>{formatCountdown(msLeft)}</p>
+                    </div>
+                  </div>
                 )}
+
+                {/* Start time info */}
+                {q.start_time && state === "open" && (
+                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 10 }}>
+                    🕐 Boshlangan: {new Date(q.start_time).toLocaleString("uz-UZ")}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                  <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
+                    ⏱ {q.time_per_question || 30}s / savol
+                  </span>
+                  <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
+                    📝 Max {q.max_questions || 10} ta savol
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={() => state === "open" ? setActive(q) : undefined}
+                    disabled={state !== "open"}
+                    style={{ flex: 1, backgroundColor: state === "open" ? "#0f766e" : state === "countdown" ? "rgba(245,158,11,0.2)" : "#1e293b", color: state === "open" ? "#fff" : state === "countdown" ? "#f59e0b" : "#475569", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: state === "open" ? "pointer" : "default" }}>
+                    {state === "open" ? "Boshlash →" : state === "countdown" ? "⏳ Kutilmoqda" : "Nofaol"}
+                  </button>
+                  {isAdmin && (
+                    <>
+                      <button onClick={() => setEditing(q)} style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, padding: "11px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                        ✏️
+                      </button>
+                      <button onClick={async () => { await db("quizzes", { method: "DELETE", query: `?id=eq.${q.id}` }); load(); }} style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                        🗑
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+    </div>
+  );
+}
+
+// Datetime local -> ISO (UTC+5 ga)
+function localToISO(val: string): string {
+  if (!val) return "";
+  const d = new Date(val);
+  // val is local time, convert to UTC by subtracting +5h offset
+  return new Date(d.getTime() - 5 * 60 * 60 * 1000).toISOString();
+}
+
+function isoToLocal(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const local = new Date(d.getTime() + 5 * 60 * 60 * 1000);
+  return local.toISOString().slice(0, 16);
+}
+
+function EditQuiz({ quiz, onBack }: { quiz: Quiz; onBack: () => void }) {
+  const [startTime, setStartTime] = useState(quiz.start_time ? isoToLocal(quiz.start_time) : "");
+  const [isActive, setIsActive] = useState(quiz.is_active);
+  const [timePerQ, setTimePerQ] = useState(quiz.time_per_question || 30);
+  const [maxQ, setMaxQ] = useState(quiz.max_questions || 10);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  async function save() {
+    setSaving(true);
+    const body: any = { is_active: isActive, time_per_question: timePerQ, max_questions: maxQ };
+    body.start_time = startTime ? localToISO(startTime) : null;
+    await db("quizzes", { method: "PATCH", query: `?id=eq.${quiz.id}`, body });
+
+    // Bot xabarnoma
+    if (startTime && isActive) {
+      const d = new Date(startTime);
+      const formatted = `${d.getDate().toString().padStart(2,"0")}.${(d.getMonth()+1).toString().padStart(2,"0")}.${d.getFullYear()} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
+      await sendBotMessage(`🎯 <b>Quiz rejalashtrildi!</b>\n\n📌 <b>${quiz.title}</b>\n⏰ Boshlanish vaqti: <b>${formatted}</b> (O'zbekiston)\n\n<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va tayyorlaning!`);
+    }
+
+    setMsg("✅ Saqlandi!");
+    setTimeout(onBack, 1000);
+    setSaving(false);
+  }
+
+  async function clearStartTime() {
+    await db("quizzes", { method: "PATCH", query: `?id=eq.${quiz.id}`, body: { start_time: null } });
+    setStartTime("");
+    setMsg("✅ Vaqt o'chirildi");
+  }
+
+  return (
+    <div style={{ padding: "20px 16px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, marginBottom: 16, padding: 0 }}>← Orqaga</button>
+      <h2 style={{ fontSize: 20, fontWeight: 900, color: "#f1f5f9", margin: "0 0 6px" }}>✏️ Quizni tahrirlash</h2>
+      <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 20px" }}>{quiz.title}</p>
+
+      {msg && <div style={{ padding: 12, borderRadius: 10, backgroundColor: "rgba(74,222,128,0.15)", color: "#4ade80", marginBottom: 16, fontWeight: 600, fontSize: 14 }}>{msg}</div>}
+
+      <div style={{ backgroundColor: "#1e293b", borderRadius: 16, padding: 18, marginBottom: 16, border: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 16 }}>
+
+        {/* Faol/Nofaol */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <p style={{ margin: 0, fontWeight: 700, color: "#f1f5f9", fontSize: 15 }}>Holati</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>Quiz faol yoki nofaol</p>
+          </div>
+          <button onClick={() => setIsActive(!isActive)} style={{ backgroundColor: isActive ? "rgba(74,222,128,0.15)" : "rgba(100,116,139,0.2)", border: `1px solid ${isActive ? "rgba(74,222,128,0.3)" : "rgba(100,116,139,0.3)"}`, borderRadius: 20, padding: "6px 16px", color: isActive ? "#4ade80" : "#64748b", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            {isActive ? "● Faol" : "○ Nofaol"}
+          </button>
+        </div>
+
+        {/* Start time */}
+        <div>
+          <label style={{ fontSize: 13, color: "#94a3b8", display: "block", marginBottom: 8, fontWeight: 600 }}>
+            ⏰ Boshlanish vaqti (O'zbekiston UTC+5)
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              type="datetime-local"
+              value={startTime}
+              onChange={e => setStartTime(e.target.value)}
+              style={{ ...iStyle, flex: 1, colorScheme: "dark" }}
+            />
+            {startTime && (
+              <button onClick={clearStartTime} style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171", border: "none", borderRadius: 10, padding: "0 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                ✕
+              </button>
+            )}
+          </div>
+          {startTime && (
+            <p style={{ margin: "6px 0 0", fontSize: 12, color: "#64748b" }}>
+              Quiz {new Date(startTime).toLocaleString("uz-UZ")} da boshlanadi
+            </p>
+          )}
+          {!startTime && (
+            <p style={{ margin: "6px 0 0", fontSize: 12, color: "#64748b" }}>
+              Vaqt belgilanmasa — hoziroq ochiq
+            </p>
+          )}
+        </div>
+
+        {/* Vaqt va max savollar */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>⏱ Har savol uchun (soniya)</label>
+            <select value={timePerQ} onChange={e => setTimePerQ(Number(e.target.value))} style={iStyle}>
+              {[10, 15, 20, 30, 45, 60, 90, 120].map(t => <option key={t} value={t}>{t}s</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>📝 Max savollar</label>
+            <select value={maxQ} onChange={e => setMaxQ(Number(e.target.value))} style={iStyle}>
+              {[5, 8, 10, 12, 15, 20, 25, 30].map(n => <option key={n} value={n}>{n} ta</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button onClick={save} disabled={saving} style={{ width: "100%", backgroundColor: saving ? "#475569" : "#0f766e", color: "#fff", border: "none", borderRadius: 12, padding: 14, fontWeight: 800, fontSize: 15, cursor: saving ? "default" : "pointer" }}>
+        {saving ? "Saqlanmoqda..." : "✅ Saqlash"}
+      </button>
     </div>
   );
 }
@@ -217,6 +416,7 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
   const [type, setType] = useState("Umumiy");
   const [timePerQ, setTimePerQ] = useState(30);
   const [maxQ, setMaxQ] = useState(10);
+  const [startTime, setStartTime] = useState("");
   const [questions, setQuestions] = useState([emptyQ()]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
@@ -235,14 +435,23 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
       setMsg("❌ Barcha savollar va kamida 2 variant to'ldiring!"); return;
     }
     setSaving(true);
-    const quiz = await db("quizzes", {
-      method: "POST",
-      body: { title, description, type, admin_id: localUser?.id, is_active: true, time_per_question: timePerQ, max_questions: maxQ },
-      headers: { "Prefer": "return=representation" }
-    });
+    const body: any = { title, description, type, admin_id: localUser?.id, is_active: true, time_per_question: timePerQ, max_questions: maxQ };
+    if (startTime) body.start_time = localToISO(startTime);
+
+    const quiz = await db("quizzes", { method: "POST", body, headers: { "Prefer": "return=representation" } });
     const quizId = Array.isArray(quiz) ? quiz[0]?.id : quiz?.id;
     if (!quizId) { setMsg("❌ Xatolik!"); setSaving(false); return; }
     for (const q of questions) await db("quiz_questions", { method: "POST", body: { ...q, quiz_id: quizId } });
+
+    // Bot xabarnoma
+    if (startTime) {
+      const d = new Date(startTime);
+      const formatted = `${d.getDate().toString().padStart(2,"0")}.${(d.getMonth()+1).toString().padStart(2,"0")}.${d.getFullYear()} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
+      await sendBotMessage(`🎯 <b>Yangi quiz rejalashtirildi!</b>\n\n📌 <b>${title}</b>\n⏰ Boshlanish: <b>${formatted}</b> (O'zbekiston)\n\n<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va tayyorlaning!`);
+    } else {
+      await sendBotMessage(`🎯 <b>Yangi quiz boshlandi!</b>\n\n📌 <b>${title}</b>${description ? `\n📝 ${description}` : ""}\n\n<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va ishtirok eting!`);
+    }
+
     setMsg("✅ Quiz yaratildi!");
     setTimeout(onBack, 1200);
   }
@@ -263,10 +472,9 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
             {["Umumiy", "Kitob", "TOPIK", "IT", "Kiberkimxavfsizlik", "Ingliz tili", "Matematika"].map(t => <option key={t}>{t}</option>)}
           </select>
 
-          {/* Vaqt va max savollar */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div>
-              <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>⏱ Har savol uchun vaqt (soniya)</label>
+              <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>⏱ Har savol uchun vaqt</label>
               <select value={timePerQ} onChange={e => setTimePerQ(Number(e.target.value))} style={iStyle}>
                 {[10, 15, 20, 30, 45, 60, 90, 120].map(t => <option key={t} value={t}>{t} soniya</option>)}
               </select>
@@ -277,6 +485,22 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
                 {[5, 8, 10, 12, 15, 20, 25, 30].map(n => <option key={n} value={n}>{n} ta</option>)}
               </select>
             </div>
+          </div>
+
+          {/* Start time */}
+          <div>
+            <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>
+              ⏰ Boshlanish vaqti (ixtiyoriy, UTC+5)
+            </label>
+            <input
+              type="datetime-local"
+              value={startTime}
+              onChange={e => setStartTime(e.target.value)}
+              style={{ ...iStyle, colorScheme: "dark" }}
+            />
+            <p style={{ margin: "4px 0 0", fontSize: 11, color: "#64748b" }}>
+              Bo'sh qoldirsangiz — quiz yaratilishi bilan darhol ochiq bo'ladi
+            </p>
           </div>
         </div>
       </div>
@@ -334,7 +558,6 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
     db("quiz_questions", { query: `?quiz_id=eq.${quiz.id}&order=id.asc` }).then(data => {
       const allQ = Array.isArray(data) ? data : [];
       const maxQ = quiz.max_questions || 10;
-      // Random shuffle va max_questions ta tanlash
       const selected = shuffle(allQ).slice(0, maxQ);
       setQuestions(selected);
       setLoading(false);
@@ -342,20 +565,14 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
     });
   }, [quiz.id]);
 
-  // Timer
   useEffect(() => {
     if (loading || finished || questions.length === 0) return;
     setTimeLeft(timePerQ);
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
-          // Vaqt tugadi - keyingi savolga o'tish
           clearInterval(timerRef.current!);
-          if (current < questions.length - 1) {
-            setCurrent(c => c + 1);
-          } else {
-            finishQuiz();
-          }
+          if (current < questions.length - 1) { setCurrent(c => c + 1); } else { finishQuiz(); }
           return timePerQ;
         }
         return prev - 1;
@@ -373,17 +590,11 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
     await db("quiz_results", { method: "POST", body: { quiz_id: quiz.id, user_id: localUser?.id || null, username, score: s, total: questions.length } });
   }
 
-  function selectAnswer(ans: string) {
-    setAnswers(prev => ({ ...prev, [current]: ans }));
-  }
+  function selectAnswer(ans: string) { setAnswers(prev => ({ ...prev, [current]: ans })); }
 
   function nextQuestion() {
     clearInterval(timerRef.current!);
-    if (current < questions.length - 1) {
-      setCurrent(c => c + 1);
-    } else {
-      finishQuiz();
-    }
+    if (current < questions.length - 1) { setCurrent(c => c + 1); } else { finishQuiz(); }
   }
 
   if (loading) return <div style={{ textAlign: "center", padding: 80, color: "#64748b" }}>⏳ Yuklanmoqda...</div>;
@@ -433,7 +644,6 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#14b8a6", fontWeight: 700, fontSize: 14, padding: 0 }}>← Chiqish</button>
         <span style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8" }}>{current + 1} / {questions.length}</span>
-        {/* Timer doira */}
         <div style={{ position: "relative", width: 44, height: 44 }}>
           <svg viewBox="0 0 44 44" style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}>
             <circle cx="22" cy="22" r="18" fill="none" stroke="#1e293b" strokeWidth="4" />
@@ -443,7 +653,6 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
         </div>
       </div>
 
-      {/* Progress bar */}
       <div style={{ height: 6, backgroundColor: "#1e293b", borderRadius: 3, marginBottom: 16, overflow: "hidden" }}>
         <div style={{ height: "100%", backgroundColor: "#0f766e", borderRadius: 3, width: `${progress}%`, transition: "width 0.4s ease" }} />
       </div>
