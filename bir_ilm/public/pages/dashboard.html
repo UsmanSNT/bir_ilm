@@ -491,29 +491,22 @@
         document.getElementById('banner-email').textContent = u.email;
         document.getElementById('edit-username').value = u.username || '';
 
-        // Load avatar from localStorage fallback first
-        const localAvatar = localStorage.getItem('birilm_avatar_' + u.id);
-        if (localAvatar) {
+        // Avatar: getMe dan kelgan avatar_url (api.js da select ga qo'shildi)
+        const avatarUrl = u.avatar_url || localStorage.getItem('birilm_avatar_' + u.id);
+        if (avatarUrl) {
             document.getElementById('user-avatar').innerHTML =
-                `<img src="${localAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">`;
+                `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">`;
             document.getElementById('edit-avatar-preview').innerHTML =
-                `<img src="${localAvatar}" class="w-full h-full object-cover rounded-2xl">`;
+                `<img src="${avatarUrl}" class="w-full h-full object-cover rounded-2xl">`;
+            // Sync to localStorage
+            localStorage.setItem('birilm_avatar_' + u.id, avatarUrl);
         }
 
-        // Fetch created_at + avatar_url from DB
-        supabaseRequest('users', { query: `?id=eq.${u.id}&select=created_at,avatar_url` })
+        // Fetch created_at from DB
+        supabaseRequest('users', { query: `?id=eq.${u.id}&select=created_at` })
             .then(res => {
-                if (res && res[0]) {
-                    if (res[0].created_at) {
-                        document.getElementById('banner-joined').textContent = "A'zo: " + new Date(res[0].created_at).toLocaleDateString('uz-UZ');
-                    }
-                    const avatar = res[0].avatar_url || localAvatar;
-                    if (avatar) {
-                        document.getElementById('user-avatar').innerHTML =
-                            `<img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">`;
-                        document.getElementById('edit-avatar-preview').innerHTML =
-                            `<img src="${avatar}" class="w-full h-full object-cover rounded-2xl">`;
-                    }
+                if (res && res[0] && res[0].created_at) {
+                    document.getElementById('banner-joined').textContent = "A'zo: " + new Date(res[0].created_at).toLocaleDateString('uz-UZ');
                 }
             }).catch(() => {});
 
@@ -988,18 +981,15 @@
             if (!result.success) throw new Error('Yuklashda xatolik');
             const avatarUrl = result.image_url;
 
-            // 4. Try saving to DB (may fail if avatar_url column missing)
-            try {
-                await supabaseRequest('users', {
-                    method: 'PATCH',
-                    query: '?id=eq.' + currentUser.id,
-                    body: { avatar_url: avatarUrl }
-                });
-            } catch(dbErr) {
-                // Column may not exist — save to localStorage as fallback
-                localStorage.setItem('birilm_avatar_' + currentUser.id, avatarUrl);
-            }
+            // 4. Save to DB
+            await supabaseRequest('users', {
+                method: 'PATCH',
+                query: '?id=eq.' + currentUser.id,
+                body: { avatar_url: avatarUrl }
+            });
 
+            // 5. Update localStorage + UI
+            localStorage.setItem('birilm_avatar_' + currentUser.id, avatarUrl);
             setAvatarImg(avatarUrl);
             status.textContent = '✓ Saqlandi';
             status.className = 'text-xs text-green-400 mt-1';

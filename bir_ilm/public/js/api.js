@@ -264,7 +264,7 @@ const authAPI = {
 
         // Yangilangan ma'lumotlarni olish
         const users = await supabaseRequest('users', {
-            query: `?id=eq.${user.id}&select=id,username,email,role,sum`
+            query: `?id=eq.${user.id}&select=id,username,email,role,sum,avatar_url`
         });
 
         if (users && users.length > 0) {

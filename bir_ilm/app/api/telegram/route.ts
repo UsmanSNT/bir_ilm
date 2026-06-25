@@ -22,6 +22,23 @@ async function sendTelegram(chatId: number | string, text: string) {
   });
 }
 
+async function sendTelegramWithButtons(chatId: number | string, text: string, buttons: {text: string, data?: string, url?: string}[][]) {
+  const inline_keyboard = buttons.map(row =>
+    row.map(btn => btn.url ? { text: btn.text, url: btn.url } : { text: btn.text, callback_data: btn.data })
+  );
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+      reply_markup: { inline_keyboard },
+    }),
+  });
+}
+
 function formatPost(text: string): string {
   return text
     .replace(/(Tanlangan:\s*)("[^"]+")/g, '$1<b>$2</b>')
@@ -67,15 +84,141 @@ async function isAdmin(telegramId: number): Promise<boolean> {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Callback query (inline button bosilganda)
+    if (body.callback_query) {
+      const cq = body.callback_query;
+      const cqChatId = cq.message.chat.id;
+      const cqData = cq.data;
+
+      // Answer callback to remove loading state
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: cq.id }),
+      });
+
+      if (cqData === "about") {
+        await sendTelegramWithButtons(cqChatId,
+`🌳 <b>Bir Ilm haqida</b>
+
+Koreyada yashovchi o'zbek talabalari uchun bilim platformasi.
+
+📚 <b>Veb sayt:</b>
+• Kitob taqrizlari — har hafta yangi kitob
+• Quiz — bilimni sinash
+• Pomodor — diqqatni jamlash
+• Dashboard — shaxsiy kabinet
+
+🤖 <b>Bot:</b>
+• Yangi taqrizlar haqida xabarnoma
+• Kitoblar ro'yxati
+• Quiz xabarlari
+
+👥 <b>Hamjamiyat:</b> o'qish, o'sish, birga rivojlanish`,
+          [[{ text: "🌐 Veb saytga o'tish", url: "https://bir-ilm.vercel.app" }],
+           [{ text: "🔙 Orqaga", data: "back_start" }]]
+        );
+      }
+
+      if (cqData === "kitoblar") {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/weekly_books?select=book_number,title,author&order=book_number.desc&limit=10`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+        });
+        const books = await res.json();
+        if (!books || books.length === 0) {
+          await sendTelegram(cqChatId, "Hali kitoblar yo'q.");
+        } else {
+          const list = books.map((b: any) => `📖 <b>${b.book_number}-kitob:</b> ${b.title}\n    <i>${b.author || ""}</i>`).join("\n\n");
+          await sendTelegramWithButtons(cqChatId,
+            `<b>📚 So'nggi kitoblar:</b>\n\n${list}`,
+            [[{ text: "🌐 To'liq taqrizlar", url: "https://bir-ilm.vercel.app/pages/user.html" }],
+             [{ text: "🔙 Orqaga", data: "back_start" }]]
+          );
+        }
+      }
+
+      if (cqData === "guide") {
+        await sendTelegramWithButtons(cqChatId,
+`📖 <b>Yo'riqnoma</b>
+
+<b>Foydalanuvchi buyruqlari:</b>
+/start — Botni ishga tushirish
+/kitoblar — Kitoblar ro'yxati
+/myid — Telegram ID
+
+<b>Admin buyruqlari:</b> 🔒
+/post — Kanalga post yuborish
+/send_pending — Kutgan postlarni yuborish
+
+<b>Post yuborish:</b>
+1. /post Matn yozing
+2. Vaqt kiriting: <code>28.06.2026 18:00</code>
+   yoki: <code>hozir</code> / <code>bekor</code>`,
+          [[{ text: "🌐 To'liq yo'riqnoma", url: "https://bir-ilm.vercel.app/pages/guide.html" }],
+           [{ text: "🔙 Orqaga", data: "back_start" }]]
+        );
+      }
+
+      if (cqData === "back_start") {
+        const name = cq.from?.first_name || "Foydalanuvchi";
+        await sendTelegramWithButtons(cqChatId,
+`🌳 <b>Bir Ilm</b> ga xush kelibsiz, ${name}!
+
+Bilim olish, kitob o'qish va birga o'sish platformasi.
+
+Quyidagilardan birini tanlang:`,
+          [
+            [{ text: "📚 Kitoblar", data: "kitoblar" }, { text: "ℹ️ Haqida", data: "about" }],
+            [{ text: "📖 Yo'riqnoma", data: "guide" }, { text: "🆔 Mening ID", data: "myid_cb" }],
+            [{ text: "🌐 Veb saytga o'tish", url: "https://bir-ilm.vercel.app" }],
+          ]
+        );
+      }
+
+      if (cqData === "myid_cb") {
+        await sendTelegramWithButtons(cqChatId,
+          `🆔 Sizning Telegram ID: <code>${cq.from?.id}</code>`,
+          [[{ text: "🔙 Orqaga", data: "back_start" }]]
+        );
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
     const message = body.message;
     if (!message) return NextResponse.json({ ok: true });
 
     const chatId = message.chat.id;
     const text = message.text || "";
     const userId = message.from?.id;
+    const firstName = message.from?.first_name || "Foydalanuvchi";
 
     if (text === "/start") {
-      await sendTelegram(chatId, "Salom! BIR ILM boti\n\n/post - Kanalga post yuborish\n/kitoblar - Kitoblar royxati\n/myid - Telegram ID\n/send_pending - Kutayotgan postlarni yuborish");
+      await sendTelegramWithButtons(chatId,
+`🌳 <b>Bir Ilm</b> ga xush kelibsiz, ${firstName}!
+
+Bilim olish, kitob o'qish va birga o'sish platformasi.
+
+Quyidagilardan birini tanlang:`,
+        [
+          [{ text: "📚 Kitoblar", data: "kitoblar" }, { text: "ℹ️ Haqida", data: "about" }],
+          [{ text: "📖 Yo'riqnoma", data: "guide" }, { text: "🆔 Mening ID", data: "myid_cb" }],
+          [{ text: "🌐 Veb saytga o'tish", url: "https://bir-ilm.vercel.app" }],
+        ]
+      );
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text === "/about") {
+      await sendTelegramWithButtons(chatId,
+`🌳 <b>Bir Ilm haqida</b>
+
+Koreyada yashovchi o'zbek talabalari uchun bilim platformasi.
+
+📚 Kitob taqrizlari • 🎯 Quiz • ⏱️ Pomodor • 👤 Dashboard`,
+        [[{ text: "🌐 Veb saytga o'tish", url: "https://bir-ilm.vercel.app" }]]
+      );
       return NextResponse.json({ ok: true });
     }
 
