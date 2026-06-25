@@ -274,7 +274,7 @@
                     localStorage.setItem('birilm_user', JSON.stringify(result.user));
                     showAlert(result.message, 'success');
                     setTimeout(() => {
-                        window.location.href = '../index.html';
+                        window.location.href = '/index.html';
                     }, 1000);
                 }
             } catch (error) {
@@ -307,7 +307,7 @@
                     localStorage.setItem('birilm_user', JSON.stringify(result.user));
                     showAlert(result.message, 'success');
                     setTimeout(() => {
-                        window.location.href = '../index.html';
+                        window.location.href = '/index.html';
                     }, 1000);
                 }
             } catch (error) {
@@ -375,7 +375,7 @@
                 try {
                     const result = await authAPI.getMe();
                     if (result.success) {
-                        window.location.href = '../index.html';
+                        window.location.href = '/index.html';
                     }
                 } catch (error) {
                     // Token yaroqsiz, saqlashdan olib tashlash
