@@ -1,7 +1,7 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const BOT_TOKEN = "8494041333:AAFdo8mMh6ISUeSyrpsvQDIARPUW8XnYWqU";
-const CHANNEL_ID = "@birilm1";
+const CHANNEL_ID = "@Abdujalilov_Avrangzeb";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
@@ -149,8 +149,10 @@ export async function POST(req: NextRequest) {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
       });
       const admins = await res.json();
-      const list = admins.map((a: any) => `${a.role === "super_admin" ? "?? : "??} ${a.username} (${a.telegram_id || "ID yoq"})`).join("\n");
-      await sendTelegram(chatId, `<b>Adminlar:</b>\n${list}`);
+      const list = admins.map((a: any) => (a.role === "super_admin" ? "* " : "- ") + a.username + " (" + (a.telegram_id || "ID yoq") + ")").join("
+");
+      await sendTelegram(chatId, `<b>Adminlar:</b>
+${list}`);
       return NextResponse.json({ ok: true });
     }
 
