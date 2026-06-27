@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 
 const BOT_TOKEN = "8494041333:AAFdo8mMh6ISUeSyrpsvQDIARPUW8XnYWqU";
-const CHANNEL_ID = "@Abdujalilov_Avrangzeb";
+const CHANNEL_ID = "@birilm1";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     const diffMs = startMs - nowMs;
     const diffMin = diffMs / 60000;
 
-    // Format vaqt — Korea UTC+9 da ko'rsatish
+    // Format vaqt ??Korea UTC+9 da ko'rsatish
     const startLocal = new Date(startMs);
     const formatted = startLocal.toLocaleString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -59,13 +59,13 @@ export async function GET(req: NextRequest) {
       const alreadySent = quiz.notified_1h === true;
       if (!alreadySent) {
         await sendBot(
-`⏰ <b>Quiz 1 soatdan keyin boshlanadi!</b>
+`??<b>Quiz 1 soatdan keyin boshlanadi!</b>
 
-📌 <b>${quiz.title}</b>
-🕐 Vaqt: <b>${formatted}</b> (O'zbekiston)
-📝 ${quiz.description || "Tayyorlanishni boshlang!"}
+?뱦 <b>${quiz.title}</b>
+?븧 Vaqt: <b>${formatted}</b> (O'zbekiston)
+?뱷 ${quiz.description || "Tayyorlanishni boshlang!"}
 
-<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va tayyorlaning! 💪`
+<a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring va tayyorlaning! ?뮞`
         );
         await supabase("quizzes", `?id=eq.${quiz.id}`, { notified_1h: true }, "PATCH");
         results.push(`1h notify: ${quiz.title}`);
@@ -77,26 +77,26 @@ export async function GET(req: NextRequest) {
       const alreadySent = quiz.notified_2m === true;
       if (!alreadySent) {
         await sendBot(
-`🚨 <b>Quiz 2 daqiqadan keyin boshlanadi!</b>
+`?슚 <b>Quiz 2 daqiqadan keyin boshlanadi!</b>
 
-📌 <b>${quiz.title}</b>
-⚡ Hoziroq <a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring!`
+?뱦 <b>${quiz.title}</b>
+??Hoziroq <a href="https://bir-ilm.vercel.app">Bir Ilm</a> ga kiring!`
         );
         await supabase("quizzes", `?id=eq.${quiz.id}`, { notified_2m: true }, "PATCH");
         results.push(`2m notify: ${quiz.title}`);
       }
     }
 
-    // Vaqt keldi — quiz ochilsin (0 dan -2 daqiqa oralig'ida)
+    // Vaqt keldi ??quiz ochilsin (0 dan -2 daqiqa oralig'ida)
     if (diffMin <= 0 && diffMin > -2) {
       const alreadyStarted = quiz.notified_start === true;
       if (!alreadyStarted) {
         await sendBot(
-`🎯 <b>Quiz boshlandi!</b>
+`?렞 <b>Quiz boshlandi!</b>
 
-📌 <b>${quiz.title}</b>
+?뱦 <b>${quiz.title}</b>
 
-Hoziroq ishtirok eting 👇
+Hoziroq ishtirok eting ?몙
 <a href="https://bir-ilm.vercel.app">bir-ilm.vercel.app</a>`
         );
         await supabase("quizzes", `?id=eq.${quiz.id}`, { notified_start: true }, "PATCH");
@@ -107,3 +107,4 @@ Hoziroq ishtirok eting 👇
 
   return NextResponse.json({ ok: true, checked: quizzes.length, results });
 }
+
