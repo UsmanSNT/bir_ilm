@@ -149,10 +149,8 @@ export async function POST(req: NextRequest) {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
       });
       const admins = await res.json();
-      const list = admins.map((a: any) => (a.role === "super_admin" ? "* " : "- ") + a.username + " (" + (a.telegram_id || "ID yoq") + ")").join("
-");
-      await sendTelegram(chatId, `<b>Adminlar:</b>
-${list}`);
+      const list = admins.map((a: any) => (a.role === "super_admin" ? "* " : "- ") + a.username + " (" + (a.telegram_id || "ID yoq") + ")").join(", ");
+      await sendTelegram(chatId, "<b>Adminlar:</b> " + list);
       return NextResponse.json({ ok: true });
     }
 
