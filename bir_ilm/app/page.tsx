@@ -142,6 +142,7 @@ function HomeTab({ setTab, isAdmin }: { setTab: (t: Tab) => void; isAdmin: boole
 }
 
 function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: any; tgUser: any }) {
+  const isLoggedIn = !!tgUser || !!localUser;
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Quiz | null>(null);
@@ -205,8 +206,8 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 {(() => { const expired = q.end_time && new Date(q.end_time) < new Date(); return (
-                <button onClick={() => !expired && setActive(q)} style={{ flex: 1, backgroundColor: expired ? "#334155" : "#0f766e", color: expired ? "#64748b" : "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: expired ? "not-allowed" : "pointer" }}>
-                  {expired ? "🔒 Yopilgan" : "Boshlash →"}
+                <button onClick={() => { if (expired) return; if (!isLoggedIn) { window.location.href = "/login"; return; } setActive(q); }} style={{ flex: 1, backgroundColor: expired ? "#334155" : "#0f766e", color: expired ? "#64748b" : "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: expired ? "not-allowed" : "pointer" }}>
+                  {expired ? "🔒 Yopilgan" : isLoggedIn ? "Boshlash →" : "🔑 Kirish kerak"}
                 </button>
                 ); })()}
                 {isAdmin && (
