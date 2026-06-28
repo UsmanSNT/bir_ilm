@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const BOT_TOKEN = "8494041333:AAFdo8mMh6ISUeSyrpsvQDIARPUW8XnYWqU";
-const CHANNEL_ID = "@birilm1";
+const CHANNEL_ID = "@Abdujalilov_Avrangzeb";
 const SUPABASE_URL = "https://oynqygopnfowjylshuji.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95bnF5Z29wbmZvd2p5bHNodWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1ODA5NjMsImV4cCI6MjA4MDE1Njk2M30.ipNJx3jh_h8I_rqWy_sgddEsyvf8KkuOZ3th0GPVV5U";
 
@@ -83,7 +83,20 @@ export async function POST(req: NextRequest) {
     const userId = message.from?.id;
 
     if (text === "/start") {
-      await sendTelegram(chatId, "Salom! BIR ILM boti\n\n/post - Kanalga post yuborish\n/kitoblar - Kitoblar royxati\n/myid - Telegram ID\n/send_pending - Kutayotgan postlarni yuborish");
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `Salom, ${message.from?.first_name || "do'st"}! BIR ILM ga xush kelibsiz!\n\nBilimingizni sinab ko'ring va reytingda ko'taring!`,
+          parse_mode: "HTML",
+          reply_markup: {
+            inline_keyboard: [[
+              { text: "🎯 Quizni Boshlash", web_app: { url: "https://bir-ilm.vercel.app" } }
+            ]]
+          }
+        }),
+      });
       return NextResponse.json({ ok: true });
     }
 
