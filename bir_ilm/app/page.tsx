@@ -24,7 +24,7 @@ async function db(table: string, options: { method?: string; query?: string; bod
 }
 
 type Tab = "home" | "quiz" | "leaderboard";
-type Quiz = { id: number; title: string; description: string; type: string; is_active: boolean; created_at: string; time_per_question: number; max_questions: number };
+type Quiz = { id: number; title: string; description: string; type: string; is_active: boolean; created_at: string; time_per_question: number; max_questions: number; start_time?: string; end_time?: string };
 type Question = { id: number; quiz_id: number; question: string; option_a: string; option_b: string; option_c: string; option_d: string; correct_answer: string };
 type Result = { id: number; quiz_id: number; username: string; score: number; total: number; created_at: string };
 
@@ -55,8 +55,13 @@ export default function App() {
     if (typeof window !== "undefined") {
       const app = (window as any).Telegram?.WebApp;
       if (app) { app.ready(); app.expand(); }
-      setTgUser(getTgUser());
-      setLocalUser(getLocalUser());
+      const tg = getTgUser();
+      const local = getLocalUser();
+      setTgUser(tg);
+      setLocalUser(local);
+      if (!tg && !local) {
+        window.location.href = "/login";
+      }
     }
   }, []);
 
@@ -185,18 +190,25 @@ function QuizTab({ isAdmin, localUser, tgUser }: { isAdmin: boolean; localUser: 
               </div>
               <h3 style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9", margin: "0 0 6px" }}>{q.title}</h3>
               {q.description && <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 10px", lineHeight: 1.5 }}>{q.description}</p>}
-              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" as const }}>
                 <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
                   ⏱ {q.time_per_question || 30}s / savol
                 </span>
                 <span style={{ fontSize: 12, color: "#64748b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
                   📝 Max {q.max_questions || 10} ta savol
                 </span>
+                {q.end_time && (
+                  <span style={{ fontSize: 12, color: new Date(q.end_time) < new Date() ? "#f87171" : "#f59e0b", backgroundColor: "#0f172a", padding: "4px 10px", borderRadius: 6 }}>
+                    {new Date(q.end_time) < new Date() ? "🔒 Yopilgan" : "⏳ " + new Date(q.end_time).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) + " gacha"}
+                  </span>
+                )}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => setActive(q)} style={{ flex: 1, backgroundColor: "#0f766e", color: "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                  Boshlash →
+                {(() => { const expired = q.end_time && new Date(q.end_time) < new Date(); return (
+                <button onClick={() => !expired && setActive(q)} style={{ flex: 1, backgroundColor: expired ? "#334155" : "#0f766e", color: expired ? "#64748b" : "#fff", border: "none", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: expired ? "not-allowed" : "pointer" }}>
+                  {expired ? "🔒 Yopilgan" : "Boshlash →"}
                 </button>
+                ); })()}
                 {isAdmin && (
                   <button onClick={async () => { await db("quizzes", { method: "DELETE", query: `?id=eq.${q.id}` }); load(); }} style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
                     🗑
@@ -217,6 +229,7 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
   const [type, setType] = useState("Umumiy");
   const [timePerQ, setTimePerQ] = useState(30);
   const [maxQ, setMaxQ] = useState(10);
+  const [endTime, setEndTime] = useState("");
   const [questions, setQuestions] = useState([emptyQ()]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
@@ -237,7 +250,7 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
     setSaving(true);
     const quiz = await db("quizzes", {
       method: "POST",
-      body: { title, description, type, admin_id: localUser?.id, is_active: true, time_per_question: timePerQ, max_questions: maxQ },
+      body: { title, description, type, admin_id: localUser?.id, is_active: true, time_per_question: timePerQ, max_questions: maxQ, end_time: endTime ? new Date(endTime).toISOString() : null },
       headers: { "Prefer": "return=representation" }
     });
     const quizId = Array.isArray(quiz) ? quiz[0]?.id : quiz?.id;
@@ -277,6 +290,10 @@ function CreateQuiz({ onBack, localUser }: { onBack: () => void; localUser: any 
                 {[5, 8, 10, 12, 15, 20, 25, 30].map(n => <option key={n} value={n}>{n} ta</option>)}
               </select>
             </div>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 6, fontWeight: 600 }}>🔒 Quiz yopilish vaqti (ixtiyoriy)</label>
+            <input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} style={iStyle} />
           </div>
         </div>
       </div>
@@ -326,6 +343,7 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [finishedAt, setFinishedAt] = useState<Date | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const username = tgUser?.first_name || localUser?.username || "Mehmon";
   const timePerQ = quiz.time_per_question || 30;
@@ -370,6 +388,7 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
     questions.forEach((q, i) => { if (answers[i] === q.correct_answer) s++; });
     setScore(s);
     setFinished(true);
+    setFinishedAt(new Date());
     // Avval bu user bu quizni o'ynagan-o'ynamaganini tekshir
     const userId = localUser?.id || null;
     const tgId = tgUser?.id || null;
@@ -412,7 +431,8 @@ function PlayQuiz({ quiz, onBack, localUser, tgUser }: { quiz: Quiz; onBack: () 
         <div style={{ backgroundColor: "#1e293b", borderRadius: 20, padding: "40px 24px", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 16 }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>{emoji}</div>
           <h2 style={{ fontSize: 24, fontWeight: 900, color: "#f1f5f9", margin: "0 0 6px" }}>Quiz Tugadi!</h2>
-          <p style={{ color: "#94a3b8", margin: "0 0 28px", fontSize: 15 }}>{username}</p>
+          <p style={{ color: "#94a3b8", margin: "0 0 8px", fontSize: 15 }}>{username}</p>
+          {finishedAt && <p style={{ color: "#64748b", margin: "0 0 20px", fontSize: 12 }}>Tugatilgan: {finishedAt.toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}</p>}
           <div style={{ background: "linear-gradient(135deg, #0f766e, #0e7490)", borderRadius: 16, padding: "24px", marginBottom: 20 }}>
             <div style={{ fontSize: 52, fontWeight: 900, color: "#fff", lineHeight: 1 }}>{score}/{questions.length}</div>
             <div style={{ fontSize: 22, fontWeight: 700, color: "rgba(255,255,255,0.8)", marginTop: 4 }}>{pct}%</div>
